@@ -194,19 +194,19 @@ logic [`PACKET_ID_NBITS-1:0] lat_fifo_rep_enq_packet_id;
 logic [`FIRST_LVL_QUEUE_ID_NBITS-1:0] lat_fifo_rep_enq_qid;			
 enq_pkt_desc_type lat_fifo_rep_enq_desc;	
 
-logic en_intf_rd = 1 /*~policer[2]*/;
-logic intf_fifo_rd = ~intf_fifo_empty&en_intf_rd;
-logic intf_fifo_rd1 = ~intf_fifo_empty1&en_intf_rd;
-logic lat_fifo_wr0 = intf_fifo_rd;
+wire en_intf_rd = 1 /*~policer[2]*/;
+wire intf_fifo_rd = ~intf_fifo_empty&en_intf_rd;
+wire intf_fifo_rd1 = ~intf_fifo_empty1&en_intf_rd;
+wire lat_fifo_wr0 = intf_fifo_rd;
 
-logic [`PORT_ID_NBITS-1:0] src_port_id = lat_fifo_rep_enq_desc.src_port;
-logic [`BUF_PTR_NBITS-1:0] buf_ptr = lat_fifo_rep_enq_desc.buf_ptr;
-logic [`PACKET_LENGTH_NBITS-1:0] packet_length = lat_fifo_rep_enq_desc.ed_cmd.len;
-logic [`EM_BUF_PTR_NBITS-1:0] em_buf_ptr = lat_fifo_rep_enq_desc.ed_cmd.pd_buf_ptr;
-logic [LEN_NBITS-1:0] em_len = lat_fifo_rep_enq_desc.ed_cmd.pd_len;
+wire [`PORT_ID_NBITS-1:0] src_port_id = lat_fifo_rep_enq_desc.src_port;
+wire [`BUF_PTR_NBITS-1:0] buf_ptr = lat_fifo_rep_enq_desc.buf_ptr;
+wire [`PACKET_LENGTH_NBITS-1:0] packet_length = lat_fifo_rep_enq_desc.ed_cmd.len;
+wire [`EM_BUF_PTR_NBITS-1:0] em_buf_ptr = lat_fifo_rep_enq_desc.ed_cmd.pd_buf_ptr;
+wire [LEN_NBITS-1:0] em_len = lat_fifo_rep_enq_desc.ed_cmd.pd_len;
 
 logic lat_fifo_empty0;
-logic lat_fifo_rd0 = tm_asa_poll_ack_d1;
+wire lat_fifo_rd0 = tm_asa_poll_ack_d1;
 
 logic [`READ_COUNT_NBITS-1:0] lat_fifo_final_read_count;
 logic [`PORT_ID_NBITS-1:0] lat_fifo_src_port_id;
@@ -218,7 +218,7 @@ logic [`PACKET_ID_NBITS-1:0] lat_fifo_packet_id;
 logic lat_fifo_ucast;
 logic lat_fifo_empty3;
 
-logic lat_fifo_rd3 = ~discard_req_d1&~lat_fifo_empty3;
+wire lat_fifo_rd3 = ~discard_req_d1&~lat_fifo_empty3;
 
 logic [`SECOND_LVL_QUEUE_ID_NBITS-1:0] buf_tm_asa_poll_conn_id0;
 logic [`SECOND_LVL_QUEUE_ID_NBITS-1:0] buf_tm_asa_poll_conn_id1;
@@ -233,7 +233,7 @@ logic [`FIRST_LVL_QUEUE_ID_NBITS-1:0] buf_rep_enq_qid1;
 enq_pkt_desc_type buf_rep_enq_desc0;	
 enq_pkt_desc_type buf_rep_enq_desc1;	
 	
-logic [`PORT_ID_NBITS-1:0] enq_src_port_id = intf_fifo_rep_enq_desc.src_port;
+wire [`PORT_ID_NBITS-1:0] enq_src_port_id = intf_fifo_rep_enq_desc.src_port;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -278,41 +278,41 @@ always @(`CLK_RST)
 
 /***************************** PROGRAM BODY **********************************/
 
-logic final_copy = lat_fifo_rep_enq_ucast|lat_fifo_rep_enq_last;
+wire final_copy = lat_fifo_rep_enq_ucast|lat_fifo_rep_enq_last;
 
-logic tm_drop0 = tm_asa_poll_drop_d1|lat_fifo_rep_enq_drop;
+wire tm_drop0 = tm_asa_poll_drop_d1|lat_fifo_rep_enq_drop;
 
-logic [`READ_COUNT_NBITS-1:0] rc_ctr_rdata /* synthesis keep = 1 */;
+wire [`READ_COUNT_NBITS-1:0] rc_ctr_rdata /* synthesis keep = 1 */;
 
-logic [`PACKET_ID_NBITS-1:0] rc_ctr_raddr = lat_fifo_rep_enq_packet_id;
-logic [`PACKET_ID_NBITS-1:0] rc_ctr_waddr_p1 = lat_fifo_rep_enq_packet_id_d1;
+wire [`PACKET_ID_NBITS-1:0] rc_ctr_raddr = lat_fifo_rep_enq_packet_id;
+wire [`PACKET_ID_NBITS-1:0] rc_ctr_waddr_p1 = lat_fifo_rep_enq_packet_id_d1;
 
-logic rc_ctr_wr_p1 = lat_fifo_rd0_d2&~tm_drop_d2;
-logic rc_ctr_wr1_p1 = lat_fifo_rd01_d2&~tm_drop1_d2;
+wire rc_ctr_wr_p1 = lat_fifo_rd0_d2&~tm_drop_d2;
+wire rc_ctr_wr1_p1 = lat_fifo_rd01_d2&~tm_drop1_d2;
 
 logic [2:0] same_addr_p1;
 assign same_addr_p1[0] = (rc_ctr_waddr_p1==rc_ctr_waddr_p1)&rc_ctr_wr_p1;
 assign same_addr_p1[1] = (rc_ctr_waddr_p1==rc_ctr_waddr)&rc_ctr_wr;
 assign same_addr_p1[2] = (rc_ctr_waddr_p1==rc_ctr_waddr_d1)&rc_ctr_wr_d1;
 
-logic [`READ_COUNT_NBITS-1:0] mrc_ctr_rdata_p1 = same_addr_p1[1]?rc_ctr_wdata:rc_ctr_wdata_d1;
+wire [`READ_COUNT_NBITS-1:0] mrc_ctr_rdata_p1 = same_addr_p1[1]?rc_ctr_wdata:rc_ctr_wdata_d1;
 
-logic [`READ_COUNT_NBITS-1:0] mrc_ctr_rdata_d1 = same_addr0?rc_ctr_wdata:same_addr21?mrc_ctr_rdata:rc_ctr_rdata_d1;
+wire [`READ_COUNT_NBITS-1:0] mrc_ctr_rdata_d1 = same_addr0?rc_ctr_wdata:same_addr21?mrc_ctr_rdata:rc_ctr_rdata_d1;
 
-logic [`READ_COUNT_NBITS-1:0] final_read_count = mrc_ctr_rdata_d1+(tm_drop_d2?0:1);
-logic [`READ_COUNT_NBITS-1:0] rc_ctr_wdata_p1 = final_copy_d2?0:mrc_ctr_rdata_d1+1;
+wire [`READ_COUNT_NBITS-1:0] final_read_count = mrc_ctr_rdata_d1+(tm_drop_d2?0:1);
+wire [`READ_COUNT_NBITS-1:0] rc_ctr_wdata_p1 = final_copy_d2?0:mrc_ctr_rdata_d1+1;
 
-logic lat_fifo_wr3 = lat_fifo_rd02_d2&final_copy_d2;
+wire lat_fifo_wr3 = lat_fifo_rd02_d2&final_copy_d2;
 
-logic buf_fifo_wr0 = rc_ctr_wr_p1&lat_fifo_rep_enq_ucast_d2;
-logic buf_fifo_wr1 = rc_ctr_wr1_p1&~lat_fifo_rep_enq_ucast1_d2;
+wire buf_fifo_wr0 = rc_ctr_wr_p1&lat_fifo_rep_enq_ucast_d2;
+wire buf_fifo_wr1 = rc_ctr_wr1_p1&~lat_fifo_rep_enq_ucast1_d2;
 
-logic save_fifo_wr0 = lat_fifo_rd3&(lat_fifo_final_read_count!=0)&lat_fifo_ucast;
+wire save_fifo_wr0 = lat_fifo_rd3&(lat_fifo_final_read_count!=0)&lat_fifo_ucast;
 logic [`READ_COUNT_NBITS-1:0] save_fifo_final_read_count0;
 logic save_fifo_empty0;
 logic [`PACKET_ID_NBITS-1:0] save_fifo_packet_id0;
 
-logic save_fifo_wr1 = lat_fifo_rd3&(lat_fifo_final_read_count!=0)&~lat_fifo_ucast;
+wire save_fifo_wr1 = lat_fifo_rd3&(lat_fifo_final_read_count!=0)&~lat_fifo_ucast;
 logic [`READ_COUNT_NBITS-1:0] save_fifo_final_read_count1;
 logic save_fifo_empty1;
 logic [`PACKET_ID_NBITS-1:0] save_fifo_packet_id1;
@@ -320,18 +320,18 @@ logic [`PACKET_ID_NBITS-1:0] save_fifo_packet_id1;
 logic buf_fifo_empty0;
 logic buf_fifo_empty1;
 
-logic same_packet_id0 = (save_fifo_packet_id0==buf_rep_enq_packet_id0);
-logic en_rd0 = ~buf_fifo_empty0&~save_fifo_empty0&same_packet_id0;
-logic buf_fifo_rd0 = en_rd0;
+wire same_packet_id0 = (save_fifo_packet_id0==buf_rep_enq_packet_id0);
+wire en_rd0 = ~buf_fifo_empty0&~save_fifo_empty0&same_packet_id0;
+wire buf_fifo_rd0 = en_rd0;
 
-logic same_packet_id1 = (save_fifo_packet_id1==buf_rep_enq_packet_id1);
-logic buf_fifo_rd1 = ~en_rd0&~buf_fifo_empty1&~save_fifo_empty1&same_packet_id1;
+wire same_packet_id1 = (save_fifo_packet_id1==buf_rep_enq_packet_id1);
+wire buf_fifo_rd1 = ~en_rd0&~buf_fifo_empty1&~save_fifo_empty1&same_packet_id1;
 
-logic final_enq0 = enq_read_count0==save_fifo_final_read_count0;
-logic save_fifo_rd0 = buf_fifo_rd0&final_enq0;
+wire final_enq0 = enq_read_count0==save_fifo_final_read_count0;
+wire save_fifo_rd0 = buf_fifo_rd0&final_enq0;
 
-logic final_enq1 = enq_read_count1==save_fifo_final_read_count1;
-logic save_fifo_rd1 = buf_fifo_rd1&final_enq1;
+wire final_enq1 = enq_read_count1==save_fifo_final_read_count1;
+wire save_fifo_rd1 = buf_fifo_rd1&final_enq1;
 
 always @(posedge clk) begin
 		discard_buf_ptr_d1 <= discard_buf_ptr;
@@ -403,7 +403,7 @@ always @(posedge clk) begin
 		lat_fifo_rep_enq_ucast1_d2 <= lat_fifo_rep_enq_ucast_d1;	
 end
 
-logic fill_policer = ctr4!=3;
+wire fill_policer = ctr4!=3;
 
 always @(`CLK_RST) 
 	if (`ACTIVE_RESET) begin

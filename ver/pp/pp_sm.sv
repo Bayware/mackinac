@@ -74,26 +74,26 @@ logic pp_pu_fifo_eop;
 logic pp_pu_fifo_empty;
 logic pp_pu_pkt_fifo_empty;
 
-logic hop_fifo_rd0 = hop_fifo_rd&~rptr;
+wire hop_fifo_rd0 = hop_fifo_rd&~rptr;
 logic hop_fifo_empty0;
 logic [`HOP_INFO_RANGE] hop_fifo_rdata0;
-logic hop_fifo_rd1 = hop_fifo_rd&rptr;
+wire hop_fifo_rd1 = hop_fifo_rd&rptr;
 logic hop_fifo_empty1;
 logic [`HOP_INFO_RANGE] hop_fifo_rdata1;
 
-logic hop_fifo_empty = rptr?hop_fifo_empty1:hop_fifo_empty0;
-logic [`HOP_INFO_RANGE] hop_fifo_rdata = rptr?hop_fifo_rdata1:hop_fifo_rdata0;
-logic [`HOP_INFO_TYPE_RANGE] hop_fifo_type = hop_fifo_rdata[`HOP_INFO_TYPE];
-logic [`HOP_INFO_RCI_RANGE] hop_fifo_rci = hop_fifo_rdata[`HOP_INFO_RCI];
-logic [`HOP_INFO_BYTE_POINTER_RANGE] hop_fifo_byte_pointer = hop_fifo_rdata[`HOP_INFO_BYTE_POINTER];
-logic dummy_hop = hop_fifo_rci==0;
-logic initial_hop = hop_fifo_byte_pointer==`INITIAL_HOP;
+wire hop_fifo_empty = rptr?hop_fifo_empty1:hop_fifo_empty0;
+wire [`HOP_INFO_RANGE] hop_fifo_rdata = rptr?hop_fifo_rdata1:hop_fifo_rdata0;
+wire [`HOP_INFO_TYPE_RANGE] hop_fifo_type = hop_fifo_rdata[`HOP_INFO_TYPE];
+wire [`HOP_INFO_RCI_RANGE] hop_fifo_rci = hop_fifo_rdata[`HOP_INFO_RCI];
+wire [`HOP_INFO_BYTE_POINTER_RANGE] hop_fifo_byte_pointer = hop_fifo_rdata[`HOP_INFO_BYTE_POINTER];
+wire dummy_hop = hop_fifo_rci==0;
+wire initial_hop = hop_fifo_byte_pointer==`INITIAL_HOP;
 
 logic [`PP_META_RCI_RANGE] pp_meta_fifo_rci;
 
-logic pp_meta_fifo_rd = parse_done0|parse_done1;
+wire pp_meta_fifo_rd = parse_done0|parse_done1;
 
-logic pp_pu_fifo_rd = pp_pu_hop_valid&pu_pp_hop_ready;
+wire pp_pu_fifo_rd = pp_pu_hop_valid&pu_pp_hop_ready;
 
 /**************************************************************************/
 assign pp_pu_hop_valid = ~pp_pu_pkt_fifo_empty&~pp_pu_fifo_empty;
@@ -332,11 +332,11 @@ logic p_pp_pu_fifo_empty;
 logic p_pp_pu_fifo_eop;
 logic [`HOP_INFO_RANGE] p_pp_pu_hop_data;
 
-logic fifo_wr = ~p_pp_pu_fifo_empty&(p_pp_pu_fifo_eop|pp_pu_fifo_wr);
-logic fifo_eop = (pp_pu_fifo_eop&~pp_pu_fifo_valid)|(~p_pp_pu_fifo_empty&p_pp_pu_fifo_eop);
+wire fifo_wr = ~p_pp_pu_fifo_empty&(p_pp_pu_fifo_eop|pp_pu_fifo_wr);
+wire fifo_eop = (pp_pu_fifo_eop&~pp_pu_fifo_valid)|(~p_pp_pu_fifo_empty&p_pp_pu_fifo_eop);
 
-logic p_pp_pu_fifo_rd = fifo_wr;
-logic p_pp_pu_fifo_wr = pp_pu_fifo_wr&~(pp_pu_fifo_eop&~pp_pu_fifo_valid);
+wire p_pp_pu_fifo_rd = fifo_wr;
+wire p_pp_pu_fifo_wr = pp_pu_fifo_wr&~(pp_pu_fifo_eop&~pp_pu_fifo_valid);
 
 sfifo1f #(1+1+`HOP_INFO_NBITS) u_sfifo1f(
         .clk(clk),
@@ -368,9 +368,9 @@ sfifo2f_fo #(1+1+`HOP_INFO_NBITS, `PP_PU_FIFO_DEPTH_NBITS) u_sfifo2f_fo3(
         .dout({pp_pu_hop_sop, pp_pu_hop_eop, pp_pu_hop_data})       
     );
 
-logic p_pp_pu_fifo_error = pp_pu_fifo_wr&pp_pu_fifo_eop&~pp_pu_fifo_valid&pp_pu_fifo_error;
-logic error_fifo_wr = fifo_wr&fifo_eop;
-logic error_fifo_rd = pp_pu_fifo_rd&pp_pu_hop_eop;
+wire p_pp_pu_fifo_error = pp_pu_fifo_wr&pp_pu_fifo_eop&~pp_pu_fifo_valid&pp_pu_fifo_error;
+wire error_fifo_wr = fifo_wr&fifo_eop;
+wire error_fifo_rd = pp_pu_fifo_rd&pp_pu_hop_eop;
 
 sfifo2f_fo #(1, `PP_PU_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo4(
         .clk(clk),

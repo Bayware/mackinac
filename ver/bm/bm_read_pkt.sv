@@ -70,7 +70,7 @@ enq_pkt_desc_type buf_fifo_pkt_desc[`NUM_OF_PORTS-1:0];
 
 logic packet_buf_req_p1;
 			
-logic [`PORT_ID_NBITS-1:0] tm_bm_enq_dst_port_d1 = tm_bm_enq_pkt_desc_d1.dst_port;
+wire [`PORT_ID_NBITS-1:0] tm_bm_enq_dst_port_d1 = tm_bm_enq_pkt_desc_d1.dst_port;
 logic [`PACKET_LENGTH_NBITS-1:0] pre_buf_fifo_pkt_len[`NUM_OF_PORTS-1:0];
 logic [`PORT_ID_NBITS-1:0] pre_buf_fifo_src_port[`NUM_OF_PORTS-1:0];
 logic [`PORT_ID_NBITS-1:0] pre_buf_fifo_dst_port[`NUM_OF_PORTS-1:0];
@@ -154,10 +154,10 @@ logic [`BUF_PTR_LSB_NBITS-1:0] packet_req_lsb[`NUM_OF_PORTS-1:0];
 logic [`NUM_OF_PORTS-1:0] first_buf;
 
 logic [`NUM_OF_PORTS-1:0] sel_port;
-logic [`PORT_ID_NBITS-1:0] sel_port_id /* synthesis maxfan = 16 preserve */;
+wire [`PORT_ID_NBITS-1:0] sel_port_id /* synthesis maxfan = 16 preserve */;
 
 logic [`NUM_OF_PORTS-1:0] data_sel_port;
-logic [`PORT_ID_NBITS-1:0] data_sel_port_id /* synthesis maxfan = 16 preserve */;
+wire [`PORT_ID_NBITS-1:0] data_sel_port_id /* synthesis maxfan = 16 preserve */;
 
 logic [`PORT_ID_NBITS-1:0] save_fifo_sel_port_id;
 

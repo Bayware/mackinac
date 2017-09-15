@@ -114,7 +114,7 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
-	fifo_reset <= 1'b1;
+	fifo_reset <= `ACTIVE_RESET_LEVEL;
         pu_buf_req_d1 <= 0;
         pu_buf_req_d2 <= 0;
         rel_buf_valid_d1 <= 0;
@@ -122,7 +122,7 @@ always @(`CLK_RST)
         fifo_rd_d1 <= 0;
         prefetch_fifo_rd <= 0;
     end else begin
-	fifo_reset <= (nxt_init_st==RESET_FREEB);
+	fifo_reset <= (nxt_init_st==RESET_FREEB)?`ACTIVE_RESET_LEVEL:`INACTIVE_RESET_LEVEL;
         pu_buf_req_d1 <= pu_buf_req;
         pu_buf_req_d2 <= pu_buf_req_d1;
         rel_buf_valid_d1 <= rel_buf_valid;
@@ -191,13 +191,6 @@ sfifo2f_fo #(BPTR_NBITS, 2) sfifo2f_fo_inst(
 /***************************** DIAGNOSTICS **********************************/
 
 // synopsys translate_off
-
-always @(posedge pu_buf_valid) 
-    if (`INACTIVE_RESET) #1 $display (" %t : Fetched Free Buffer=%0d \n", 
-                    $realtime, pu_buf_ptr[BPTR_NBITS-1:0]); 
-always @(posedge rel_buf_valid_d1)
-        if (`INACTIVE_RESET) #1 $display (" %t : Released Free Buffer=%0d \n",
-                                        $realtime, rel_buf_ptr_d1);
 
 // synopsys translate_on
 

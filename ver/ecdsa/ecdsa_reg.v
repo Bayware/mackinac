@@ -30,6 +30,7 @@ output reg [`REAL_TIME_NBITS-1:0]  default_exp_time
 );
 
 /***************************** LOCAL VARIABLES *******************************/
+reg reg_rd_d1;
 
 reg n_pio_ack;
 reg n_pio_rvalid;
@@ -37,6 +38,8 @@ reg n_pio_rvalid;
 reg sel_default_exp_time;
 
 wire wr_default_exp_time = reg_wr&reg_bs&sel_default_exp_time;
+
+wire rd_en = reg_rd|reg_rd_d1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -63,8 +66,8 @@ always @(`CLK_RST) begin
 
 		default_exp_time <= {(`REAL_TIME_NBITS){1'b0}};
 	end else begin
-		pio_ack <= clk_div?n_pio_ack:pio_ack;
-		pio_rvalid <= clk_div?n_pio_rvalid:pio_rvalid;
+		pio_ack <= clk_div?n_pio_ack&~rd_en:pio_ack;
+		pio_rvalid <= clk_div?n_pio_rvalid&reg_bs&rd_en&n_pio_ack:pio_rvalid;
 
 		default_exp_time <= wr_default_exp_time?reg_din[`REAL_TIME_NBITS-1:0]:default_exp_time;
 	end
@@ -75,8 +78,10 @@ end
 always @(`CLK_RST) begin
 	if(`ACTIVE_RESET) begin
 		n_pio_ack <= 1'b0;
+		reg_rd_d1 <= 1'b0;
 	end else begin
-		n_pio_ack <= (reg_rd|reg_wr)?1'b1:clk_div?1'b0:n_pio_ack;
+		n_pio_ack <= (reg_rd|reg_wr)&reg_bs?1'b1:clk_div?1'b0:n_pio_ack;
+		reg_rd_d1 <= reg_rd?reg_bs:pio_rvalid?1'b0:reg_rd_d1;
 	end
 end
 

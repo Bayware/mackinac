@@ -43,7 +43,7 @@ logic [NUM_OF_PU-1:0] in_fifo_wr;
 logic [NUM_OF_PU-1:0] in_fifo_rd;
 logic [NUM_OF_PU-1:0] in_fifo_empty;
 
-logic [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd;
+wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel;
 logic arb_rd_gnt;
 
@@ -75,8 +75,8 @@ always @(posedge clk)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1)  
 		io_cmd_d1[i] <= io_req[i]?io_cmd[i]:io_cmd_d1[i];
 
-logic switch_info_rd = arb_rd_gnt;
-logic [DEPTH_NBITS-1:0] switch_info_raddr = {io_cmd_d1[arb_rd_sel].fid, io_cmd_d1[arb_rd_sel].addr[DEPTH_NBITS-1:0]};
+wire switch_info_rd = arb_rd_gnt;
+wire [DEPTH_NBITS-1:0] switch_info_raddr = {io_cmd_d1[arb_rd_sel].fid, io_cmd_d1[arb_rd_sel].addr[DEPTH_NBITS-1:0]};
 
 genvar gi;
 

@@ -49,7 +49,7 @@ output logic [`REAL_TIME_NBITS-1:0] current_time
 
 /***************************** LOCAL VARIABLES *******************************/
 
-integer i;
+integer i, j;
 
 logic [`TIME_BASE_NBITS-1:0] time_base;
 
@@ -60,71 +60,76 @@ logic         pio_rw_axi;
 logic [`PIO_RANGE] pio_addr_axi;
 logic [`PIO_RANGE] pio_wdata_axi;
 
-logic [3:0] sel_ack[`NUM_OF_PIO]; 
-logic [3:0] sel_id[`NUM_OF_PIO]; 
+logic [3:0] sel_ack[`NUM_OF_PIO:0]; 
+logic [3:0] sel_id[`NUM_OF_PIO:0]; 
+
+logic [`PIO_RANGE] lat_pio_rdata[`NUM_OF_PIO-1:0];
+logic [`NUM_OF_PIO-1:0] lat_pio_ack;
+logic [`NUM_OF_PIO-1:0] lat_pio_rvalid; 
 
 logic [`PIO_RANGE] latch_pio_rdata;
-logic latch_pio_ack; 
-logic l_pio_ack_d1; 
+logic latch_pio_ack;
 logic latch_pio_rvalid; 
+
+logic l_pio_ack_d1; 
 logic l_pio_rvalid_d1; 
 
 logic waddr_fifo_full;
 logic waddr_fifo_empty;
 logic [`PIO_RANGE] waddr_fifo_data;
 
-logic waddr_fifo_wr = m_axil_awvalid&m_axil_awready;
+wire waddr_fifo_wr = m_axil_awvalid&m_axil_awready;
 
 logic wdata_fifo_full;
 logic wdata_fifo_empty;
 logic [`PIO_RANGE] wdata_fifo_data;
 
-logic wdata_fifo_wr = m_axil_wstrb&m_axil_wvalid&m_axil_wready;
+wire wdata_fifo_wr = m_axil_wstrb&m_axil_wvalid&m_axil_wready;
 
 logic raddr_fifo_full;
 logic raddr_fifo_empty;
 logic [`PIO_RANGE] raddr_fifo_data;
 
-logic raddr_fifo_wr = m_axil_arvalid&m_axil_arready;
+wire raddr_fifo_wr = m_axil_arvalid&m_axil_arready;
 
 logic wr_start;
 
-logic rd_start = ~raddr_fifo_empty&~wr_start;
+wire rd_start = ~raddr_fifo_empty&~wr_start;
 
-logic raddr_fifo_rd = rd_start;
+wire raddr_fifo_rd = rd_start;
 
 assign wr_start = ~waddr_fifo_empty&~wdata_fifo_empty&~rd_start;
 
-logic waddr_fifo_rd = wr_start;
-logic wdata_fifo_rd = wr_start;
+wire waddr_fifo_rd = wr_start;
+wire wdata_fifo_rd = wr_start;
 
 logic rdata_fifo_full;
 logic rdata_fifo_empty;
 logic [`PIO_RANGE] rdata_fifo_data;
 
-logic rdata_fifo_wr_clk = latch_pio_rvalid|l_pio_rvalid_d1;
+wire rdata_fifo_wr_clk = latch_pio_rvalid|l_pio_rvalid_d1;
 logic pio_rvalid_axi;
 logic pio_rvalid_axi_d1;
-logic rdata_fifo_wr = pio_rvalid_axi&~pio_rvalid_axi_d1;
+wire rdata_fifo_wr = pio_rvalid_axi&~pio_rvalid_axi_d1;
 
-logic rdata_fifo_rd = m_axil_rvalid&m_axil_rready;
+wire rdata_fifo_rd = m_axil_rvalid&m_axil_rready;
 
 logic wresp_fifo_full;
 logic wresp_fifo_empty;
 
-logic wresp_fifo_wr_clk = latch_pio_ack|l_pio_ack_d1;
+wire wresp_fifo_wr_clk = latch_pio_ack|l_pio_ack_d1;
 logic pio_ack_axi;
 logic pio_ack_axi_d1;
-logic wresp_fifo_wr = pio_ack_axi&~pio_ack_axi_d1;
+wire wresp_fifo_wr = pio_ack_axi&~pio_ack_axi_d1;
 
-logic wresp_fifo_rd = m_axil_bvalid&m_axil_bready;
+wire wresp_fifo_rd = m_axil_bvalid&m_axil_bready;
 
 logic start;
 logic start_d1;
 logic start_d2;
 
-logic pio_start1_p1 = start&~start_d1;
-logic pio_start1_p2 = start_d1&~start_d2&pio_rw_axi;
+wire pio_start1_p1 = start&~start_d1;
+wire pio_start1_p2 = start_d1&~start_d2&pio_rw_axi;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -161,20 +166,25 @@ synchronizer u_synchronizer_3(.clk(clk), .din(pio_start_axi), .dout(start));
 
 
 always @(*) begin
-	 sel_ack[0] = 0;
-	 sel_id[0] = 0;
+	sel_ack[0] = 0;
+	sel_id[0] = 0;
 	for(i=0; i<`NUM_OF_PIO; i++) begin
-		sel_ack[i+1] = pio_ack[i]?i:sel_ack[i];
-		sel_id[i+1] = pio_rvalid[i]?i:sel_id[i];
+		sel_ack[i+1] = lat_pio_ack[i]?i:sel_ack[i];
+		sel_id[i+1] = lat_pio_rvalid[i]?i:sel_id[i];
 	end
 end
 
 always @(posedge clk) begin
-	latch_pio_rdata <= clk_div[sel_id[`NUM_OF_PIO]]?pio_rdata[sel_id[`NUM_OF_PIO]]:latch_pio_rdata;
+
+	for(i=0; i<`NUM_OF_PIO; i++) 
+		lat_pio_rdata[i] <= clk_div[i]&pio_rvalid[i]?pio_rdata[i]:lat_pio_rdata[i];
+	latch_pio_rdata <= lat_pio_rvalid[sel_id[`NUM_OF_PIO]]?lat_pio_rdata[sel_id[`NUM_OF_PIO]]:latch_pio_rdata;
 end
 
 always @(`CLK_RST) begin
 	if(`ACTIVE_RESET) begin
+		lat_pio_ack <= 0;
+		lat_pio_rvalid <= 0;
 		time_base <= 0;
 		latch_pio_ack <= 0;
 		l_pio_ack_d1 <= 0;
@@ -183,10 +193,14 @@ always @(`CLK_RST) begin
 		start_d1 <= 0;
 		start_d2 <= 0;
 	end else begin
+		for(i=0; i<`NUM_OF_PIO; i++) begin
+			lat_pio_ack[i] <= clk_div[i]?pio_ack[i]:lat_pio_ack[i];
+			lat_pio_rvalid[i] <= clk_div[i]?pio_rvalid[i]:lat_pio_rvalid[i];
+		end
 		time_base <= time_base+1;
-		latch_pio_ack <= clk_div[sel_ack[`NUM_OF_PIO]]?pio_ack[sel_ack[`NUM_OF_PIO]]:latch_pio_ack;
+		latch_pio_ack <= lat_pio_ack[sel_ack[`NUM_OF_PIO]];
 		l_pio_ack_d1 <= latch_pio_ack;
-		latch_pio_rvalid <= clk_div[sel_id[`NUM_OF_PIO]]?pio_rvalid[sel_id[`NUM_OF_PIO]]:latch_pio_rvalid;
+		latch_pio_rvalid <= lat_pio_rvalid[sel_id[`NUM_OF_PIO]];
 		l_pio_rvalid_d1 <= latch_pio_rvalid;
 		start_d1 <= start;
 		start_d2 <= start_d1;

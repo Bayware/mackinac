@@ -96,7 +96,8 @@ output logic aggr_bm_sop
 
 );
 
-localparam PREFETCH_FIFO_DEPTH_NBITS = 3;
+localparam PREFETCH_FIFO_DEPTH_NBITS = 4;
+localparam PREFETCH_FIFO_NEAR_FULL = (1<<PREFETCH_FIFO_DEPTH_NBITS)-2;
 localparam DISCARD_FIFO_DEPTH_NBITS = 5;
 localparam BUF_FIFO_DEPTH_NBITS = 5;
 localparam BUF_FIFO_XON_LEVEL = 10;
@@ -132,19 +133,20 @@ logic [1:0] rot_cnt3_d2 /* synthesis maxfan = 16 preserve */;
 logic [1:0] rot_cnt4_d2 /* synthesis maxfan = 16 preserve */;
 logic [1:0] rot_cnt5_d2 /* synthesis maxfan = 16 preserve */;
 
-logic [`NUM_OF_PORTS-1:0] wr_sel_port_d1;
-logic [`NUM_OF_PORTS-1:0] wr_sel_port_d2;
+logic [`NUM_OF_PORTS-1:2] wr_sel_port_d1;
+logic [`NUM_OF_PORTS-1:2] wr_sel_port_d2;
+logic [`NUM_OF_PORTS-1:2] wr_sel_port_d3;
 logic [`PORT_ID_RANGE] wr_sel_port_id_d1;
 
 logic [`NUM_OF_PORTS-1:0] port_rf_wr_ctr;
 
-logic [1:0] port_rf_wr_cnt0;
-logic [1:0] port_rf_wr_cnt1;
-logic [1:0] port_rf_wr_cnt2;
-logic [1:0] port_rf_wr_cnt3;
-logic [1:0] port_rf_wr_cnt4;
-logic [1:0] port_rf_wr_cnt5;
-logic [1:0] port_rf_wr_cnt6;
+logic [3:0] port_rf_wr_cnt0;
+logic [3:0] port_rf_wr_cnt1;
+logic [3:0] port_rf_wr_cnt2;
+logic [3:0] port_rf_wr_cnt3;
+logic [3:0] port_rf_wr_cnt4;
+logic [3:0] port_rf_wr_cnt5;
+logic [3:0] port_rf_wr_cnt6;
 
 logic [1:0] port_rf_wr_seq0;
 logic [1:0] port_rf_wr_seq1;
@@ -242,7 +244,7 @@ logic [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes_in4;
 logic [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes_in5;
 logic [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes_in6;
 
-logic [`NUM_OF_PORTS-1:0] dec_aggr_bus_sop;
+logic [`NUM_OF_PORTS-1:0] header_en;
 
 logic sel_event_fifo_error_d1;
 logic sel_event_fifo_bad_packet;
@@ -302,15 +304,8 @@ logic [NUM_PKTS_NBITS-1:0] port_parser_header_wr_ctr4;
 logic [NUM_PKTS_NBITS-1:0] port_parser_header_wr_ctr5;
 logic [NUM_PKTS_NBITS-1:0] port_parser_header_wr_ctr6;
 
-logic parser_header_register_wr_p2;
-logic [HDR_REG_DEPTH_NBITS-1:0] parser_header_register_waddr_p2;
-logic [`DATA_PATH_NBITS-1:0] parser_header_register_wdata_p2;
-
 logic parser_header_register_wr_p1;
-
 logic parser_header_register_wr;
-logic [HDR_REG_DEPTH_NBITS-1:0] parser_header_register_waddr;
-logic [`DATA_PATH_NBITS-1:0] parser_header_register_wdata;
 
 
 logic [1:0] clk_div4;
@@ -336,24 +331,21 @@ logic [NUM_PKTS_NBITS:0] eop_event4;
 logic [NUM_PKTS_NBITS:0] eop_event5;
 logic [NUM_PKTS_NBITS:0] eop_event6;
 
+logic parser_header_idle;
+logic parser_header_idle_d1;
+logic parser_header_idle_d2;
 logic parser_header_rd;
 logic parser_header_rd_d1;
 logic parser_header_rd_d2;
-logic parser_header_rd_d3;
-logic parser_header_rd_d4;
 
 logic [`HEADER_LENGTH_RANGE] parser_header_rd_len;
 logic [`HEADER_LENGTH_RANGE] parser_header_rd_cnt;
 logic [`HEADER_LENGTH_RANGE] parser_header_rd_cnt_d1;
 logic [`HEADER_LENGTH_RANGE] parser_header_rd_cnt_d2;
-logic [`HEADER_LENGTH_RANGE] parser_header_rd_cnt_d3;
-logic [`HEADER_LENGTH_RANGE] parser_header_rd_cnt_d4;
 
 logic [`PORT_ID_RANGE] sel_parser_port_id_d1;
 logic [`PORT_ID_RANGE] sel_parser_port_id_d2;
 logic [`PORT_ID_RANGE] sel_parser_port_id_d3;
-logic [`PORT_ID_RANGE] sel_parser_port_id_d4;
-logic [`PORT_ID_RANGE] sel_parser_port_id_d5;
 
 logic [NUM_PKTS_NBITS-1:0] sel_port_parser_meta_wr_ctr_d1;
 logic [NUM_PKTS_NBITS-1:0] sel_port_parser_meta_wr_ctr_d2;
@@ -365,7 +357,7 @@ logic [NUM_PKTS_NBITS-1:0] sel_port_parser_header_wr_ctr_d3;
 
 logic sel_port_buf_not_available_st_d1;
 
-logic [`NUM_OF_PORTS-1:0] parser_header_rd_trig;
+logic parser_header_rd_trig;
 
 logic sel_event_fifo_sop_d1;
 logic sel_event_fifo_sop_d2;
@@ -377,6 +369,7 @@ logic [`BUF_PTR_RANGE] prefetch_fifo_buf_pointer_d1;
 logic [`BUF_PTR_RANGE] prefetch_fifo_buf_pointer_d2;
 
 logic [`PORT_ID_RANGE] wr_port_id;
+logic [`PORT_ID_RANGE] wr_port_id_d1;
 
 logic [3:0] hold_register_wr;
 logic [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr0;
@@ -395,7 +388,7 @@ logic [`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3-1:0] meta_data_register_rdata
 
 integer i;
 
-logic aggr_bm_buf_req_p1 = prefetch_fifo_count!=((1<<PREFETCH_FIFO_DEPTH_NBITS)-1);
+wire aggr_bm_buf_req_p1 = prefetch_fifo_count<=PREFETCH_FIFO_NEAR_FULL;
 
 logic [1:0] rot_cnt;
 logic [`NUM_OF_PORTS-1:0] wr_sel_port;
@@ -438,8 +431,8 @@ logic [`RCI_NBITS-1:0] buf_fifo_rci3;
 logic [`RCI_NBITS-1:0] buf_fifo_rci4;
 logic [`RCI_NBITS-1:0] buf_fifo_rci5;
 
-logic [`PORT_BUS_RANGE] buf_fifo_packet_data2_m = buf_fifo_rd[2]?buf_fifo_packet_data2:buf_fifo_packet_data3;
-logic [`PORT_BUS_RANGE] buf_fifo_packet_data3_m = buf_fifo_rd[4]?buf_fifo_packet_data4:buf_fifo_rd[5]?buf_fifo_packet_data5:buf_fifo_packet_data6;
+wire [`PORT_BUS_RANGE] buf_fifo_packet_data2_m = buf_fifo_rd[2]?buf_fifo_packet_data2:buf_fifo_packet_data3;
+wire [`PORT_BUS_RANGE] buf_fifo_packet_data3_m = buf_fifo_rd[4]?buf_fifo_packet_data4:buf_fifo_rd[5]?buf_fifo_packet_data5:buf_fifo_packet_data6;
 
 logic [`NUM_OF_PORTS-1:0] rd_sel_port;
 logic [`PORT_ID_RANGE] rd_sel_port_id;
@@ -447,7 +440,6 @@ logic [`PORT_ID_RANGE] rd_sel_port_id;
 logic [`NUM_OF_PORTS-1:0] port_buf_available;
 
 logic prefetch_fifo_empty;
-logic [PREFETCH_FIFO_DEPTH_NBITS:0] prefetch_fifo_depth;
 logic [`BUF_PTR_RANGE] prefetch_fifo_buf_pointer;
 
 logic [`NUM_OF_PORTS-1:0] event_fifo_full;
@@ -471,19 +463,35 @@ logic [`RCI_NBITS-1:0] event_fifo_rci3;
 logic [`RCI_NBITS-1:0] event_fifo_rci4;
 logic [`RCI_NBITS-1:0] event_fifo_rci5;
 
+wire [`PORT_BUS_VB_NBITS:0] mbuf_fifo_valid_bytes0 = ~|buf_fifo_valid_bytes0?{1'b1, buf_fifo_valid_bytes0}:buf_fifo_valid_bytes0;
+wire [`PORT_BUS_VB_NBITS:0] mbuf_fifo_valid_bytes1 = ~|buf_fifo_valid_bytes1?{1'b1, buf_fifo_valid_bytes1}:buf_fifo_valid_bytes1;
+wire [`PORT_BUS_VB_NBITS:0] mbuf_fifo_valid_bytes2 = ~|buf_fifo_valid_bytes2?{1'b1, buf_fifo_valid_bytes2}:buf_fifo_valid_bytes2;
+wire [`PORT_BUS_VB_NBITS:0] mbuf_fifo_valid_bytes3 = ~|buf_fifo_valid_bytes3?{1'b1, buf_fifo_valid_bytes3}:buf_fifo_valid_bytes3;
+wire [`PORT_BUS_VB_NBITS:0] mbuf_fifo_valid_bytes4 = ~|buf_fifo_valid_bytes4?{1'b1, buf_fifo_valid_bytes4}:buf_fifo_valid_bytes4;
+wire [`PORT_BUS_VB_NBITS:0] mbuf_fifo_valid_bytes5 = ~|buf_fifo_valid_bytes5?{1'b1, buf_fifo_valid_bytes5}:buf_fifo_valid_bytes5;
+wire [`PORT_BUS_VB_NBITS:0] mbuf_fifo_valid_bytes6 = ~|buf_fifo_valid_bytes6?{1'b1, buf_fifo_valid_bytes6}:buf_fifo_valid_bytes6;
 
-logic prefetch_fifo_rd = |port_prefetch_fifo_rd;
-
-logic [`PORT_ID_RANGE] wr_port_id_p1 = wr_sel_port_id_d1;
-logic [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr0_p1 = {wr_port_id, port_rf_wr_ctr[wr_port_id]};
-logic [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr1 = hold_register_waddr0_d1;
-logic [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr2 = hold_register_waddr1_d1;
-logic [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr3 = hold_register_waddr2_d1;
-
-logic [3:0] hold_register_wr_p1 = aggr_rot({|buf_fifo_rd[6:4], |buf_fifo_rd[3:2], buf_fifo_rd[1:0]}, rot_cnt_d2);
+wire [`DATA_PATH_VB_NBITS:0] mevent_fifo_valid_bytes0 = ~|event_fifo_valid_bytes0?{1'b1, event_fifo_valid_bytes0}:event_fifo_valid_bytes0;
+wire [`DATA_PATH_VB_NBITS:0] mevent_fifo_valid_bytes1 = ~|event_fifo_valid_bytes1?{1'b1, event_fifo_valid_bytes1}:event_fifo_valid_bytes1;
+wire [`DATA_PATH_VB_NBITS:0] mevent_fifo_valid_bytes2 = ~|event_fifo_valid_bytes2?{1'b1, event_fifo_valid_bytes2}:event_fifo_valid_bytes2;
+wire [`DATA_PATH_VB_NBITS:0] mevent_fifo_valid_bytes3 = ~|event_fifo_valid_bytes3?{1'b1, event_fifo_valid_bytes3}:event_fifo_valid_bytes3;
+wire [`DATA_PATH_VB_NBITS:0] mevent_fifo_valid_bytes4 = ~|event_fifo_valid_bytes4?{1'b1, event_fifo_valid_bytes4}:event_fifo_valid_bytes4;
+wire [`DATA_PATH_VB_NBITS:0] mevent_fifo_valid_bytes5 = ~|event_fifo_valid_bytes5?{1'b1, event_fifo_valid_bytes5}:event_fifo_valid_bytes5;
+wire [`DATA_PATH_VB_NBITS:0] mevent_fifo_valid_bytes6 = ~|event_fifo_valid_bytes6?{1'b1, event_fifo_valid_bytes6}:event_fifo_valid_bytes6;
 
 
-logic [`DATA_PATH_RANGE] hold_register_wdata_p1 = rot_data;
+wire prefetch_fifo_rd = |port_prefetch_fifo_rd;
+
+wire [`PORT_ID_RANGE] wr_port_id_p1 = wr_sel_port_id_d1;
+wire [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr0_p1 = {wr_port_id_d1, port_rf_wr_ctr[wr_port_id_d1]};
+wire [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr1 = hold_register_waddr0_d1;
+wire [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr2 = hold_register_waddr1_d1;
+wire [(`PORT_ID_NBITS+1)-1:0] hold_register_waddr3 = hold_register_waddr2_d1;
+
+wire [3:0] hold_register_wr_p1 = aggr_rot({|buf_fifo_rd[6:4], |buf_fifo_rd[3:2], buf_fifo_rd[1:0]}, rot_cnt_d2);
+
+
+wire [`DATA_PATH_RANGE] hold_register_wdata_p1 = rot_data;
 logic [`DATA_PATH_RANGE] hold_register_rdata;
 
 logic [`NUM_OF_PORTS-1:0] port_rf_wr_seq_first;
@@ -506,18 +514,18 @@ assign port_rf_wr_seq_last[6] = port_rf_wr_seq6==`DATA_PATH_PORT_BUS_RATIO-1;
 
 //
 
-logic prefetch_fifo_available = ~prefetch_fifo_empty;
+wire prefetch_fifo_available = ~prefetch_fifo_empty;
 
-logic [(`PORT_ID_NBITS+1)-1:0] hold_register_raddr = {rd_sel_port_id_d1, sel_port_rf_rd_ctr_d1};
+wire [(`PORT_ID_NBITS+1)-1:0] hold_register_raddr = {rd_sel_port_id_d1, sel_port_rf_rd_ctr_d1};
 
 logic [`NUM_OF_PORTS-1:0] port_event_fifo_rd_seq_last;
-assign port_event_fifo_rd_seq_last[0] = port_event_fifo_rd_seq0>=hdr_len_fifo_rdata0;
-assign port_event_fifo_rd_seq_last[1] = port_event_fifo_rd_seq1>=hdr_len_fifo_rdata1;
-assign port_event_fifo_rd_seq_last[2] = port_event_fifo_rd_seq2>=hdr_len_fifo_rdata2;
-assign port_event_fifo_rd_seq_last[3] = port_event_fifo_rd_seq3>=hdr_len_fifo_rdata3;
-assign port_event_fifo_rd_seq_last[4] = port_event_fifo_rd_seq4>=hdr_len_fifo_rdata4;
-assign port_event_fifo_rd_seq_last[5] = port_event_fifo_rd_seq5>=hdr_len_fifo_rdata5;
-assign port_event_fifo_rd_seq_last[6] = port_event_fifo_rd_seq6>=hdr_len_fifo_rdata6;
+assign port_event_fifo_rd_seq_last[0] = port_event_fifo_rd_seq0>=hdr_len_fifo_rdata0&port_event_fifo_rd_seq0>=2;
+assign port_event_fifo_rd_seq_last[1] = port_event_fifo_rd_seq1>=hdr_len_fifo_rdata1&port_event_fifo_rd_seq1>=2;
+assign port_event_fifo_rd_seq_last[2] = port_event_fifo_rd_seq2>=hdr_len_fifo_rdata2&port_event_fifo_rd_seq2>=2;
+assign port_event_fifo_rd_seq_last[3] = port_event_fifo_rd_seq3>=hdr_len_fifo_rdata3&port_event_fifo_rd_seq3>=2;
+assign port_event_fifo_rd_seq_last[4] = port_event_fifo_rd_seq4>=hdr_len_fifo_rdata4&port_event_fifo_rd_seq4>=2;
+assign port_event_fifo_rd_seq_last[5] = port_event_fifo_rd_seq5>=hdr_len_fifo_rdata5&port_event_fifo_rd_seq5>=2;
+assign port_event_fifo_rd_seq_last[6] = port_event_fifo_rd_seq6>=hdr_len_fifo_rdata6&port_event_fifo_rd_seq6>=2;
 
 
 logic [`NUM_OF_PORTS-1:0] port_event_fifo_rd_seq_buf_en;
@@ -529,13 +537,13 @@ assign port_event_fifo_rd_seq_buf_en[4] = port_event_fifo_rd_seq4[1:0]==0;
 assign port_event_fifo_rd_seq_buf_en[5] = port_event_fifo_rd_seq5[1:0]==0;
 assign port_event_fifo_rd_seq_buf_en[6] = port_event_fifo_rd_seq6[1:0]==0;
 
-logic [`PORT_ID_NBITS+NUM_PKTS_NBITS-1:0] buf_ptr_register_waddr = {rd_sel_port_id_d2, sel_port_parser_meta_wr_ctr_d2};
-logic [`BUF_PTR_RANGE] buf_ptr_register_wdata = prefetch_fifo_buf_pointer_d2;
+wire [`PORT_ID_NBITS+NUM_PKTS_NBITS-1:0] buf_ptr_register_waddr = {rd_sel_port_id_d2, sel_port_parser_meta_wr_ctr_d2};
+wire [`BUF_PTR_RANGE] buf_ptr_register_wdata = prefetch_fifo_buf_pointer_d2;
 
-logic [`PORT_ID_NBITS+NUM_PKTS_NBITS-1:0] meta_data_register_waddr = buf_ptr_register_waddr;
-logic sel_port_buf_not_available_st = port_buf_not_available_st[rd_sel_port_id_d1];
-logic len_neq_0 = ~(sel_packet_length_d1==0);
-logic [`RCI_NBITS+`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3-1:0] meta_data_register_wdata = {sel_port_event_fifo_rci_d1, sel_hdr_length_d1, sel_packet_length_d1, len_neq_0, sel_event_fifo_bad_packet, sel_port_buf_not_available_st_d1};
+wire [`PORT_ID_NBITS+NUM_PKTS_NBITS-1:0] meta_data_register_waddr = buf_ptr_register_waddr;
+wire sel_port_buf_not_available_st = port_buf_not_available_st[rd_sel_port_id_d1];
+wire len_neq_0 = ~(sel_packet_length_d1==0);
+wire [`RCI_NBITS+`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3-1:0] meta_data_register_wdata = {sel_port_event_fifo_rci_d1, sel_hdr_length_d1, sel_packet_length_d1, len_neq_0, sel_event_fifo_bad_packet, sel_port_buf_not_available_st_d1};
 
 logic [`PORT_ID_RANGE] sel_parser_port_id;
 
@@ -549,21 +557,21 @@ assign eop_event_empty[5] = eop_event5==0;
 assign eop_event_empty[6] = eop_event6==0;
 
 logic [`RCI_NBITS+`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3-1:0] meta_data_register_rdata;
-logic [`PORT_ID_NBITS+NUM_PKTS_NBITS-1:0] meta_data_register_raddr = {sel_parser_port_id_d2, sel_port_parser_header_rd_ctr_d1};
+wire [`PORT_ID_NBITS+NUM_PKTS_NBITS-1:0] meta_data_register_raddr = {sel_parser_port_id_d2, sel_port_parser_header_rd_ctr_d1};
 
 logic [`BUF_PTR_RANGE] buf_ptr_register_rdata;
-logic [`PORT_ID_NBITS+NUM_PKTS_NBITS-1:0] buf_ptr_register_raddr = meta_data_register_raddr;
+wire [`PORT_ID_NBITS+NUM_PKTS_NBITS-1:0] buf_ptr_register_raddr = meta_data_register_raddr;
 
 logic [`DATA_PATH_NBITS-1:0] parser_header_register_rdata;
-logic [HDR_REG_DEPTH_NBITS-1:0] parser_header_register_raddr = {buf_ptr_register_raddr, parser_header_rd_cnt_d1};
+wire [HDR_REG_DEPTH_NBITS-1:0] parser_header_register_raddr = {buf_ptr_register_raddr, parser_header_rd_cnt_d1};
 
-logic [`RCI_NBITS-1:0] meta_rci = meta_data_register_rdata[`RCI_NBITS+`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3-1:`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3];
-logic [`HEADER_LENGTH_RANGE] meta_hdr_len = meta_data_register_rdata[`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3-1:`PACKET_LENGTH_NBITS+3];
-logic meta_len_neq0 = |meta_data_register_rdata[2];
-logic meta_error = |meta_data_register_rdata[1:0];
+wire [`RCI_NBITS-1:0] meta_rci = meta_data_register_rdata[`RCI_NBITS+`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3-1:`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3];
+wire [`HEADER_LENGTH_RANGE] meta_hdr_len = meta_data_register_rdata[`HEADER_LENGTH_NBITS+`PACKET_LENGTH_NBITS+3-1:`PACKET_LENGTH_NBITS+3];
+wire meta_len_neq0 = |meta_data_register_rdata[2];
+wire meta_error = |meta_data_register_rdata[1:0];
 
-logic [`PACKET_LENGTH_RANGE] meta_pkt_len = meta_data_register_rdata[`PACKET_LENGTH_NBITS+3-1:3];
-logic [`BUF_PTR_RANGE] meta_buf_ptr = buf_ptr_register_rdata;
+wire [`PACKET_LENGTH_RANGE] meta_pkt_len = meta_data_register_rdata[`PACKET_LENGTH_NBITS+3-1:3];
+wire [`BUF_PTR_RANGE] meta_buf_ptr = buf_ptr_register_rdata;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -573,7 +581,7 @@ always @(posedge clk) begin
         aggr_bm_port_id <= rd_sel_port_id_d3;
         aggr_bm_sop <= sel_event_fifo_sop_d3;
         aggr_bm_packet_data <= transpose16bytes(hold_register_rdata_d1);
-        aggr_bm_buf_ptr_lsb <= sel_port_event_fifo_rd_seq_d3[0];
+        aggr_bm_buf_ptr_lsb <= sel_port_event_fifo_rd_seq_d3[`BUF_PTR_LSB_RANGE];
         aggr_bm_buf_ptr <= sel_port_buf_pointer_d2;
 
         aggr_par_hdr_data <= transpose16bytes(parser_header_register_rdata);
@@ -618,36 +626,46 @@ always @(`CLK_RST)
 
 /***************************** PROGRAM BODY **********************************/
 
-logic[1:0] mod_port_rf_wr_seq3 = (port_rf_wr_seq3>2)?port_rf_wr_seq3-3:port_rf_wr_seq3+1;
-logic[1:0] mod_port_rf_wr_seq2 = (port_rf_wr_seq2>1)?port_rf_wr_seq2-2:port_rf_wr_seq2+2;
-logic[1:0] mod_port_rf_wr_seq1 = (port_rf_wr_seq1>0)?port_rf_wr_seq1-1:port_rf_wr_seq1+3;
+wire [1:0] mod_port_rf_wr_seq6 = port_rf_wr_seq6+1;
+wire [1:0] mod_port_rf_wr_seq5 = port_rf_wr_seq5+1;
+wire [1:0] mod_port_rf_wr_seq4 = port_rf_wr_seq4+1;
+wire [1:0] mod_port_rf_wr_seq3 = port_rf_wr_seq3+2;
+wire [1:0] mod_port_rf_wr_seq2 = port_rf_wr_seq2+2;
+wire [1:0] mod_port_rf_wr_seq1 = port_rf_wr_seq1+3;
 
-assign buf_fifo_rd[0] = (~port_rf_wr_last[0]|~event_fifo_full[0])&~buf_fifo_empty[0]&(rot_cnt1_d2==port_rf_wr_seq0)&wr_sel_port_d2[0];
-assign buf_fifo_rd[6] = (~port_rf_wr_last[6]|~event_fifo_full[6])&~buf_fifo_empty[6]&(rot_cnt3_d2==mod_port_rf_wr_seq3)&wr_sel_port_d2[6]; //FIXME
-assign buf_fifo_rd[5] = (~port_rf_wr_last[5]|~event_fifo_full[5])&~buf_fifo_empty[5]&(rot_cnt3_d2==mod_port_rf_wr_seq3)&wr_sel_port_d2[5];
-assign buf_fifo_rd[4] = (~port_rf_wr_last[4]|~event_fifo_full[4])&~buf_fifo_empty[4]&(rot_cnt3_d2==mod_port_rf_wr_seq3)&wr_sel_port_d2[4];
-assign buf_fifo_rd[3] = (~port_rf_wr_last[3]|~event_fifo_full[3])&~buf_fifo_empty[3]&(rot_cnt3_d2==mod_port_rf_wr_seq2)&wr_sel_port_d2[3];
-assign buf_fifo_rd[2] = (~port_rf_wr_last[2]|~event_fifo_full[2])&~buf_fifo_empty[2]&(rot_cnt4_d2==mod_port_rf_wr_seq2)&wr_sel_port_d2[2];
-assign buf_fifo_rd[1] = (~port_rf_wr_last[1]|~event_fifo_full[1])&~buf_fifo_empty[1]&(rot_cnt4_d2==mod_port_rf_wr_seq1)&wr_sel_port_d2[1];
+assign buf_fifo_rd[0] = (~port_rf_wr_last[0]|~event_fifo_full[0])&~buf_fifo_empty[0]&(rot_cnt1_d2==port_rf_wr_seq0);
+assign buf_fifo_rd[6] = (~port_rf_wr_last[6]|~event_fifo_full[6])&~buf_fifo_empty[6]&(rot_cnt3_d2==mod_port_rf_wr_seq6)&wr_sel_port_d3[6];
+assign buf_fifo_rd[5] = (~port_rf_wr_last[5]|~event_fifo_full[5])&~buf_fifo_empty[5]&(rot_cnt3_d2==mod_port_rf_wr_seq5)&wr_sel_port_d3[5];
+assign buf_fifo_rd[4] = (~port_rf_wr_last[4]|~event_fifo_full[4])&~buf_fifo_empty[4]&(rot_cnt3_d2==mod_port_rf_wr_seq4)&wr_sel_port_d3[4];
+assign buf_fifo_rd[3] = (~port_rf_wr_last[3]|~event_fifo_full[3])&~buf_fifo_empty[3]&(rot_cnt3_d2==mod_port_rf_wr_seq3)&wr_sel_port_d3[3];
+assign buf_fifo_rd[2] = (~port_rf_wr_last[2]|~event_fifo_full[2])&~buf_fifo_empty[2]&(rot_cnt4_d2==mod_port_rf_wr_seq2)&wr_sel_port_d3[2];
+assign buf_fifo_rd[1] = (~port_rf_wr_last[1]|~event_fifo_full[1])&~buf_fifo_empty[1]&(rot_cnt4_d2==mod_port_rf_wr_seq1);
 
 
-logic [META_REG_DEPTH_NBITS-1:0] parser_header_register_waddr_msb = {rd_sel_port_id_d3, sel_port_parser_header_wr_ctr_d3};
-logic [HDR_REG_DEPTH_NBITS-1:0] parser_header_register_waddr_p1 = {parser_header_register_waddr_msb, sel_port_event_fifo_rd_seq_d3};
-logic [`DATA_PATH_RANGE] parser_header_register_wdata_p1 = hold_register_rdata_d1;
+wire [META_REG_DEPTH_NBITS-1:0] parser_header_register_waddr_msb = {rd_sel_port_id_d3, sel_port_parser_header_wr_ctr_d3};
+wire [HDR_REG_DEPTH_NBITS-1:0] parser_header_register_waddr = {parser_header_register_waddr_msb, sel_port_event_fifo_rd_seq_d3};
+wire [`DATA_PATH_RANGE] parser_header_register_wdata = hold_register_rdata_d1;
 
-logic parser_header_rd_cnt_last = parser_header_rd_cnt>=parser_header_rd_len;
-logic parser_header_rd_last = parser_header_rd&parser_header_rd_cnt_last;
-logic en_next_port = parser_header_rd_last;
+wire parser_header_rd_cnt_last = parser_header_rd_cnt>=parser_header_rd_len;
+wire parser_header_rd_last = parser_header_rd&parser_header_rd_cnt_last;
+wire parser_header_rd_cnt_lastm1 = (parser_header_rd_cnt+1)>=parser_header_rd_len;
+wire parser_header_rd_lastm1 = parser_header_rd&parser_header_rd_cnt_lastm1;
+logic parser_header_rd_lastm1_d1;
+wire parser_header_idle_last = parser_header_idle&parser_header_rd_cnt_last;
+wire parser_header_idle_lastm1 = parser_header_idle&parser_header_rd_cnt_lastm1;
+logic en_next_port_d1;
+wire en_next_port = (parser_header_rd_lastm1|parser_header_idle_lastm1)&~en_next_port_d1;
+
+logic [`NUM_OF_PORTS-1:0] port_parser_header_rd_lastm1;
+assign port_parser_header_rd_lastm1[0] = (sel_parser_port_id==0)&parser_header_rd_lastm1&~parser_header_rd_lastm1_d1;
+assign port_parser_header_rd_lastm1[1] = (sel_parser_port_id==1)&parser_header_rd_lastm1&~parser_header_rd_lastm1_d1;
+assign port_parser_header_rd_lastm1[2] = (sel_parser_port_id==2)&parser_header_rd_lastm1&~parser_header_rd_lastm1_d1;
+assign port_parser_header_rd_lastm1[3] = (sel_parser_port_id==3)&parser_header_rd_lastm1&~parser_header_rd_lastm1_d1;
+assign port_parser_header_rd_lastm1[4] = (sel_parser_port_id==4)&parser_header_rd_lastm1&~parser_header_rd_lastm1_d1;
+assign port_parser_header_rd_lastm1[5] = (sel_parser_port_id==5)&parser_header_rd_lastm1&~parser_header_rd_lastm1_d1;
+assign port_parser_header_rd_lastm1[6] = (sel_parser_port_id==6)&parser_header_rd_lastm1&~parser_header_rd_lastm1_d1;
 
 logic [`NUM_OF_PORTS-1:0] port_parser_header_rd_last;
-assign port_parser_header_rd_last[0] = (sel_parser_port_id_d1==0)&parser_header_rd_last;
-assign port_parser_header_rd_last[1] = (sel_parser_port_id_d1==1)&parser_header_rd_last;
-assign port_parser_header_rd_last[2] = (sel_parser_port_id_d1==2)&parser_header_rd_last;
-assign port_parser_header_rd_last[3] = (sel_parser_port_id_d1==3)&parser_header_rd_last;
-assign port_parser_header_rd_last[4] = (sel_parser_port_id_d1==4)&parser_header_rd_last;
-assign port_parser_header_rd_last[5] = (sel_parser_port_id_d1==5)&parser_header_rd_last;
-assign port_parser_header_rd_last[6] = (sel_parser_port_id_d1==6)&parser_header_rd_last;
-
 
 always @(*) begin
 
@@ -668,11 +686,11 @@ always @(*) begin
         hdr_len_fifo_rd[i] = event_fifo_rd[i]&event_fifo_eop[i];
         port_buf_ptr_register_wr[i] = event_fifo_rd[i]&event_fifo_sop[i];
         port_meta_data_register_wr[i] = event_fifo_rd[i]&event_fifo_eop[i];
-        port_parser_header_register_wr[i] = event_fifo_rd[i]&dec_aggr_bus_sop[i];
+        port_parser_header_register_wr[i] = event_fifo_rd[i]&header_en[i];
 
-        parser_header_rd_trig[i] = ~eop_event_empty[i]&(sel_parser_port_id==i);
     end
     
+        parser_header_rd_trig = ~eop_event_empty[sel_parser_port_id];
 
     case (rd_sel_port_id)
         0: sel_port_event_fifo_rd_seq = port_event_fifo_rd_seq0;
@@ -695,13 +713,13 @@ always @(*) begin
     endcase
 
     case (rd_sel_port_id)
-        0: sel_hdr_length_p1 = hdr_len0;
-        1: sel_hdr_length_p1 = hdr_len1;
-        2: sel_hdr_length_p1 = hdr_len2;
-        3: sel_hdr_length_p1 = hdr_len3;
-        4: sel_hdr_length_p1 = hdr_len4;
-        5: sel_hdr_length_p1 = hdr_len5;
-        default: sel_hdr_length_p1 = hdr_len6;
+        0: sel_hdr_length_p1 = hdr_len_fifo_rdata0;
+        1: sel_hdr_length_p1 = hdr_len_fifo_rdata1;
+        2: sel_hdr_length_p1 = hdr_len_fifo_rdata2;
+        3: sel_hdr_length_p1 = hdr_len_fifo_rdata3;
+        4: sel_hdr_length_p1 = hdr_len_fifo_rdata4;
+        5: sel_hdr_length_p1 = hdr_len_fifo_rdata5;
+        default: sel_hdr_length_p1 = hdr_len_fifo_rdata6;
     endcase
 
 	case(rd_sel_port_id)
@@ -746,11 +764,17 @@ always @(posedge clk) begin
         rot_cnt4_d2 <= rot_cnt_d1;
         rot_cnt5_d2 <= rot_cnt_d1;
 
-        wr_sel_port_d1 <= wr_sel_port;
+        wr_sel_port_d1 <= wr_sel_port>>2;
         wr_sel_port_d2 <= wr_sel_port_d1;
+        wr_sel_port_d3[2] <= wr_sel_port_d2[2]?1'b1:wr_sel_port_d2[3]?1'b0:wr_sel_port_d3[2];
+        wr_sel_port_d3[3] <= wr_sel_port_d2[3]?1'b1:wr_sel_port_d2[2]?1'b0:wr_sel_port_d3[3];
+        wr_sel_port_d3[4] <= wr_sel_port_d2[4]?1'b1:|wr_sel_port_d2[6:5]?1'b0:wr_sel_port_d3[4];
+        wr_sel_port_d3[5] <= wr_sel_port_d2[5]?1'b1:wr_sel_port_d2[4]?1'b0:wr_sel_port_d3[5];
+        wr_sel_port_d3[6] <= wr_sel_port_d2[6]?1'b1:wr_sel_port_d2[4]?1'b0:wr_sel_port_d3[6];
         wr_sel_port_id_d1 <= wr_sel_port_id;
 
         wr_port_id <= wr_port_id_p1;
+        wr_port_id_d1 <= wr_port_id;
 
         hold_register_wr <= hold_register_wr_p1;
         hold_register_wdata <= hold_register_wdata_p1;
@@ -773,21 +797,13 @@ always @(posedge clk) begin
 	event_fifo_rd_d1 <= event_fifo_rd;
 	event_fifo_eop_d1 <= event_fifo_eop;
 
-        event_fifo_valid_bytes_in0 <= buf_fifo_rd[0]?(port_rf_wr_seq_first[0]?buf_fifo_valid_bytes0:event_fifo_valid_bytes_in0+buf_fifo_valid_bytes0):event_fifo_valid_bytes_in0;
-        event_fifo_valid_bytes_in1 <= buf_fifo_rd[1]?(port_rf_wr_seq_first[1]?buf_fifo_valid_bytes1:event_fifo_valid_bytes_in1+buf_fifo_valid_bytes1):event_fifo_valid_bytes_in1;
-        event_fifo_valid_bytes_in2 <= buf_fifo_rd[2]?(port_rf_wr_seq_first[2]?buf_fifo_valid_bytes2:event_fifo_valid_bytes_in2+buf_fifo_valid_bytes2):event_fifo_valid_bytes_in2;
-        event_fifo_valid_bytes_in3 <= buf_fifo_rd[3]?(port_rf_wr_seq_first[3]?buf_fifo_valid_bytes3:event_fifo_valid_bytes_in3+buf_fifo_valid_bytes3):event_fifo_valid_bytes_in3;
-        event_fifo_valid_bytes_in4 <= buf_fifo_rd[4]?(port_rf_wr_seq_first[4]?buf_fifo_valid_bytes4:event_fifo_valid_bytes_in4+buf_fifo_valid_bytes4):event_fifo_valid_bytes_in4;
-        event_fifo_valid_bytes_in5 <= buf_fifo_rd[5]?(port_rf_wr_seq_first[5]?buf_fifo_valid_bytes5:event_fifo_valid_bytes_in5+buf_fifo_valid_bytes5):event_fifo_valid_bytes_in5;
-        event_fifo_valid_bytes_in6 <= buf_fifo_rd[6]?(port_rf_wr_seq_first[6]?buf_fifo_valid_bytes6:event_fifo_valid_bytes_in6+buf_fifo_valid_bytes6):event_fifo_valid_bytes_in6;
-
-        ext_hdr[0] <= buf_fifo_rd[0]&(port_rf_wr_cnt0==1)&(buf_fifo_packet_data0[15:8]==253);
-        ext_hdr[1] <= buf_fifo_rd[1]&(port_rf_wr_cnt1==1)&(buf_fifo_packet_data1[15:8]==253);
-        ext_hdr[2] <= buf_fifo_rd[2]&(port_rf_wr_cnt2==1)&(buf_fifo_packet_data2[15:8]==253);
-        ext_hdr[3] <= buf_fifo_rd[3]&(port_rf_wr_cnt3==1)&(buf_fifo_packet_data3[15:8]==253);
-        ext_hdr[4] <= buf_fifo_rd[4]&(port_rf_wr_cnt4==1)&(buf_fifo_packet_data4[15:8]==253);
-        ext_hdr[5] <= buf_fifo_rd[5]&(port_rf_wr_cnt5==1)&(buf_fifo_packet_data5[15:8]==253);
-        ext_hdr[6] <= buf_fifo_rd[6]&(port_rf_wr_cnt6==1)&(buf_fifo_packet_data6[15:8]==253);
+        event_fifo_valid_bytes_in0 <= buf_fifo_rd[0]?(port_rf_wr_seq_first[0]?mbuf_fifo_valid_bytes0:event_fifo_valid_bytes_in0+mbuf_fifo_valid_bytes0):event_fifo_valid_bytes_in0;
+        event_fifo_valid_bytes_in1 <= buf_fifo_rd[1]?(port_rf_wr_seq_first[1]?mbuf_fifo_valid_bytes1:event_fifo_valid_bytes_in1+mbuf_fifo_valid_bytes1):event_fifo_valid_bytes_in1;
+        event_fifo_valid_bytes_in2 <= buf_fifo_rd[2]?(port_rf_wr_seq_first[2]?mbuf_fifo_valid_bytes2:event_fifo_valid_bytes_in2+mbuf_fifo_valid_bytes2):event_fifo_valid_bytes_in2;
+        event_fifo_valid_bytes_in3 <= buf_fifo_rd[3]?(port_rf_wr_seq_first[3]?mbuf_fifo_valid_bytes3:event_fifo_valid_bytes_in3+mbuf_fifo_valid_bytes3):event_fifo_valid_bytes_in3;
+        event_fifo_valid_bytes_in4 <= buf_fifo_rd[4]?(port_rf_wr_seq_first[4]?mbuf_fifo_valid_bytes4:event_fifo_valid_bytes_in4+mbuf_fifo_valid_bytes4):event_fifo_valid_bytes_in4;
+        event_fifo_valid_bytes_in5 <= buf_fifo_rd[5]?(port_rf_wr_seq_first[5]?mbuf_fifo_valid_bytes5:event_fifo_valid_bytes_in5+mbuf_fifo_valid_bytes5):event_fifo_valid_bytes_in5;
+        event_fifo_valid_bytes_in6 <= buf_fifo_rd[6]?(port_rf_wr_seq_first[6]?mbuf_fifo_valid_bytes6:event_fifo_valid_bytes_in6+mbuf_fifo_valid_bytes6):event_fifo_valid_bytes_in6;
 
         rd_sel_port_id_d1 <= rd_sel_port_id;
         rd_sel_port_id_d2 <= rd_sel_port_id_d1;
@@ -826,13 +842,13 @@ always @(posedge clk) begin
         sel_port_buf_pointer_d1 <= sel_port_buf_pointer;
         sel_port_buf_pointer_d2 <= sel_port_buf_pointer_d1;
 
-        port_packet_length0 <= port_packet_length_cnt_en[0]?(event_fifo_sop[0]?event_fifo_valid_bytes0:port_packet_length0+event_fifo_valid_bytes0):clr_port_packet_length[0]?0:port_packet_length0;
-        port_packet_length1 <= port_packet_length_cnt_en[1]?(event_fifo_sop[1]?event_fifo_valid_bytes1:port_packet_length1+event_fifo_valid_bytes1):clr_port_packet_length[1]?0:port_packet_length1;
-        port_packet_length2 <= port_packet_length_cnt_en[2]?(event_fifo_sop[2]?event_fifo_valid_bytes2:port_packet_length2+event_fifo_valid_bytes2):clr_port_packet_length[2]?0:port_packet_length2;
-        port_packet_length3 <= port_packet_length_cnt_en[3]?(event_fifo_sop[3]?event_fifo_valid_bytes3:port_packet_length3+event_fifo_valid_bytes3):clr_port_packet_length[3]?0:port_packet_length3;
-        port_packet_length4 <= port_packet_length_cnt_en[4]?(event_fifo_sop[4]?event_fifo_valid_bytes4:port_packet_length4+event_fifo_valid_bytes4):clr_port_packet_length[4]?0:port_packet_length4;
-        port_packet_length5 <= port_packet_length_cnt_en[5]?(event_fifo_sop[5]?event_fifo_valid_bytes5:port_packet_length5+event_fifo_valid_bytes5):clr_port_packet_length[5]?0:port_packet_length5;
-        port_packet_length6 <= port_packet_length_cnt_en[6]?(event_fifo_sop[6]?event_fifo_valid_bytes6:port_packet_length6+event_fifo_valid_bytes6):clr_port_packet_length[6]?0:port_packet_length6;
+        port_packet_length0 <= port_packet_length_cnt_en[0]?(event_fifo_sop[0]?mevent_fifo_valid_bytes0:port_packet_length0+mevent_fifo_valid_bytes0):clr_port_packet_length[0]?0:port_packet_length0;
+        port_packet_length1 <= port_packet_length_cnt_en[1]?(event_fifo_sop[1]?mevent_fifo_valid_bytes1:port_packet_length1+mevent_fifo_valid_bytes1):clr_port_packet_length[1]?0:port_packet_length1;
+        port_packet_length2 <= port_packet_length_cnt_en[2]?(event_fifo_sop[2]?mevent_fifo_valid_bytes2:port_packet_length2+mevent_fifo_valid_bytes2):clr_port_packet_length[2]?0:port_packet_length2;
+        port_packet_length3 <= port_packet_length_cnt_en[3]?(event_fifo_sop[3]?mevent_fifo_valid_bytes3:port_packet_length3+mevent_fifo_valid_bytes3):clr_port_packet_length[3]?0:port_packet_length3;
+        port_packet_length4 <= port_packet_length_cnt_en[4]?(event_fifo_sop[4]?mevent_fifo_valid_bytes4:port_packet_length4+mevent_fifo_valid_bytes4):clr_port_packet_length[4]?0:port_packet_length4;
+        port_packet_length5 <= port_packet_length_cnt_en[5]?(event_fifo_sop[5]?mevent_fifo_valid_bytes5:port_packet_length5+mevent_fifo_valid_bytes5):clr_port_packet_length[5]?0:port_packet_length5;
+        port_packet_length6 <= port_packet_length_cnt_en[6]?(event_fifo_sop[6]?mevent_fifo_valid_bytes6:port_packet_length6+mevent_fifo_valid_bytes6):clr_port_packet_length[6]?0:port_packet_length6;
 
 
 		case(rd_sel_port_id)
@@ -865,8 +881,7 @@ always @(posedge clk) begin
         port_meta_data_register_wr_d1 <= port_meta_data_register_wr;
         meta_data_register_wr <= |port_meta_data_register_wr_d1;
         port_parser_header_register_wr_d1 <= port_parser_header_register_wr;
-        parser_header_register_wr_p2 <= |port_parser_header_register_wr_d1;
-        parser_header_register_wr_p1 <= parser_header_register_wr_p2;
+        parser_header_register_wr_p1 <= |port_parser_header_register_wr_d1;
 
 
         sel_port_buf_not_available_st_d1 <= sel_port_buf_not_available_st;
@@ -880,8 +895,6 @@ always @(posedge clk) begin
         sel_parser_port_id_d1 <= sel_parser_port_id;
         sel_parser_port_id_d2 <= sel_parser_port_id_d1;
         sel_parser_port_id_d3 <= sel_parser_port_id_d2;
-        sel_parser_port_id_d4 <= sel_parser_port_id_d3;
-        sel_parser_port_id_d5 <= sel_parser_port_id_d4;
 
 		case(sel_parser_port_id_d1)
 			0: sel_port_parser_header_rd_ctr_d1 <= port_parser_header_rd_ctr0;
@@ -894,8 +907,6 @@ always @(posedge clk) begin
 		endcase
 
 	parser_header_register_wr <= parser_header_register_wr_p1;
-	parser_header_register_waddr <= parser_header_register_waddr_p1;
-	parser_header_register_wdata <= parser_header_register_wdata_p1;
 
 	parser_header_rd_cnt_last_d1 <= parser_header_rd_cnt_last;
 	parser_header_rd_cnt_last_d2 <= parser_header_rd_cnt_last_d1;
@@ -904,10 +915,11 @@ always @(posedge clk) begin
 
 	meta_data_register_raddr_d1 <= meta_data_register_raddr;
 	meta_data_register_raddr_d2 <= meta_data_register_raddr_d1;
+	port_parser_header_rd_last <= port_parser_header_rd_lastm1;
 end
 
-logic inc_prefetch_fifo = aggr_bm_buf_req_p1;
-logic dec_prefetch_fifo = bm_aggr_buf_valid_d1&~bm_aggr_buf_available_d1;
+wire inc_prefetch_fifo = aggr_bm_buf_req_p1;
+wire dec_prefetch_fifo = bm_aggr_buf_valid_d1&~bm_aggr_buf_available_d1;
 
 always @(`CLK_RST) 
   
@@ -918,7 +930,7 @@ always @(`CLK_RST)
         port_rf_wr_ctr <= 0;
         event_fifo_wr <= 0;
 	event_fifo_sop_in <= {(`NUM_OF_PORTS){1'b1}};
-        dec_aggr_bus_sop <= {(`NUM_OF_PORTS){1'b1}};
+        header_en <= {(`NUM_OF_PORTS){1'b1}};
         port_rf_wr_cnt0 <= 0;
         port_rf_wr_cnt1 <= 0;
         port_rf_wr_cnt2 <= 0;
@@ -947,6 +959,7 @@ always @(`CLK_RST)
         aggr_bm_packet_valid_p2 <= 0;
         aggr_bm_packet_valid_p1 <= 0;
 
+        ext_hdr <= 0;
         hdr_len_fifo_wr <= 0;
 
         hdr_len0 <= 40/`DATA_PATH_NBYTES-1;
@@ -963,17 +976,18 @@ always @(`CLK_RST)
         eop_event4 <= 0;
         eop_event5 <= 0;
         eop_event6 <= 0;
+        parser_header_rd_lastm1_d1 <= 0;
+        en_next_port_d1 <= 1;
+        parser_header_idle <= 0;
+        parser_header_idle_d1 <= 0;
+        parser_header_idle_d2 <= 0;
         parser_header_rd <= 0;
         parser_header_rd_d1 <= 0;
         parser_header_rd_d2 <= 0;
-        parser_header_rd_d3 <= 0;
-        parser_header_rd_d4 <= 0;
-        parser_header_rd_len <= 64/`DATA_PATH_NBYTES-1; // instead of 40 because of timing
-        parser_header_rd_cnt <= 0;
-        parser_header_rd_cnt_d1 <= 0;
-        parser_header_rd_cnt_d2 <= 0;
-        parser_header_rd_cnt_d3 <= 0;
-        parser_header_rd_cnt_d4 <= 0;
+        parser_header_rd_len <= 80/`DATA_PATH_NBYTES-1; // instead of 40 because of timing
+        parser_header_rd_cnt <= 3;
+        parser_header_rd_cnt_d1 <= 3;
+        parser_header_rd_cnt_d2 <= 3;
         port_parser_meta_wr_ctr0 <= 0;
         port_parser_meta_wr_ctr1 <= 0;
         port_parser_meta_wr_ctr2 <= 0;
@@ -1028,7 +1042,7 @@ always @(`CLK_RST)
         for (i = 0; i < `NUM_OF_PORTS; i = i+1) begin
             
             port_rf_rd_ctr[i] <= event_fifo_rd[i]?~port_rf_rd_ctr[i]:port_rf_rd_ctr[i];
-            dec_aggr_bus_sop[i] <= event_fifo_rd[i]&event_fifo_eop[i]?1:event_fifo_rd[i]&port_event_fifo_rd_seq_last[i]?0:dec_aggr_bus_sop[i];
+            header_en[i] <= event_fifo_rd[i]&event_fifo_eop[i]?1:event_fifo_rd[i]&port_event_fifo_rd_seq_last[i]?0:header_en[i];
             port_buf_not_available_st[i] <= event_fifo_rd[i]&port_event_fifo_rd_seq_buf_en[i]&(~prefetch_fifo_available|~port_buf_available[i])?1:                                                                    		event_fifo_rd_d1[i]&event_fifo_eop_d1[i]?0:port_buf_not_available_st[i];
 
         end
@@ -1066,6 +1080,7 @@ always @(`CLK_RST)
 			3'b011: prefetch_fifo_count <= prefetch_fifo_count-2;
 			3'b100: prefetch_fifo_count <= prefetch_fifo_count+1;
 			3'b101: prefetch_fifo_count <= prefetch_fifo_count;
+			3'b110: prefetch_fifo_count <= prefetch_fifo_count;
 			default: prefetch_fifo_count <= prefetch_fifo_count-1;
 		endcase
 
@@ -1073,41 +1088,50 @@ always @(`CLK_RST)
         aggr_bm_packet_valid_p2 <= aggr_bm_packet_valid_p3;
         aggr_bm_packet_valid_p1 <= aggr_bm_packet_valid_p2;
 
-        hdr_len_fifo_wr[0] <= buf_fifo_rd[0]&(port_rf_wr_cnt0==10);
-        hdr_len_fifo_wr[1] <= buf_fifo_rd[1]&(port_rf_wr_cnt1==10);
-        hdr_len_fifo_wr[2] <= buf_fifo_rd[2]&(port_rf_wr_cnt2==10);
-        hdr_len_fifo_wr[3] <= buf_fifo_rd[3]&(port_rf_wr_cnt3==10);
-        hdr_len_fifo_wr[4] <= buf_fifo_rd[4]&(port_rf_wr_cnt4==10);
-        hdr_len_fifo_wr[5] <= buf_fifo_rd[5]&(port_rf_wr_cnt5==10);
-        hdr_len_fifo_wr[6] <= buf_fifo_rd[6]&(port_rf_wr_cnt6==10);
+        ext_hdr[0] <= buf_fifo_rd[0]&(port_rf_wr_cnt0==1)&(buf_fifo_packet_data0[15:8]==253)?1'b1:hdr_len_fifo_wr[0]?1'b0:ext_hdr[0];
+        ext_hdr[1] <= buf_fifo_rd[1]&(port_rf_wr_cnt1==1)&(buf_fifo_packet_data1[15:8]==253)?1'b1:hdr_len_fifo_wr[1]?1'b0:ext_hdr[1];
+        ext_hdr[2] <= buf_fifo_rd[2]&(port_rf_wr_cnt2==1)&(buf_fifo_packet_data2[15:8]==253)?1'b1:hdr_len_fifo_wr[2]?1'b0:ext_hdr[2];
+        ext_hdr[3] <= buf_fifo_rd[3]&(port_rf_wr_cnt3==1)&(buf_fifo_packet_data3[15:8]==253)?1'b1:hdr_len_fifo_wr[3]?1'b0:ext_hdr[3];
+        ext_hdr[4] <= buf_fifo_rd[4]&(port_rf_wr_cnt4==1)&(buf_fifo_packet_data4[15:8]==253)?1'b1:hdr_len_fifo_wr[4]?1'b0:ext_hdr[4];
+        ext_hdr[5] <= buf_fifo_rd[5]&(port_rf_wr_cnt5==1)&(buf_fifo_packet_data5[15:8]==253)?1'b1:hdr_len_fifo_wr[5]?1'b0:ext_hdr[5];
+        ext_hdr[6] <= buf_fifo_rd[6]&(port_rf_wr_cnt6==1)&(buf_fifo_packet_data6[15:8]==253)?1'b1:hdr_len_fifo_wr[6]?1'b0:ext_hdr[6];
 
-        hdr_len0 <= ext_hdr[0]?((buf_fifo_packet_data0[7:0]<<3)+56)/`DATA_PATH_NBYTES-1:48/`DATA_PATH_NBYTES-1;
-        hdr_len1 <= ext_hdr[1]?((buf_fifo_packet_data1[7:0]<<3)+56)/`DATA_PATH_NBYTES-1:48/`DATA_PATH_NBYTES-1;
-        hdr_len2 <= ext_hdr[2]?((buf_fifo_packet_data2[7:0]<<3)+56)/`DATA_PATH_NBYTES-1:48/`DATA_PATH_NBYTES-1;
-        hdr_len3 <= ext_hdr[3]?((buf_fifo_packet_data3[7:0]<<3)+56)/`DATA_PATH_NBYTES-1:48/`DATA_PATH_NBYTES-1;
-        hdr_len4 <= ext_hdr[4]?((buf_fifo_packet_data4[7:0]<<3)+56)/`DATA_PATH_NBYTES-1:48/`DATA_PATH_NBYTES-1;
-        hdr_len5 <= ext_hdr[5]?((buf_fifo_packet_data5[7:0]<<3)+56)/`DATA_PATH_NBYTES-1:48/`DATA_PATH_NBYTES-1;
-        hdr_len6 <= ext_hdr[6]?((buf_fifo_packet_data6[7:0]<<3)+56)/`DATA_PATH_NBYTES-1:48/`DATA_PATH_NBYTES-1;
+        hdr_len_fifo_wr[0] <= buf_fifo_rd[0]&(~ext_hdr[0]?port_rf_wr_cnt0==2:port_rf_wr_cnt0==10);
+        hdr_len_fifo_wr[1] <= buf_fifo_rd[1]&(~ext_hdr[1]?port_rf_wr_cnt1==2:port_rf_wr_cnt1==10);
+        hdr_len_fifo_wr[2] <= buf_fifo_rd[2]&(~ext_hdr[2]?port_rf_wr_cnt2==2:port_rf_wr_cnt2==10);
+        hdr_len_fifo_wr[3] <= buf_fifo_rd[3]&(~ext_hdr[3]?port_rf_wr_cnt3==2:port_rf_wr_cnt3==10);
+        hdr_len_fifo_wr[4] <= buf_fifo_rd[4]&(~ext_hdr[4]?port_rf_wr_cnt4==2:port_rf_wr_cnt4==10);
+        hdr_len_fifo_wr[5] <= buf_fifo_rd[5]&(~ext_hdr[5]?port_rf_wr_cnt5==2:port_rf_wr_cnt5==10);
+        hdr_len_fifo_wr[6] <= buf_fifo_rd[6]&(~ext_hdr[6]?port_rf_wr_cnt6==2:port_rf_wr_cnt6==10);
 
-        eop_event0 <= ~port_meta_data_register_wr_d1[0]^port_parser_header_rd_last[0]?eop_event0:port_meta_data_register_wr_d1[0]?eop_event0+1:eop_event0-1;
-        eop_event1 <= ~port_meta_data_register_wr_d1[1]^port_parser_header_rd_last[1]?eop_event1:port_meta_data_register_wr_d1[1]?eop_event1+1:eop_event1-1;
-        eop_event2 <= ~port_meta_data_register_wr_d1[2]^port_parser_header_rd_last[2]?eop_event2:port_meta_data_register_wr_d1[2]?eop_event2+1:eop_event2-1;
-        eop_event3 <= ~port_meta_data_register_wr_d1[3]^port_parser_header_rd_last[3]?eop_event3:port_meta_data_register_wr_d1[3]?eop_event3+1:eop_event3-1;
-        eop_event4 <= ~port_meta_data_register_wr_d1[4]^port_parser_header_rd_last[4]?eop_event4:port_meta_data_register_wr_d1[4]?eop_event4+1:eop_event4-1;
-        eop_event5 <= ~port_meta_data_register_wr_d1[5]^port_parser_header_rd_last[5]?eop_event5:port_meta_data_register_wr_d1[5]?eop_event5+1:eop_event5-1;
-        eop_event6 <= ~port_meta_data_register_wr_d1[6]^port_parser_header_rd_last[6]?eop_event6:port_meta_data_register_wr_d1[6]?eop_event6+1:eop_event6-1;
+        hdr_len0 <= ~ext_hdr[0]?48/`DATA_PATH_NBYTES-1:((buf_fifo_packet_data0[23:16]<<3)+56)/`DATA_PATH_NBYTES-1;
+        hdr_len1 <= ~ext_hdr[1]?48/`DATA_PATH_NBYTES-1:((buf_fifo_packet_data1[23:16]<<3)+56)/`DATA_PATH_NBYTES-1;
+        hdr_len2 <= ~ext_hdr[2]?48/`DATA_PATH_NBYTES-1:((buf_fifo_packet_data2[23:16]<<3)+56)/`DATA_PATH_NBYTES-1;
+        hdr_len3 <= ~ext_hdr[3]?48/`DATA_PATH_NBYTES-1:((buf_fifo_packet_data3[23:16]<<3)+56)/`DATA_PATH_NBYTES-1;
+        hdr_len4 <= ~ext_hdr[4]?48/`DATA_PATH_NBYTES-1:((buf_fifo_packet_data4[23:16]<<3)+56)/`DATA_PATH_NBYTES-1;
+        hdr_len5 <= ~ext_hdr[5]?48/`DATA_PATH_NBYTES-1:((buf_fifo_packet_data5[23:16]<<3)+56)/`DATA_PATH_NBYTES-1;
+        hdr_len6 <= ~ext_hdr[6]?48/`DATA_PATH_NBYTES-1:((buf_fifo_packet_data6[23:16]<<3)+56)/`DATA_PATH_NBYTES-1;
 
-        parser_header_rd <= |parser_header_rd_trig?1:parser_header_rd_cnt_last?0:parser_header_rd;
+        eop_event0 <= ~port_meta_data_register_wr_d1[0]^port_parser_header_rd_lastm1[0]?eop_event0:port_meta_data_register_wr_d1[0]?eop_event0+1:eop_event0-1;
+        eop_event1 <= ~port_meta_data_register_wr_d1[1]^port_parser_header_rd_lastm1[1]?eop_event1:port_meta_data_register_wr_d1[1]?eop_event1+1:eop_event1-1;
+        eop_event2 <= ~port_meta_data_register_wr_d1[2]^port_parser_header_rd_lastm1[2]?eop_event2:port_meta_data_register_wr_d1[2]?eop_event2+1:eop_event2-1;
+        eop_event3 <= ~port_meta_data_register_wr_d1[3]^port_parser_header_rd_lastm1[3]?eop_event3:port_meta_data_register_wr_d1[3]?eop_event3+1:eop_event3-1;
+        eop_event4 <= ~port_meta_data_register_wr_d1[4]^port_parser_header_rd_lastm1[4]?eop_event4:port_meta_data_register_wr_d1[4]?eop_event4+1:eop_event4-1;
+        eop_event5 <= ~port_meta_data_register_wr_d1[5]^port_parser_header_rd_lastm1[5]?eop_event5:port_meta_data_register_wr_d1[5]?eop_event5+1:eop_event5-1;
+        eop_event6 <= ~port_meta_data_register_wr_d1[6]^port_parser_header_rd_lastm1[6]?eop_event6:port_meta_data_register_wr_d1[6]?eop_event6+1:eop_event6-1;
+
+        parser_header_rd_lastm1_d1 <= parser_header_rd_lastm1;
+        en_next_port_d1 <= en_next_port;
+        parser_header_idle <= en_next_port_d1?~parser_header_rd_trig:parser_header_idle_last?1'b0:parser_header_idle;
+        parser_header_rd <= en_next_port_d1?parser_header_rd_trig:parser_header_rd_last?1'b0:parser_header_rd;
+        parser_header_idle_d1 <= parser_header_idle;
+        parser_header_idle_d2 <= parser_header_idle_d1;
         parser_header_rd_d1 <= parser_header_rd;
         parser_header_rd_d2 <= parser_header_rd_d1;
-        parser_header_rd_d3 <= parser_header_rd_d2;
-        parser_header_rd_d4 <= parser_header_rd_d3;
-        parser_header_rd_cnt <= parser_header_rd_last?0:parser_header_rd?parser_header_rd_cnt+1:parser_header_rd_cnt;
+        parser_header_rd_cnt <= parser_header_rd_last|parser_header_idle_last?0:parser_header_rd|parser_header_idle?parser_header_rd_cnt+1:parser_header_rd_cnt;
         parser_header_rd_cnt_d1 <= parser_header_rd_cnt;
         parser_header_rd_cnt_d2 <= parser_header_rd_cnt_d1;
-        parser_header_rd_cnt_d3 <= parser_header_rd_cnt_d2;
-        parser_header_rd_cnt_d4 <= parser_header_rd_cnt_d3;
-        parser_header_rd_len <= parser_header_rd_d2?meta_hdr_len:parser_header_rd_len;
+        parser_header_rd_len <= parser_header_idle_d2?5:parser_header_rd_d2?meta_hdr_len:parser_header_rd_len;
 
 	port_parser_header_rd_ctr0 <= port_parser_header_rd_last[0]?port_parser_header_rd_ctr0+1:port_parser_header_rd_ctr0;
 	port_parser_header_rd_ctr1 <= port_parser_header_rd_last[1]?port_parser_header_rd_ctr1+1:port_parser_header_rd_ctr1;
@@ -1387,7 +1411,7 @@ sfifo2f1 #(2+`DATA_PATH_VB_NBITS+1+`RCI_NBITS) u_sfifo2f1_45(
         .wr(event_fifo_wr[5]),
 
         .count(),
-        .full(),
+        .full(event_fifo_full[5]),
         .empty(event_fifo_empty[5]),
         .fullm1(),
         .emptyp2(),
@@ -1402,7 +1426,7 @@ sfifo2f1 #(2+`DATA_PATH_VB_NBITS+1) u_sfifo2f1_46(
         .wr(event_fifo_wr[6]),
 
         .count(),
-        .full(),
+        .full(event_fifo_full[6]),
         .empty(event_fifo_empty[6]),
         .fullm1(),
         .emptyp2(),
@@ -1530,7 +1554,7 @@ sfifo2f_fo #(`BUF_PTR_NBITS, PREFETCH_FIFO_DEPTH_NBITS) u_sfifo2f_fo_5(
         .wr(bm_aggr_buf_valid_d1&bm_aggr_buf_available_d1),
 
         .ncount(),
-        .count(prefetch_fifo_depth),
+        .count(),
         .full(),
         .empty(prefetch_fifo_empty),
         .fullm1(),
@@ -1621,22 +1645,8 @@ endfunction
 function [`DATA_PATH_RANGE] transpose16bytes;
 input[`DATA_PATH_RANGE] din;
 
-integer i, j;
-
 begin
-
-	for (i = 0; i < `DATA_PATH_NBITS; i = i+8)
-		for (j = 0; j < 8; j = j+1)
-			transpose16bytes[i+j] = din[`DATA_PATH_NBITS-1-7-i+j];
-
-end
-endfunction
-
-function [31:0] transpose;
-input[31:0] din;
-
-begin
-	transpose = {din[7:0], din[15:8], din[23:16], din[31:24]};
+	transpose16bytes = {din[31:0], din[63:32], din[95:64], din[127:96]};
 end
 endfunction
 

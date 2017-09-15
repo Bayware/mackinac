@@ -59,23 +59,23 @@ logic [`PRI_NBITS-1:0] asa_rep_enq_pri_d1;
 enq_pkt_desc_type asa_rep_enq_desc_d1;		
 logic [`TID_NBITS - 1 : 0] asa_rep_enq_tid_d1;		
 
-logic [`SCI_NBITS:0] in_rep_count = bits_sum(asa_rep_enq_vec_d1);
-logic in_ucast = in_rep_count==1;
-logic discard_en = asa_rep_enq_discard_d1|(in_rep_count==0);
+wire [`SCI_NBITS:0] in_rep_count = bits_sum(asa_rep_enq_vec_d1);
+wire in_ucast = in_rep_count==1;
+wire discard_en = asa_rep_enq_discard_d1|(in_rep_count==0);
 
 logic in_fifo_full;
 logic in_fifo_empty;
 
-logic p_in_fifo_wr = asa_rep_enq_req_d1&in_ucast&~discard_en;
-logic in_fifo_wr = asa_rep_enq_req_d1&~in_ucast&~in_fifo_full&~discard_en&asa_rep_enq_allow_mcast_d1;
-logic discard_set = asa_rep_enq_req_d1&(discard_en|(~in_ucast&(in_fifo_full|~asa_rep_enq_allow_mcast_d1)));
+wire p_in_fifo_wr = asa_rep_enq_req_d1&in_ucast&~discard_en;
+wire in_fifo_wr = asa_rep_enq_req_d1&~in_ucast&~in_fifo_full&~discard_en&asa_rep_enq_allow_mcast_d1;
+wire discard_set = asa_rep_enq_req_d1&(discard_en|(~in_ucast&(in_fifo_full|~asa_rep_enq_allow_mcast_d1)));
 
 discard_info_type discard_info_set;
 assign discard_info_set.len = asa_rep_enq_desc_d1.ed_cmd.len;
 assign discard_info_set.buf_ptr = asa_rep_enq_desc_d1.buf_ptr;
 assign discard_info_set.src_port = asa_rep_enq_desc_d1.src_port;
-logic [`EM_BUF_PTR_NBITS-1:0] discard_buf_ptr_set = asa_rep_enq_desc_d1.ed_cmd.pd_buf_ptr;
-logic [LEN_NBITS-1:0] discard_len_set = asa_rep_enq_desc_d1.ed_cmd.pd_len;
+wire [`EM_BUF_PTR_NBITS-1:0] discard_buf_ptr_set = asa_rep_enq_desc_d1.ed_cmd.pd_buf_ptr;
+wire [LEN_NBITS-1:0] discard_len_set = asa_rep_enq_desc_d1.ed_cmd.pd_len;
 
 logic p_in_fifo_empty;
 logic [`SCI_VEC_NBITS-1:0] p_in_fifo_asa_rep_enq_vec;
@@ -101,15 +101,15 @@ logic [`SCI_NBITS:0] in_fifo_rep_count;
 logic [`SCI_VEC_NBITS-1:0] enq_vector;
 logic [`SCI_NBITS:0] last_rep_count;
 logic [`SCI_NBITS:0] rep_count;
-logic [`SCI_NBITS:0] pre_enq_conn = pri_enc(enq_vector);
+wire [`SCI_NBITS:0] pre_enq_conn = pri_enc(enq_vector);
 logic [`SCI_NBITS:0] shift_count;
-logic [`SCI_NBITS-1:0] enq_conn = pre_enq_conn+shift_count;
+wire [`SCI_NBITS-1:0] enq_conn = pre_enq_conn+shift_count;
 
-logic out_rep_enq_drop = 1'b0;	// FIXME
-logic out_rep_enq_ucast = last_rep_count==1;						
-logic out_rep_enq_last = rep_count==(last_rep_count-1);						
-logic [`PACKET_ID_NBITS-1:0] out_rep_enq_packet_id = rep_count;				
-logic [`FIRST_LVL_QUEUE_ID_NBITS-1:0] out_rep_enq_qid = {lat_fifo_asa_rep_enq_pri, enq_conn};			
+wire out_rep_enq_drop = 1'b0;	// FIXME
+wire out_rep_enq_ucast = last_rep_count==1;						
+wire out_rep_enq_last = rep_count==(last_rep_count-1);						
+wire [`PACKET_ID_NBITS-1:0] out_rep_enq_packet_id = rep_count;				
+wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] out_rep_enq_qid = {lat_fifo_asa_rep_enq_pri, enq_conn};			
 enq_pkt_desc_type out_rep_enq_desc;
 assign out_rep_enq_desc.src_port = lat_fifo_asa_rep_enq_desc.src_port;
 assign out_rep_enq_desc.dst_port = lat_fifo_asa_rep_enq_desc.dst_port;
@@ -135,35 +135,35 @@ logic [`PACKET_ID_NBITS-1:0] p_rep_enq_packet_id;
 logic [`FIRST_LVL_QUEUE_ID_NBITS-1:0] p_rep_enq_qid;			
 enq_pkt_desc_type p_rep_enq_desc;
 
-logic out_fifo_wr = ~lat_fifo_empty&~out_fifo_full;
+wire out_fifo_wr = ~lat_fifo_empty&~out_fifo_full;
 
-logic out_fifo_last = out_rep_enq_ucast|out_rep_enq_last;
-logic lat_fifo_rd = out_fifo_wr&out_fifo_last;
+wire out_fifo_last = out_rep_enq_ucast|out_rep_enq_last;
+wire lat_fifo_rd = out_fifo_wr&out_fifo_last;
 
-logic p_in_fifo_rd = ~p_in_fifo_empty&(~lat_fifo_full|lat_fifo_rd);
-logic in_fifo_rd = p_in_fifo_empty&~in_fifo_empty&(~lat_fifo_full|lat_fifo_rd);
-logic lat_fifo_wr = (~p_in_fifo_empty|~in_fifo_empty)&(~lat_fifo_full|lat_fifo_rd);
+wire p_in_fifo_rd = ~p_in_fifo_empty&(~lat_fifo_full|lat_fifo_rd);
+wire in_fifo_rd = p_in_fifo_empty&~in_fifo_empty&(~lat_fifo_full|lat_fifo_rd);
+wire lat_fifo_wr = (~p_in_fifo_empty|~in_fifo_empty)&(~lat_fifo_full|lat_fifo_rd);
 
-logic [`SCI_VEC_NBITS-1:0] lat_fifo_asa_rep_enq_vec_in = p_in_fifo_empty?in_fifo_asa_rep_enq_vec:p_in_fifo_asa_rep_enq_vec;
-logic [`PRI_NBITS-1:0] lat_fifo_asa_rep_enq_pri_in = p_in_fifo_empty?in_fifo_asa_rep_enq_pri:p_in_fifo_asa_rep_enq_pri;
+wire [`SCI_VEC_NBITS-1:0] lat_fifo_asa_rep_enq_vec_in = p_in_fifo_empty?in_fifo_asa_rep_enq_vec:p_in_fifo_asa_rep_enq_vec;
+wire [`PRI_NBITS-1:0] lat_fifo_asa_rep_enq_pri_in = p_in_fifo_empty?in_fifo_asa_rep_enq_pri:p_in_fifo_asa_rep_enq_pri;
 enq_pkt_desc_type lat_fifo_asa_rep_enq_desc_in = p_in_fifo_empty?in_fifo_asa_rep_enq_desc:p_in_fifo_asa_rep_enq_desc;		
-logic [`TID_NBITS - 1 : 0] lat_fifo_asa_rep_enq_tid_in = p_in_fifo_empty?in_fifo_asa_rep_enq_tid:p_in_fifo_asa_rep_enq_tid;		
+wire [`TID_NBITS - 1 : 0] lat_fifo_asa_rep_enq_tid_in = p_in_fifo_empty?in_fifo_asa_rep_enq_tid:p_in_fifo_asa_rep_enq_tid;		
 
 logic tset_rd_d1;
-logic tset_rd = out_fifo_wr;
-logic [`TID_NBITS+`SCI_NBITS-1:0] tset_raddr = {lat_fifo_asa_rep_enq_tid, enq_conn};
+wire tset_rd = out_fifo_wr;
+wire [`TID_NBITS+`SCI_NBITS-1:0] tset_raddr = {lat_fifo_asa_rep_enq_tid, enq_conn};
 logic [`SUB_EXP_TIME_NBITS-1:0] tset_rdata;	
 
 logic tset_fifo_empty;
 logic [`SUB_EXP_TIME_NBITS-1:0] tset_fifo_data;	
 
-logic conn_expired = current_time[`SUB_EXP_TIME_NBITS-1:0]>tset_fifo_data;
+wire conn_expired = current_time[`SUB_EXP_TIME_NBITS-1:0]>tset_fifo_data;
 
 logic discard_fifo_full;
 logic tx_fifo_full;
-logic tset_fifo_rd = ~tset_fifo_empty&~tx_fifo_full&~discard_fifo_full;
-logic out_fifo_rd = tset_fifo_rd;
-logic tx_fifo_wr = tset_fifo_rd&~conn_expired;
+wire tset_fifo_rd = ~tset_fifo_empty&~tx_fifo_full&~discard_fifo_full;
+wire out_fifo_rd = tset_fifo_rd;
+wire tx_fifo_wr = tset_fifo_rd&~conn_expired;
 logic out_sop;
 logic out_drop;
 
@@ -171,20 +171,20 @@ logic tx_fifo_empty;
 
 logic out_fifo_rd_last_d1;
 
-logic discard_fifo_wr = out_fifo_rd_last_d1&out_drop;
+wire discard_fifo_wr = out_fifo_rd_last_d1&out_drop;
 discard_info_type discard_fifo_wdata;
 assign discard_fifo_wdata.len = p_rep_enq_desc.ed_cmd.len;
 assign discard_fifo_wdata.buf_ptr = p_rep_enq_desc.buf_ptr;
 assign discard_fifo_wdata.src_port = p_rep_enq_desc.src_port;
-logic [`EM_BUF_PTR_NBITS-1:0] discard_fifo_wbuf_ptr = p_rep_enq_desc.ed_cmd.pd_buf_ptr;
-logic [LEN_NBITS-1:0] discard_fifo_wlen = p_rep_enq_desc.ed_cmd.pd_len;
+wire [`EM_BUF_PTR_NBITS-1:0] discard_fifo_wbuf_ptr = p_rep_enq_desc.ed_cmd.pd_buf_ptr;
+wire [LEN_NBITS-1:0] discard_fifo_wlen = p_rep_enq_desc.ed_cmd.pd_len;
 logic [`EM_BUF_PTR_NBITS-1:0] discard_fifo_rbuf_ptr;
 logic [LEN_NBITS-1:0] discard_fifo_rlen;
 
 logic discard_fifo_empty;
 discard_info_type discard_fifo_rdata;
 
-logic discard_fifo_rd = ~discard_set&~discard_fifo_empty;
+wire discard_fifo_rd = ~discard_set&~discard_fifo_empty;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -200,14 +200,14 @@ end
 
 always @(`CLK_RST) 
 	if (`ACTIVE_RESET) begin
-		discard_req <= 1'b1;
+		discard_req <= 1'b0;
 	end else begin
 		discard_req <= discard_set|~discard_fifo_empty;
 	end
 
 /***************************** PROGRAM BODY **********************************/
 
-logic tx_fifo_rd = rep_enq_req;
+wire tx_fifo_rd = rep_enq_req;
 
 always @(posedge clk) begin
 		asa_rep_enq_discard_d1 <= asa_rep_enq_discard;
@@ -228,8 +228,8 @@ always @(`CLK_RST)
 		shift_count <= {(`SCI_NBITS+1){1'b1}};
 		tset_rd_d1 <= 1'b0;
 		out_sop <= 1'b1;
-		out_drop <= 1'b1;
-		out_fifo_rd_last_d1 <= 1'b1;
+		out_drop <= 1'b0;
+		out_fifo_rd_last_d1 <= 1'b0;
 	end else begin
 		asa_rep_enq_req_d1 <= asa_rep_enq_req;
 		last_rep_count <= in_fifo_rd?in_fifo_rep_count:last_rep_count;

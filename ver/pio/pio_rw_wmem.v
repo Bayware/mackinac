@@ -56,12 +56,12 @@ reg ram_wr_save;
 reg ram_rd_mem_ack_lsb_d1;
 reg ram_wr_mem_ack_msb_d1;
 
-wire [`PIO_ADDR_MSB-3:0] reg_addr_qw = reg_addr[`PIO_ADDR_MSB:3];
+wire [`PIO_ADDR_MSB-2:0] reg_addr_dw = reg_addr[`PIO_ADDR_MSB:2];
 
-wire ram_wr_lsb = reg_ms&reg_wr&~reg_addr_qw[0];
-wire ram_wr_msb = reg_ms&reg_wr&reg_addr_qw[0];
-wire ram_rd_lsb = reg_ms&reg_rd&~reg_addr_qw[0];
-wire ram_rd_msb = reg_ms&reg_rd&reg_addr_qw[0];
+wire ram_wr_lsb = reg_ms&reg_wr&~reg_addr_dw[0];
+wire ram_wr_msb = reg_ms&reg_wr&reg_addr_dw[0];
+wire ram_rd_lsb = reg_ms&reg_rd&~reg_addr_dw[0];
+wire ram_rd_msb = reg_ms&reg_rd&reg_addr_dw[0];
 
 wire [WIDTH-1:0] ram_rdata;
 
@@ -87,6 +87,8 @@ always @(`CLK_RST)
     end
 
 /***************************** PROGRAM BODY **********************************/
+
+wire [`PIO_ADDR_MSB-3:0] reg_addr_qw = reg_addr[`PIO_ADDR_MSB:3];
 
 wire [DEPTH_NBITS-1:0] ram_raddr = app_mem_rd_d1?app_mem_raddr_d1:reg_addr_qw[DEPTH_NBITS-1:0];
 wire ram_wr = app_mem_wr_d1|(REG_WR_EN&ram_wr_mem_ack_msb);

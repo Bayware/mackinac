@@ -55,17 +55,17 @@ logic [NUM_OF_PU-1:0] in_fifo_wr;
 logic [NUM_OF_PU-1:0] in_fifo_rd;
 logic [NUM_OF_PU-1:0] in_fifo_empty;
 
-logic [NUM_OF_PU-1:0] arb_wr_req = ~in_fifo_empty&~in_fifo_rd;
+wire [NUM_OF_PU-1:0] arb_wr_req = ~in_fifo_empty&~in_fifo_rd;
 logic [`PU_ID_NBITS-1:0] arb_wr_sel;
 logic arb_wr_gnt;
 
 logic [2:0] cnt;
 
-logic tag_key_valid = arb_wr_gnt;
-logic [`TAG_NBITS-1:0] tag_key = io_cmd_d1[arb_wr_sel].wdata;
-logic [`PU_ID_NBITS-1:0] tag_pid = arb_wr_sel;
+wire tag_key_valid = arb_wr_gnt;
+wire [`TAG_NBITS-1:0] tag_key = io_cmd_d1[arb_wr_sel].wdata;
+wire [`PU_ID_NBITS-1:0] tag_pid = arb_wr_sel;
 
-logic en = ~tag_key_valid&(cnt==0);
+wire en = ~tag_key_valid&(cnt==0);
 
 always @(*)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1)
@@ -122,13 +122,13 @@ localparam TAG_VALUE_NBITS = `TAG_VALUE_NBITS;
 localparam TAG_VALUE_DEPTH_NBITS = `TAG_VALUE_DEPTH_NBITS;
 
 logic tag_hash_table0_ack; 
-logic [TAG_BUCKET_NBITS-1:0] tag_hash_table0_rdata  /* synthesis keep = 1 */;
+wire [TAG_BUCKET_NBITS-1:0] tag_hash_table0_rdata  /* synthesis keep = 1 */;
 
 logic tag_hash_table1_ack; 
-logic [TAG_BUCKET_NBITS-1:0] tag_hash_table1_rdata  /* synthesis keep = 1 */;
+wire [TAG_BUCKET_NBITS-1:0] tag_hash_table1_rdata  /* synthesis keep = 1 */;
 
 logic tag_value_ack; 
-logic [TAG_VALUE_NBITS-1:0] tag_value_rdata; /* synthesis keep = 1 */
+wire [TAG_VALUE_NBITS-1:0] tag_value_rdata; /* synthesis keep = 1 */
 
 logic tag_hash_table0_rd; 
 logic [TAG_DEPTH_NBITS-1:0] tag_hash_table0_raddr;

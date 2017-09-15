@@ -76,6 +76,9 @@ output [`EXP_TIME_NBITS-1:0] flow_etime_rdata  /* synthesis keep = 1 */
 
 /***************************** LOCAL VARIABLES *******************************/
 
+reg init_wr;
+reg [VALUE_DEPTH_NBITS:0] init_addr;
+
 reg [`REAL_TIME_NBITS-1:0] current_time_d1;
 
 reg asa_classifier_valid_d1;
@@ -99,8 +102,10 @@ wire [`PIO_RANGE] flow_hash_table0_mem_rdata;
 wire flow_hash_table1_mem_ack;
 wire [`PIO_RANGE] flow_hash_table1_mem_rdata;
 
-wire reg_ms_flow_hash_table0 = reg_ms_flow_hash_table&~reg_addr[DEPTH_NBITS];
-wire reg_ms_flow_hash_table1 = reg_ms_flow_hash_table&reg_addr[DEPTH_NBITS];
+wire [`PIO_ADDR_MSB-3:0] reg_addr_qw = reg_addr[`PIO_ADDR_MSB:3];
+
+wire reg_ms_flow_hash_table0 = reg_ms_flow_hash_table&~reg_addr_qw[DEPTH_NBITS];
+wire reg_ms_flow_hash_table1 = reg_ms_flow_hash_table&reg_addr_qw[DEPTH_NBITS];
 
 wire flow_fifo_empty;
 wire [`FID_NBITS-1:0] flow_fifo_fid;
@@ -112,8 +117,8 @@ wire n_flow_etime_wr = asa_classifier_valid_d1|~flow_fifo_empty;
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 always @(*) begin
-	flow_hash_table_mem_ack = reg_addr[DEPTH_NBITS]?flow_hash_table0_mem_ack:flow_hash_table1_mem_ack;
-	flow_hash_table_mem_rdata = reg_addr[DEPTH_NBITS]?flow_hash_table0_mem_rdata:flow_hash_table1_mem_rdata;
+	flow_hash_table_mem_ack = ~reg_addr_qw[DEPTH_NBITS]?flow_hash_table0_mem_ack:flow_hash_table1_mem_ack;
+	flow_hash_table_mem_rdata = ~reg_addr_qw[DEPTH_NBITS]?flow_hash_table0_mem_rdata:flow_hash_table1_mem_rdata;
 end
 	
 /***************************** REGISTERED OUTPUTS ****************************/
@@ -143,11 +148,15 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
+	    	init_wr <= 1'b0;
+	    	init_addr <= 0;
 	        asa_classifier_valid_d1 <= 1'b1;
 		ecdsa_classifier_flow_valid_d1 <= 1'b0;
 	        flow_key_wr_d1 <= 1'b0;
 	        flow_etime_wr <= 1'b0;
 	end else begin
+	    	init_wr <= ~init_addr[VALUE_DEPTH_NBITS];
+	    	init_addr <= init_addr[VALUE_DEPTH_NBITS]?(1<<VALUE_DEPTH_NBITS):init_addr+1;
 	        asa_classifier_valid_d1 <= asa_classifier_valid;
 		ecdsa_classifier_flow_valid_d1 <= ecdsa_classifier_flow_valid;
 	        flow_key_wr_d1 <= flow_key_wr;
@@ -208,20 +217,20 @@ pio_rw_wmem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_rw_wmem1(
 
 ram_1r1w #(`FLOW_KEY_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_0(
 		.clk(clk),
-		.wr(flow_key_wr_d1),
+		.wr(init_wr|flow_key_wr_d1),
 		.raddr(flow_key_raddr),
-		.waddr(flow_key_waddr_d1),
-		.din(flow_key_wdata_d1),
+		.waddr(init_wr?init_addr:flow_key_waddr_d1),
+		.din(init_wr?0:flow_key_wdata_d1),
 
 		.dout(flow_key_rdata)
 );
 
 ram_1r1w #(`EXP_TIME_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_2(
 		.clk(clk),
-		.wr(flow_etime_wr),
+		.wr(init_wr|flow_etime_wr),
 		.raddr(flow_etime_raddr),
-		.waddr(flow_etime_waddr),
-		.din(flow_etime_wdata),
+		.waddr(init_wr?init_addr:flow_etime_waddr),
+		.din(init_wr?0:flow_etime_wdata),
 
 		.dout(flow_etime_rdata)
 );

@@ -18,17 +18,15 @@ output logic [KEY_NBITS-1:0] out
 
 /***************************** LOCAL VARIABLES *******************************/
 
-integer i;
-
 /***************************** NON REGISTERED OUTPUTS ************************/
+
+assign out = transpose_func(in);
 
 /***************************** REGISTERED OUTPUTS ****************************/
 
-always @(*)
-	for (i=0; i<KEY_NBITS+1; i++)
-		out[i] = in[KEY_NBITS-1-i];
-
 /***************************** PROGRAM BODY **********************************/
+
+`TRANSPOSE(transpose_func, KEY_NBITS)
 
 /***************************** DIAGNOSTICS **********************************/
 

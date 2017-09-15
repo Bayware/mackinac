@@ -149,7 +149,7 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
-	fifo_reset <= 1'b1;
+	fifo_reset <= `ACTIVE_RESET_LEVEL;
         asa_bm_bp_d1 <= 0;
         aggr_bm_buf_req_d1 <= 0;
         aggr_bm_buf_req_d2 <= 0;
@@ -159,7 +159,7 @@ always @(`CLK_RST)
         fifo_rd_d1 <= 0;
         prefetch_fifo_rd <= 0;
     end else begin
-	fifo_reset <= (nxt_init_st==RESET_FREEB);
+	fifo_reset <= (nxt_init_st==RESET_FREEB)?`ACTIVE_RESET_LEVEL:`INACTIVE_RESET_LEVEL;
         asa_bm_bp_d1 <= asa_bm_bp;
         aggr_bm_buf_req_d1 <= aggr_bm_buf_req;
         aggr_bm_buf_req_d2 <= aggr_bm_buf_req_d1;
@@ -231,12 +231,6 @@ sfifo2f_fo #(`BUF_PTR_NBITS, 2) sfifo2f_fo_inst(
 
 // synopsys translate_off
 
-always @(posedge bm_aggr_buf_valid) 
-    if (`INACTIVE_RESET) #1 $display (" %t : Fetched Free Buffer=%0d \n", 
-                    $realtime, bm_aggr_buf_ptr[`BUF_PTR_NBITS-1:0]); 
-always @(posedge rel_buf_valid_d1)
-        if (`INACTIVE_RESET) #1 $display (" %t : Released Free Buffer=%0d \n",
-                                        $realtime, rel_buf_ptr_d1);
 
 // synopsys translate_on
 

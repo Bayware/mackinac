@@ -78,7 +78,7 @@ sfifo2f_ram #(WIDTH, DEPTH_NBITS) u_sfifo2f_ram(
 
 	.wptr(), 
 	.count(), 
-	.full(),
+	.full(full),
 	.empty(fifo_empty),
     .dout(fifo_dout)       
 );
@@ -94,7 +94,7 @@ sfifo2f_fo #(WIDTH, 2) u_sfifo2f_fo(
 	.ncount(),
 	.count(),
 	.full(prefetch_fifo_full),
-	.empty(),
+	.empty(empty),
 	.fullm1(prefetch_fifo_fullm1),
 	.emptyp2(),
     .dout(dout)       

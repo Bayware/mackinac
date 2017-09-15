@@ -71,21 +71,21 @@ logic [2:0] tag_value_rd_cnt;
 wire last_tag_value_rd_cnt = &tag_value_rd_cnt;
 
 logic ht_fifo_empty;
-logic tag_value_rd_p1 = ~ht_fifo_empty;
-logic ht_fifo_rd = tag_value_rd_p1&last_tag_value_rd_cnt;
+wire tag_value_rd_p1 = ~ht_fifo_empty;
+wire ht_fifo_rd = tag_value_rd_p1&last_tag_value_rd_cnt;
 
 logic [2:0] tag_value_ack_cnt;
-logic last_tag_value_ack_cnt = &tag_value_ack_cnt;
+wire last_tag_value_ack_cnt = &tag_value_ack_cnt;
 
 logic [`PU_ID_NBITS-1:0] latency_fifo_tag_pid;
 logic [TAG_KEY_NBITS-1:0] latency_fifo_tag_key;
 
-logic tag_hash_compare = latency_fifo_tag_key==tag_value_rdata_d1[`TAG_VALUE_KEY];
+wire tag_hash_compare = latency_fifo_tag_key==tag_value_rdata_d1[`TAG_VALUE_KEY];
 
-logic tag_lookup_valid_p1 = tag_value_ack_d1&tag_hash_compare&(tag_value_rdata_d1[`TAG_VALUE_PAYLOAD]!=0);
-logic tag_lookup_status_valid_p1 = tag_value_ack_d1&last_tag_value_ack_cnt;
+wire tag_lookup_valid_p1 = tag_value_ack_d1&tag_hash_compare&(tag_value_rdata_d1[`TAG_VALUE_PAYLOAD]!=0);
+wire tag_lookup_status_valid_p1 = tag_value_ack_d1&last_tag_value_ack_cnt;
 
-logic latency_fifo_rd = tag_lookup_status_valid_p1;
+wire latency_fifo_rd = tag_lookup_status_valid_p1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

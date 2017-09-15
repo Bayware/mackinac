@@ -72,12 +72,12 @@ logic data_ack_eop_d3;
 logic [`HOP_INFO_NBITS-1:0] data_ack_data_d3;
 pp_piarb_meta_type data_ack_meta_d3;
 
-logic [`FID_NBITS-1:0] fid = data_ack_meta.fid;
-logic [`TID_NBITS-1:0] tid = data_ack_meta.tid;
+wire [`FID_NBITS-1:0] fid = data_ack_meta.fid;
+wire [`TID_NBITS-1:0] tid = data_ack_meta.tid;
 
 logic [`FLOW_PU_NBITS-1:0] flow_value_rdata_d1;
 
-logic piarb_pu_fid_sel_p1 = data_ack_meta_d3.fid_sel;
+wire piarb_pu_fid_sel_p1 = data_ack_meta_d3.fid_sel;
 
 pu_hop_meta_type piarb_pu_meta_data_p1;
 assign piarb_pu_meta_data_p1.creation_time = data_ack_meta_d3.creation_time;

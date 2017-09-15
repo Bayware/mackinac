@@ -84,8 +84,8 @@ logic dstr_enc_sop_d1;
 logic dstr_enc_eop_d1;
 logic [PBUS_VB_NBITS-1:0] dstr_enc_valid_bytes_d1;    
 
-logic l2_gre = gre_header==GRE_PROTOCOL_TYPE_L2;
-logic in_vlan_tagged = l2_gre&(in_vlan!=0);
+wire l2_gre = gre_header==GRE_PROTOCOL_TYPE_L2;
+wire in_vlan_tagged = l2_gre&(in_vlan!=0);
 
 logic [RING_NBITS-1:0] encr_ring_in_data_d1;
 logic encr_ring_in_sof_d1;
@@ -111,44 +111,44 @@ logic in_fifo_sop_d1;
 
 logic [LEN_NBITS-1:0] pkt_len;
 
-logic vlan_tagged = |encr_ring_in_data_d2[127-48:64];
-logic ipsec = |encr_ring_in_data_d2[63:0];
-logic ipv4_cond = ~|encr_ring_in_data_d2[127:32];
+wire vlan_tagged = |encr_ring_in_data_d2[127-48:64];
+wire ipsec = |encr_ring_in_data_d2[63:0];
+wire ipv4_cond = ~|encr_ring_in_data_d2[127:32];
 logic ipv4_cond_d1;
-logic ipv4 = ipv4_cond_d1&ipv4_cond;
+wire ipv4 = ipv4_cond_d1&ipv4_cond;
 logic ipv4_d1;
 
-logic out_fifo_wr = ~in_fifo_empty&~in_fifo_sop; 
+wire out_fifo_wr = ~in_fifo_empty&~in_fifo_sop; 
 
 logic [2:0] result_fifo_count;
-logic result_fifo_full = result_fifo_count==4;
-logic req_fifo_wr = ~in_fifo_empty&in_fifo_sop&~result_fifo_full;
-logic [LEN_NBITS+CI_NBITS-1:0] req_fifo_wdata = in_fifo_data;
+wire result_fifo_full = result_fifo_count==4;
+wire req_fifo_wr = ~in_fifo_empty&in_fifo_sop&~result_fifo_full;
+wire [LEN_NBITS+CI_NBITS-1:0] req_fifo_wdata = in_fifo_data;
 
-logic in_fifo_rd = out_fifo_wr|req_fifo_wr;
+wire in_fifo_rd = out_fifo_wr|req_fifo_wr;
 
 logic req_fifo_empty;
 logic [LEN_NBITS+CI_NBITS-1:0] req_fifo_rdata;
-logic my_segment = (segment_cnt==ENCRYPTOR_ID);
-logic en_req = my_segment&(word_cnt==0);
-logic req_fifo_rd = ~req_fifo_empty&en_req;
-logic req_pending_fifo_wr = req_fifo_rd;
+wire my_segment = (segment_cnt==ENCRYPTOR_ID);
+wire en_req = my_segment&(word_cnt==0);
+wire req_fifo_rd = ~req_fifo_empty&en_req;
+wire req_pending_fifo_wr = req_fifo_rd;
 
 logic [LEN_NBITS-1:0] req_pending_fifo_data;
 logic req_pending_fifo_empty;
-logic req_pending_fifo_rd = my_segment&~req_pending_fifo_empty&(word_cnt==4)&encr_ring_in_valid_d2;
+wire req_pending_fifo_rd = my_segment&~req_pending_fifo_empty&(word_cnt==4)&encr_ring_in_valid_d2;
 
-logic key_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&((word_cnt==0)|(word_cnt==1));
+wire key_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&((word_cnt==0)|(word_cnt==1));
 logic key_fifo_rd;
 logic ip_sa_fifo_rd;
 logic ip_da_fifo_rd;
 logic [KEY_NBITS/2-1:0] key_fifo_data;
-logic ip_sa_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(word_cnt==2);
-logic ip_da_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(word_cnt==3);
+wire ip_sa_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(word_cnt==2);
+wire ip_da_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(word_cnt==3);
 logic [RING_NBITS-1:0] ip_sa_fifo_data;
 logic [RING_NBITS-1:0] ip_da_fifo_data;
 logic result_fifo_empty;
-logic result_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(word_cnt==4);
+wire result_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(word_cnt==4);
 logic result_fifo_ipv4;
 logic result_fifo_ipsec;
 logic result_fifo_vlan_tagged;
@@ -192,20 +192,20 @@ logic out_fifo_eop;
 logic [PBUS_VB_NBITS-1:0] out_fifo_valid_bytes;    
 
 logic en_pkt_len;
-logic set_en_pkt_len = ~result_fifo_empty&pkt_len==0;
-logic reset_en_pkt_len = p_tx_fifo_wr&p_tx_fifo_in_eop;
-logic result_fifo_rd = reset_en_pkt_len;
+wire set_en_pkt_len = ~result_fifo_empty&pkt_len==0;
+wire reset_en_pkt_len = p_tx_fifo_wr&p_tx_fifo_in_eop;
+wire result_fifo_rd = reset_en_pkt_len;
 
 logic out_fifo_eop_d1;
 logic [PBUS_VB_NBITS-1:0] out_fifo_valid_bytes_d1;    
 
 logic out_fifo_rd;
-logic one_more_tx = out_fifo_rd&out_fifo_eop&out_fifo_valid_bytes>2;
+wire one_more_tx = out_fifo_rd&out_fifo_eop&out_fifo_valid_bytes>2;
 
-logic p_tx_fifo_rd = ~p_tx_fifo_empty&~tx_fifo_full;
-logic p_tx_fifo_nav = p_tx_fifo_full&~p_tx_fifo_rd;
+wire p_tx_fifo_rd = ~p_tx_fifo_empty&~tx_fifo_full;
+wire p_tx_fifo_nav = p_tx_fifo_full&~p_tx_fifo_rd;
 
-logic tx_fifo_rd = tx_axis_tvalid&tx_axis_tready;
+wire tx_fifo_rd = tx_axis_tvalid&tx_axis_tready;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -242,33 +242,32 @@ logic `RESET_SIG_MAC;
 
 synchronizer u_synchronizer(.clk(clk_mac), .din(`RESET_SIG), .dout(`RESET_SIG_MAC));
 
-logic [15:0] payload_length = result_fifo_ipsec?result_fifo_pkt_len+4+16:result_fifo_pkt_len+4;
-logic [15:0] total_length = payload_length+20;
+wire [15:0] payload_length = result_fifo_ipsec?result_fifo_pkt_len+4+16:result_fifo_pkt_len+4;
+wire [15:0] total_length = payload_length+20;
 
-logic [15:0] ipv4_1st_word = {8'h45, dscp_ecn};
-logic [15:0] fragment = 16'h0;
+wire [15:0] ipv4_1st_word = {8'h45, dscp_ecn};
+wire [15:0] fragment = 16'h0;
 
-logic [7:0] protocol = result_fifo_ipsec?IPSEC_PROTOCOL_NUM:GRE_PROTOCOL_NUM;
+wire [7:0] protocol = result_fifo_ipsec?IPSEC_PROTOCOL_NUM:GRE_PROTOCOL_NUM;
 
-logic [15:0] ipv6_1st_word = {4'h6, dscp_ecn[3:0], flow_label[23:16]};
+wire [15:0] ipv6_1st_word = {4'h6, dscp_ecn[3:0], flow_label[23:16]};
 
-logic [15:0] etype = result_fifo_vlan_tagged?VLAN_TYPE:result_fifo_ipv4?IPV4_TYPE:IPV6_TYPE;
-logic [15:0] vlan_2bytes = result_fifo_vlan_tagged?result_fifo_vlan:result_fifo_ipv4?IPV4_TYPE:IPV6_TYPE;
+wire [15:0] etype = result_fifo_vlan_tagged?VLAN_TYPE:result_fifo_ipv4?IPV4_TYPE:IPV6_TYPE;
+wire [15:0] vlan_2bytes = result_fifo_vlan_tagged?result_fifo_vlan:result_fifo_ipv4?IPV4_TYPE:IPV6_TYPE;
 
-logic [47:0] mac_da = result_fifo_mac_da;
-logic [127:0] ip_sa = ip_sa_fifo_data;
-logic [127:0] ip_da = ip_da_fifo_data;
+wire [47:0] mac_da = result_fifo_mac_da;
+wire [127:0] ip_sa = ip_sa_fifo_data;
+wire [127:0] ip_da = ip_da_fifo_data;
 
 always @(*) begin
 	out_fifo_rd = 1'b0;
 	ip_sa_fifo_rd = 1'b0;
 	ip_da_fifo_rd = 1'b0;
-	p_tx_fifo_wr = 1'b0;
 	p_tx_fifo_in_valid_bytes = 0;
 	p_tx_fifo_in_sop = 1'b0;
 	p_tx_fifo_in_eop = 1'b0;      
-	p_tx_fifo_wr = ~p_tx_fifo_nav;
-	case ({/*result_fifo_ipsec*/ 1'b0, in_vlan_tagged, l2_gre, ~result_fifo_ipv4, result_fifo_vlan_tagged}) 
+	p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+	case ({/*result_fifo_ipsec*/ 1'b0, in_vlan_tagged, l2_gre, ~(~result_fifo_empty&result_fifo_ipv4), (~result_fifo_empty&result_fifo_vlan_tagged)}) 
 		5'h00: 
 			case (pkt_len[LEN_NBITS-1:2])
 				0: begin
@@ -303,7 +302,6 @@ always @(*) begin
 				end
 				9: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -346,7 +344,6 @@ always @(*) begin
 				end
 				10: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -406,7 +403,6 @@ always @(*) begin
 				end
 				14: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -469,7 +465,6 @@ always @(*) begin
 				end
 				15: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -523,7 +518,6 @@ always @(*) begin
 				end
 				12: begin
 					p_tx_fifo_in_data = {in_mac_sa[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -580,7 +574,6 @@ always @(*) begin
 				end
 				13: begin
 					p_tx_fifo_in_data = {in_mac_sa[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -649,7 +642,6 @@ always @(*) begin
 				end
 				17: begin
 					p_tx_fifo_in_data = {in_mac_sa[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -721,7 +713,6 @@ always @(*) begin
 				end
 				18: begin
 					p_tx_fifo_in_data = {in_mac_sa[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -778,7 +769,6 @@ always @(*) begin
 				end
 				13: begin
 					p_tx_fifo_in_data = {in_vlan[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -838,7 +828,6 @@ always @(*) begin
 				end
 				14: begin
 					p_tx_fifo_in_data = {in_vlan[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -910,7 +899,6 @@ always @(*) begin
 				end
 				18: begin
 					p_tx_fifo_in_data = {in_vlan[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin
@@ -985,7 +973,6 @@ always @(*) begin
 				end
 				19: begin
 					p_tx_fifo_in_data = {in_vlan[15:0], out_fifo_data[31:16]};
-					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 				default: begin

@@ -20,11 +20,11 @@ parameter OUT_WIDTH = `PU_WIDTH_NBITS
 	output logic [OUT_WIDTH-1:0] alu
 );
 
-logic [RF_WIDTH-1:0] in_a = rs1;
-logic [RF_WIDTH-1:0] in_b = use_imm?imm:rs2;
+wire [RF_WIDTH-1:0] in_a = rs1;
+wire [RF_WIDTH-1:0] in_b = use_imm?imm:rs2;
 
-logic [2:0] f3 = funct3;
-logic f5_3 = funct5[3];
+wire [2:0] f3 = funct3;
+wire f5_3 = funct5[3];
 
 always @(*) 
 	case (f3)

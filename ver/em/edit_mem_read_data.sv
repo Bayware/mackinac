@@ -47,9 +47,9 @@ integer i;
 logic buf_ack_valid_d1;
 logic [BPTR_NBITS-1:0] buf_ack_ptr_d1;
 
-logic [BPTR_NBITS-1:0] edit_mem_buf_ptr = edit_mem_raddr[ADDR_NBITS-1:LSB_NBITS];
-logic [LSB_NBITS-1:0] edit_mem_lsb = edit_mem_raddr[LSB_NBITS-1:0];
-logic edit_mem_sop = ~|edit_mem_lsb[LSB_NBITS-1:0];
+wire [BPTR_NBITS-1:0] edit_mem_buf_ptr = edit_mem_raddr[ADDR_NBITS-1:LSB_NBITS];
+wire [LSB_NBITS-1:0] edit_mem_lsb = edit_mem_raddr[LSB_NBITS-1:0];
+wire edit_mem_sop = ~|edit_mem_lsb[LSB_NBITS-1:0];
 
 logic edit_fifo_empty;
 logic [ID_NBITS-1:0] edit_fifo_port_id;
@@ -64,10 +64,10 @@ logic [BPTR_NBITS-1:0] pb_fifo_data[NUM_OF_PORTS-1:0];
 
 logic [ID_NBITS-1:0] port_fifo_port_id;
 
-logic n_buf_req = ~edit_fifo_empty&~edit_fifo_eop;
-logic port_fifo_wr = n_buf_req;
+wire n_buf_req = ~edit_fifo_empty&~edit_fifo_eop;
+wire port_fifo_wr = n_buf_req;
 
-logic edit_fifo_rd = ~edit_fifo_empty&(edit_fifo_sop|~pb_fifo_empty[edit_fifo_port_id]);
+wire edit_fifo_rd = ~edit_fifo_empty&(edit_fifo_sop|~pb_fifo_empty[edit_fifo_port_id]);
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

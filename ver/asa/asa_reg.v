@@ -33,6 +33,8 @@ output reg [15:0]  class2pri
 
 /***************************** LOCAL VARIABLES *******************************/
 
+reg reg_rd_d1;
+
 reg n_pio_ack;
 reg n_pio_rvalid;
 
@@ -43,6 +45,8 @@ reg sel_class2pri;
 wire wr_default_sub_exp_time = reg_wr&reg_bs&sel_default_sub_exp_time;
 wire wr_supervisor_sci = reg_wr&reg_bs&sel_supervisor_sci;
 wire wr_class2pri = reg_wr&reg_bs&sel_class2pri;
+
+wire rd_en = reg_rd|reg_rd_d1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -83,8 +87,8 @@ always @(`CLK_RST) begin
 		supervisor_sci <= {(`SCI_NBITS){1'b0}};
 		class2pri <= 15'b0;
 	end else begin
-		pio_ack <= clk_div?n_pio_ack:pio_ack;
-		pio_rvalid <= clk_div?n_pio_rvalid:pio_rvalid;
+		pio_ack <= clk_div?n_pio_ack&~rd_en:pio_ack;
+		pio_rvalid <= clk_div?n_pio_rvalid&reg_bs&rd_en&n_pio_ack:pio_rvalid;
 
 		default_sub_exp_time <= wr_default_sub_exp_time?reg_din[15:0]:default_sub_exp_time;
 		supervisor_sci <= wr_supervisor_sci?reg_din[`SCI_NBITS-1:0]:supervisor_sci;
@@ -97,8 +101,10 @@ end
 always @(`CLK_RST) begin
 	if(`ACTIVE_RESET) begin
 		n_pio_ack <= 1'b0;
+		reg_rd_d1 <= 1'b0;
 	end else begin
-		n_pio_ack <= (reg_rd|reg_wr)?1'b1:clk_div?1'b0:n_pio_ack;
+		n_pio_ack <= (reg_rd|reg_wr)&reg_bs?1'b1:clk_div?1'b0:n_pio_ack;
+		reg_rd_d1 <= reg_rd?reg_bs:pio_rvalid?1'b0:reg_rd_d1;
 	end
 end
 

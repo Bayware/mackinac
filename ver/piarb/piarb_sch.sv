@@ -7,41 +7,30 @@
 
 `include "defines.vh"
 
+import meta_package::*;
+
 module piarb_sch # (
-parameter QUEUE_ID_NBITS = 5; // log2(`NUM_OF_PU);
-parameter QUEUE_ENTRIES_NBITS = `PU_QUEUE_ENTRIES_NBITS;
-parameter QUEUE_DEPTH = `NUM_OF_PU;
-parameter QUEUE_PAYLOAD_NBITS = `PU_QUEUE_PAYLOAD_NBITS;
+parameter QUEUE_ID_NBITS = 5, // log2(`NUM_OF_PU);
+parameter QUEUE_ENTRIES_NBITS = `PU_QUEUE_ENTRIES_NBITS,
+parameter QUEUE_DEPTH = `NUM_OF_PU,
+parameter QUEUE_PAYLOAD_NBITS = `PU_QUEUE_PAYLOAD_NBITS
 
 ) (
 
 input clk, `RESET_SIG,
 
-input qm_enq_ack,			
-input qm_enq_to_empty,
-input [QUEUE_ID_NBITS-1:0] qm_enq_ack_qid,
+input enq_ack,			
+input enq_to_empty,
+input [QUEUE_ID_NBITS-1:0] enq_ack_qid,
 
-input sch_deq_depth_ack,
-input sch_deq_depth_from_emptyp2,
+input deq_depth_ack,
+input deq_depth_from_emptyp2,
 
-input deq_ack,
-input [QUEUE_ID_NBITS-1:0] deq_ack_qid,
-input [QUEUE_PAYLOAD_NBITS-1:0] sch_deq_pkt_desc,
-
-output reg sch_enq_req,
-output reg [DESC_NBITS-1:0] sch_enq_desc, // only buf_ptr required
-output reg [ID_NBITS-1:0] sch_enq_src_port,
-output reg [ID_NBITS-1:0] sch_enq_dst_port,
-output reg [LEN_NBITS-1:0] sch_enq_len,
-
-output reg sch_deq,			
-output reg [QUEUE_ID_NBITS-1:0] sch_deq_qid
+output reg deq_req,			
+output reg [QUEUE_ID_NBITS-1:0] deq_qid
 );
 
 /***************************** LOCAL VARIABLES *******************************/
-
-reg deq_ack_d1;
-reg [QUEUE_PAYLOAD_NBITS-1:0] sch_deq_pkt_desc_d1;
 
 wire deq_qid_fifo_empty;
 wire [QUEUE_ID_NBITS-1:0] lat_fifo_deq_qid;
@@ -50,8 +39,11 @@ wire [QUEUE_ID_NBITS-1:0] lat_fifo_enq_qid;
 
 wire enq_fifo_empty;
 
-wire push = sch_deq_depth_ack&sch_deq_depth_from_emptyp2|~enq_fifo_empty;
-wire [QUEUE_ID_NBITS-1:0] push_data = ~enq_fifo_empty?:lat_fifo_deq_qid;
+wire deq_push = deq_depth_ack&deq_depth_from_emptyp2;
+wire push = deq_push|~enq_fifo_empty;
+wire [QUEUE_ID_NBITS-1:0] push_data = deq_push?lat_fifo_deq_qid:lat_fifo_enq_qid;
+
+wire enq_fifo_rd = ~deq_push&~enq_fifo_empty;
 
 wire event_fifo_empty;
 wire [QUEUE_ID_NBITS-1:0] deq_qid_p1;
@@ -62,17 +54,17 @@ wire [QUEUE_ID_NBITS-1:0] deq_qid_p1;
 /***************************** REGISTERED OUTPUTS ****************************/
 
 always @(posedge clk) begin
-	sch_deq_qid <= deq_qid_p1;
+	deq_qid <= deq_qid_p1;
 end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
 
-		sch_deq <= 0;
+		deq_req <= 0;
 
 	end else begin
 
-		sch_deq <= ~event_fifo_empty;
+		deq_req <= ~event_fifo_empty;
 
 	end
 
@@ -85,9 +77,9 @@ sfifo2f_fo #(QUEUE_ID_NBITS, 4) u_sfifo2f_fo_0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({qm_enq_ack_qid}),				
-		.rd(queue_profile_ack_d1),
-		.wr(qm_enq_ack&qm_enq_to_empty),
+		.din({enq_ack_qid}),				
+		.rd(enq_fifo_rd),
+		.wr(enq_ack&enq_to_empty),
 
 		.ncount(),
 		.count(),
@@ -102,9 +94,9 @@ sfifo2f_fo #(QUEUE_ID_NBITS, 4) u_sfifo2f_fo_1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({sch_deq_qid}),				
-		.rd(sch_deq_depth_ack),
-		.wr(sch_deq),
+		.din({deq_qid}),				
+		.rd(deq_depth_ack),
+		.wr(deq_req),
 
 		.ncount(),
 		.count(),

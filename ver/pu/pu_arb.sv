@@ -33,7 +33,7 @@ logic [NUM_OF_PU-1:0] arb_req;
 logic [`PU_ID_NBITS-1:0] arb_sel;
 logic arb_gnt;
 
-logic last_clk_div = clk_div==CLK_NUM-1;
+wire last_clk_div = clk_div==CLK_NUM-1;
 logic en;
 
 assign pu_gnt = in_fifo_rd;

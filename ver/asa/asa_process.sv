@@ -71,41 +71,41 @@ logic ecdsa_asa_fp_wr_d1;
 logic [`FID_NBITS-1:0] ecdsa_asa_fp_waddr_d1;				
 logic [`FLOW_POLICY2_NBITS-1:0] ecdsa_asa_fp_wdata_d1;				
 
-logic [`TID_NBITS-1:0] tid = asa_proc_meta.tid;
-logic [`TID_NBITS-1:0] tid_d2 = asa_proc_meta_d2.tid;
-logic [`TID_NBITS-1:0] fid = asa_proc_meta.fid;
-logic [`TID_NBITS-1:0] fid_d2 = asa_proc_meta_d2.fid;
+wire [`TID_NBITS-1:0] tid = asa_proc_meta.tid;
+wire [`TID_NBITS-1:0] tid_d2 = asa_proc_meta_d2.tid;
+wire [`TID_NBITS-1:0] fid = asa_proc_meta.fid;
+wire [`TID_NBITS-1:0] fid_d2 = asa_proc_meta_d2.fid;
 
-logic fp_rd = asa_proc_valid;
-logic [`FID_NBITS-1:0] fp_raddr = fid;				
+wire fp_rd = asa_proc_valid;
+wire [`FID_NBITS-1:0] fp_raddr = fid;				
 logic [`FLOW_POLICY2_NBITS-1:0] fp_rdata;				
 logic [`FLOW_POLICY2_NBITS-1:0] fp_rdata_d1;				
 
-logic fa_rd = fp_rd;
-logic [`FID_NBITS-1:0] fa_raddr = fp_raddr;				
+wire fa_rd = fp_rd;
+wire [`FID_NBITS-1:0] fa_raddr = fp_raddr;				
 logic [`FLOW_ACTION_NBITS-1:0] fa_rdata;				
 logic [`FLOW_ACTION_NBITS-1:0] fa_rdata_d1;				
 
-logic ta_rd = fp_rd;
-logic [`TID_NBITS-1:0] ta_raddr = tid;				
+wire ta_rd = fp_rd;
+wire [`TID_NBITS-1:0] ta_raddr = tid;				
 logic [`SCI_VEC_NBITS-1:0] ta_rdata;				
 logic [`SCI_VEC_NBITS-1:0] ta_rdata_d1;				
 
-logic [`SCI_VEC_NBITS-1:0] in_rci_bit_vec_p1 = bit_vec_gen({1'b0, asa_proc_meta_d1.rci});
+wire [`SCI_VEC_NBITS-1:0] in_rci_bit_vec_p1 = bit_vec_gen({1'b0, asa_proc_meta_d1.rci});
 logic [`SCI_VEC_NBITS-1:0] in_rci_mask;
 
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec0 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*1+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*0+`RAS_FLAG_NBITS]);
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec1 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*2+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*1+`RAS_FLAG_NBITS]);
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec2 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*3+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*2+`RAS_FLAG_NBITS]);
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec3 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*4+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*3+`RAS_FLAG_NBITS]);
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec4 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*5+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*4+`RAS_FLAG_NBITS]);
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec5 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*6+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*5+`RAS_FLAG_NBITS]);
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec6 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*7+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*6+`RAS_FLAG_NBITS]);
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec7 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*7+`RAS_FLAG_NBITS]);
-logic [`SCI_VEC_NBITS-1:0] topic_bit_vec_p1 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*9+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec0 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*1+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*0+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec1 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*2+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*1+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec2 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*3+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*2+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec3 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*4+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*3+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec4 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*5+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*4+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec5 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*6+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*5+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec6 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*7+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*6+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec7 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*7+`RAS_FLAG_NBITS]);
+wire [`SCI_VEC_NBITS-1:0] topic_bit_vec_p1 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*9+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS]);
 logic [`SCI_VEC_NBITS-1:0] topic_bit_vec;
 
-logic [`SCI_VEC_NBITS-1:0] flow_bit_vec_p1 = flow_bit_vec0|
+wire [`SCI_VEC_NBITS-1:0] flow_bit_vec_p1 = flow_bit_vec0|
 						flow_bit_vec1|
 						flow_bit_vec2|
 						flow_bit_vec3|
@@ -129,85 +129,85 @@ assign flow_vec_valid_p1[7] = asa_proc_ras_d1[(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS-1
 
 logic [7:0] flow_vec_valid;
 
-logic topic_vec_valid_p1 = asa_proc_ras_d1[(1+`SCI_NBITS)*9+`RAS_FLAG_NBITS-1];
+wire topic_vec_valid_p1 = asa_proc_ras_d1[(1+`SCI_NBITS)*9+`RAS_FLAG_NBITS-1];
 logic topic_vec_valid;
 
-logic [`RAS_FLAG_NBITS-1:0] ras_flag = asa_proc_ras_d2[`RAS_FLAG_NBITS-1:0];
+wire [`RAS_FLAG_NBITS-1:0] ras_flag = asa_proc_ras_d2[`RAS_FLAG_NBITS-1:0];
 
-logic [`RAS_FLAG_EAST_RANGE] ras_east = ras_flag[`RAS_FLAG_EAST];
-logic [`RAS_FLAG_UFDAST_RANGE] ras_ufdast = ras_flag[`RAS_FLAG_UFDAST];
-logic [`RAS_FLAG_UPPP_RANGE] ras_uppp = ras_flag[`RAS_FLAG_UPPP];
-logic [`RAS_FLAG_UPPD_RANGE] ras_uppd = ras_flag[`RAS_FLAG_UPPD];
-logic [`RAS_FLAG_NFASCF_RANGE] ras_nfascf = ras_flag[`RAS_FLAG_NFASCF];
+wire [`RAS_FLAG_EAST_RANGE] ras_east = ras_flag[`RAS_FLAG_EAST];
+wire [`RAS_FLAG_UFDAST_RANGE] ras_ufdast = ras_flag[`RAS_FLAG_UFDAST];
+wire [`RAS_FLAG_UPPP_RANGE] ras_uppp = ras_flag[`RAS_FLAG_UPPP];
+wire [`RAS_FLAG_UPPD_RANGE] ras_uppd = ras_flag[`RAS_FLAG_UPPD];
+wire [`RAS_FLAG_NFASCF_RANGE] ras_nfascf = ras_flag[`RAS_FLAG_NFASCF];
 
-logic terminate_flow = ~ras_east[2];
-logic discard_packet = ras_east[1:0]==2'b00;
-logic execute_topic = ras_east[0]==1'b1;
-logic execute_flow = ras_east[1]==1'b1;
+wire terminate_flow = ~ras_east[2];
+wire discard_packet = ras_east[1:0]==2'b00;
+wire execute_topic = ras_east[0]==1'b1;
+wire execute_flow = ras_east[1]==1'b1;
 
-logic allow_update = ras_nfascf==2'b11;
-logic allow_forward = ras_nfascf[1];
+wire allow_update = ras_nfascf==2'b11;
+wire allow_forward = ras_nfascf[1];
 
-logic update_default_type = ras_ufdast[2];
+wire update_default_type = ras_ufdast[2];
 
-logic [`FLOW_POLICY2_MASKON_RANGE] flow_maskon = fp_rdata_d1[`FLOW_POLICY2_MASKON];
+wire [`FLOW_POLICY2_MASKON_RANGE] flow_maskon = fp_rdata_d1[`FLOW_POLICY2_MASKON];
 
-logic domain_discard = asa_proc_meta_d2.type1&(asa_proc_meta_d2.domain_id!=fp_rdata_d1[`FLOW_POLICY2_DOMAIN_ID]);
-logic in_discard = asa_proc_meta_d2.discard;
+wire domain_discard = asa_proc_meta_d2.type1&(asa_proc_meta_d2.domain_id!=fp_rdata_d1[`FLOW_POLICY2_DOMAIN_ID]);
+wire in_discard = asa_proc_meta_d2.discard;
 
-logic fmo_allow_update_ppd = flow_maskon[2];
-logic fmo_allow_update_fas = flow_maskon[3];
-logic fmo_allow_update_tas = flow_maskon[4];
-logic fmo_allow_execute_forward = flow_maskon[5];
-logic fmo_allow_fsas_forward = flow_maskon[6];
-logic fmo_allow_tsas_forward = flow_maskon[7];
-logic fmo_allow_multicast = flow_maskon[8];
-logic fmo_allow_forward_supervisor = flow_maskon[9];
+wire fmo_allow_update_ppd = flow_maskon[2];
+wire fmo_allow_update_fas = flow_maskon[3];
+wire fmo_allow_update_tas = flow_maskon[4];
+wire fmo_allow_execute_forward = flow_maskon[5];
+wire fmo_allow_fsas_forward = flow_maskon[6];
+wire fmo_allow_tsas_forward = flow_maskon[7];
+wire fmo_allow_multicast = flow_maskon[8];
+wire fmo_allow_forward_supervisor = flow_maskon[9];
 
-logic fa_vec_wr = ~in_discard&~domain_discard&~terminate_flow&execute_flow&allow_update&(|flow_vec_valid)&fmo_allow_update_fas&asa_proc_valid_d2&~asa_proc_type3_d2;
-logic fa_default_type_wr = ~in_discard&~domain_discard&~terminate_flow&ras_ufdast[2]&fmo_allow_update_fas&asa_proc_valid_d2&~asa_proc_type3_d2;
-logic fa_wr = fa_vec_wr|fa_default_type_wr;
-logic [`ACTION_SET_TYPE_NBITS-1:0] fa_default_type_rd = fa_rdata_d1[`FLOW_ACTION_NBITS-1:`SCI_VEC_NBITS];
-logic [`ACTION_SET_TYPE_NBITS-1:0] fa_default_type = ~fa_default_type_wr?fa_default_type_rd:ras_ufdast[1:0];				
-logic [`SCI_VEC_NBITS-1:0] fa_action_set_rd = fa_rdata_d1[`SCI_VEC_NBITS-1:0];
-logic [`SCI_VEC_NBITS-1:0] fa_action_set = ~fa_vec_wr?fa_action_set_rd:flow_bit_vec;
-logic [`FLOW_ACTION_NBITS-1:0] fa_wdata = {fa_default_type, fa_action_set};				
-logic [`FID_NBITS-1:0] fa_waddr = fid_d2;				
+wire fa_vec_wr = ~in_discard&~domain_discard&~terminate_flow&execute_flow&allow_update&(|flow_vec_valid)&fmo_allow_update_fas&asa_proc_valid_d2&~asa_proc_type3_d2;
+wire fa_default_type_wr = ~in_discard&~domain_discard&~terminate_flow&ras_ufdast[2]&fmo_allow_update_fas&asa_proc_valid_d2&~asa_proc_type3_d2;
+wire fa_wr = fa_vec_wr|fa_default_type_wr;
+wire [`ACTION_SET_TYPE_NBITS-1:0] fa_default_type_rd = fa_rdata_d1[`FLOW_ACTION_NBITS-1:`SCI_VEC_NBITS];
+wire [`ACTION_SET_TYPE_NBITS-1:0] fa_default_type = ~fa_default_type_wr?fa_default_type_rd:ras_ufdast[1:0];				
+wire [`SCI_VEC_NBITS-1:0] fa_action_set_rd = fa_rdata_d1[`SCI_VEC_NBITS-1:0];
+wire [`SCI_VEC_NBITS-1:0] fa_action_set = ~fa_vec_wr?fa_action_set_rd:flow_bit_vec;
+wire [`FLOW_ACTION_NBITS-1:0] fa_wdata = {fa_default_type, fa_action_set};				
+wire [`FID_NBITS-1:0] fa_waddr = fid_d2;				
 
-logic ta_wr = ~in_discard&~domain_discard&~terminate_flow&execute_topic&topic_vec_valid&fmo_allow_update_tas&asa_proc_valid_d2&~asa_proc_type3_d2;
-logic [`SCI_VEC_NBITS-1:0] ta_wdata = ta_rdata_d1|topic_bit_vec;				
-logic [`TID_NBITS-1:0] ta_waddr = tid_d2;				
+wire ta_wr = ~in_discard&~domain_discard&~terminate_flow&execute_topic&topic_vec_valid&fmo_allow_update_tas&asa_proc_valid_d2&~asa_proc_type3_d2;
+wire [`SCI_VEC_NBITS-1:0] ta_wdata = ta_rdata_d1|topic_bit_vec;				
+wire [`TID_NBITS-1:0] ta_waddr = tid_d2;				
 
-logic type_use_etopic = execute_topic&fmo_allow_execute_forward;
-logic type_use_eflow = allow_forward&execute_flow&fmo_allow_execute_forward;
+wire type_use_etopic = execute_topic&fmo_allow_execute_forward;
+wire type_use_eflow = allow_forward&execute_flow&fmo_allow_execute_forward;
 
-logic type_use_stopic = execute_topic&fmo_allow_tsas_forward;
-logic type_use_sflow = ~type_use_eflow&fmo_allow_fsas_forward;
+wire type_use_stopic = execute_topic&fmo_allow_tsas_forward;
+wire type_use_sflow = ~type_use_eflow&fmo_allow_fsas_forward;
 
-logic type3_discard = fa_default_type_rd==2'b00;
-logic type3_use_topic = (fa_default_type_rd[0]==1'b1)&fmo_allow_tsas_forward;
-logic type3_use_flow = (fa_default_type_rd[1]==1'b1)&fmo_allow_fsas_forward;
+wire type3_discard = fa_default_type_rd==2'b00;
+wire type3_use_topic = (fa_default_type_rd[0]==1'b1)&fmo_allow_tsas_forward;
+wire type3_use_flow = (fa_default_type_rd[1]==1'b1)&fmo_allow_fsas_forward;
 
-logic [`SCI_VEC_NBITS-1:0] supervisor_bit_vec = bit_vec_gen({1'b0, supervisor_sci});
-logic [`SCI_VEC_NBITS-1:0] supervisor_mask = fmo_allow_forward_supervisor?{(`SCI_VEC_NBITS){1'b1}}:~supervisor_bit_vec;
+wire [`SCI_VEC_NBITS-1:0] supervisor_bit_vec = bit_vec_gen({1'b0, supervisor_sci});
+wire [`SCI_VEC_NBITS-1:0] supervisor_mask = fmo_allow_forward_supervisor?{(`SCI_VEC_NBITS){1'b1}}:~supervisor_bit_vec;
 
-logic [`SCI_VEC_NBITS-1:0] type3_topic_forward_enable = type3_use_topic?ta_rdata_d1:{(`SCI_VEC_NBITS){1'b0}};
-logic [`SCI_VEC_NBITS-1:0] type3_flow_forward_enable = type3_use_flow?fa_action_set_rd:{(`SCI_VEC_NBITS){1'b0}};
+wire [`SCI_VEC_NBITS-1:0] type3_topic_forward_enable = type3_use_topic?ta_rdata_d1:{(`SCI_VEC_NBITS){1'b0}};
+wire [`SCI_VEC_NBITS-1:0] type3_flow_forward_enable = type3_use_flow?fa_action_set_rd:{(`SCI_VEC_NBITS){1'b0}};
 
-logic [`SCI_VEC_NBITS-1:0] type_stopic_forward_enable = type_use_stopic?ta_rdata_d1:{(`SCI_VEC_NBITS){1'b0}};
-logic [`SCI_VEC_NBITS-1:0] type_sflow_forward_enable = type_use_sflow?fa_rdata_d1:{(`SCI_VEC_NBITS){1'b0}};
+wire [`SCI_VEC_NBITS-1:0] type_stopic_forward_enable = type_use_stopic?ta_rdata_d1:{(`SCI_VEC_NBITS){1'b0}};
+wire [`SCI_VEC_NBITS-1:0] type_sflow_forward_enable = type_use_sflow?fa_rdata_d1:{(`SCI_VEC_NBITS){1'b0}};
 
-logic [`SCI_VEC_NBITS-1:0] type_etopic_forward_enable = type_use_etopic?topic_bit_vec:{(`SCI_VEC_NBITS){1'b0}};
-logic [`SCI_VEC_NBITS-1:0] type_eflow_forward_enable = type_use_eflow?flow_bit_vec:{(`SCI_VEC_NBITS){1'b0}};
+wire [`SCI_VEC_NBITS-1:0] type_etopic_forward_enable = type_use_etopic?topic_bit_vec:{(`SCI_VEC_NBITS){1'b0}};
+wire [`SCI_VEC_NBITS-1:0] type_eflow_forward_enable = type_use_eflow?flow_bit_vec:{(`SCI_VEC_NBITS){1'b0}};
 
-logic [`FLOW_POLICY2_TCLASS_RANGE] traffic_class = fp_rdata_d1[`FLOW_POLICY2_TCLASS];
+wire [`FLOW_POLICY2_TCLASS_RANGE] traffic_class = fp_rdata_d1[`FLOW_POLICY2_TCLASS];
 
-logic asa_rep_enq_discard_p1 = in_discard|domain_discard|(asa_proc_type3_d2?type3_discard:discard_packet)|asa_proc_discard_d2;
-logic asa_rep_enq_req_p1 = asa_proc_valid_d2;
+wire asa_rep_enq_discard_p1 = in_discard|domain_discard|(asa_proc_type3_d2?type3_discard:discard_packet)|asa_proc_discard_d2;
+wire asa_rep_enq_req_p1 = asa_proc_valid_d2;
 
-logic [`SCI_VEC_NBITS-1:0] asa_rep_enq_vec_p1 = asa_proc_type3_d2?in_rci_mask&supervisor_mask&(type3_topic_forward_enable|type3_flow_forward_enable):in_rci_mask&supervisor_mask&(type_stopic_forward_enable|type_sflow_forward_enable|type_etopic_forward_enable|type_eflow_forward_enable);
+wire [`SCI_VEC_NBITS-1:0] asa_rep_enq_vec_p1 = asa_proc_type3_d2?in_rci_mask&supervisor_mask&(type3_topic_forward_enable|type3_flow_forward_enable):in_rci_mask&supervisor_mask&(type_stopic_forward_enable|type_sflow_forward_enable|type_etopic_forward_enable|type_eflow_forward_enable);
 
-logic [`PRI_NBITS-1:0] asa_rep_enq_pri_p1 = pri_gen(class2pri, traffic_class[2:0]);
+wire [`PRI_NBITS-1:0] asa_rep_enq_pri_p1 = pri_gen(class2pri, traffic_class[2:0]);
 
 enq_pkt_desc_type asa_rep_enq_desc_p1;
 
@@ -224,11 +224,11 @@ assign asa_rep_enq_desc_p1.ed_cmd.pd_loc = asa_proc_meta_d2.ed_cmd.pd_loc;
 assign asa_rep_enq_desc_p1.ed_cmd.pd_buf_ptr = asa_proc_meta_d2.ed_cmd.pd_buf_ptr;
 assign asa_rep_enq_desc_p1.ed_cmd.len = asa_proc_meta_d2.ed_cmd.len;
 
-logic [`TID_NBITS - 1 : 0] asa_rep_enq_tid_p1 = asa_proc_meta_d2.tid;
+wire [`TID_NBITS - 1 : 0] asa_rep_enq_tid_p1 = asa_proc_meta_d2.tid;
 
-logic [`SCI_NBITS-1:0] topic_sci = asa_proc_ras_d2[(1+`SCI_NBITS)*9+`RAS_FLAG_NBITS-1-1:(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS];
+wire [`SCI_NBITS-1:0] topic_sci = asa_proc_ras_d2[(1+`SCI_NBITS)*9+`RAS_FLAG_NBITS-1-1:(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS];
 
-logic [`REAL_TIME_NBITS-1:0] target_exp_time = current_time_d1+{default_sub_exp_time, {(`REAL_TIME_NBITS-`SUB_EXP_TIME_NBITS){1'b0}}};				
+wire [`REAL_TIME_NBITS-1:0] target_exp_time = current_time_d1+{default_sub_exp_time, {(`REAL_TIME_NBITS-`SUB_EXP_TIME_NBITS){1'b0}}};				
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

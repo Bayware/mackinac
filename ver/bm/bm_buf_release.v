@@ -220,9 +220,11 @@ ram_1r1w #(`READ_COUNT_NBITS, `BUF_PTR_NBITS) u_ram_1r1w_1(
 /***************************** DIAGNOSTICS **********************************/
 // synopsys translate_off
 
+/*
 always @(posedge tm_rel_buf_valid)
         if (`INACTIVE_RESET) #1 $display (" %t : Free Buffer returned=%0d ", 
 					$realtime, tm_rel_buf_ptr);
+				*/
 always @(posedge read_count_valid)
         if (`INACTIVE_RESET) #1 $display (" %t : Copy count written =%0d for buffer=%0d ", 
 					$realtime, read_count,

@@ -58,7 +58,7 @@ cla_irl_meta_type ff_dout;
 logic unused;
 logic [(DEPTH_NBITS - 1):0] ff_ncount;
 
-logic nempty = ~(wr^rd)?empty:~wr&rd&ff_empty;
+wire nempty = ~(wr^rd)?empty:~wr&rd&ff_empty;
 
 /***************************** NON REGISTERED OUTPUTS ***********************/
 
@@ -83,8 +83,8 @@ always @(posedge clk) dout <= ~((wr&empty)|rd)?dout:rd&~ff_empty?ff_dout:din;
 
 /***************************** PROGRAM BODY ********************************/
 
-logic ff_rd = rd&~ff_empty;
-logic ff_wr = wr&~(empty|(ff_empty&rd));
+wire ff_rd = rd&~ff_empty;
+wire ff_wr = wr&~(empty|(ff_empty&rd));
 
 logic [DEPTH_NBITS-1:0] ff_rptr, ff_wptr;
 

@@ -66,20 +66,20 @@ logic lat_fifo_pu_fid_sel;
 
 integer i;
 
-logic wr0 = enq_req&~enq_fid_sel;
-logic wr1 = enq_req&enq_fid_sel;
+wire wr0 = enq_req&~enq_fid_sel;
+wire wr1 = enq_req&enq_fid_sel;
 
-logic pu_wr0 = ~wr0&~lat_fifo_empty&~lat_fifo_pu_fid_sel;
-logic pu_wr1 = ~wr1&~lat_fifo_empty&lat_fifo_pu_fid_sel;
+wire pu_wr0 = ~wr0&~lat_fifo_empty&~lat_fifo_pu_fid_sel;
+wire pu_wr1 = ~wr1&~lat_fifo_empty&lat_fifo_pu_fid_sel;
 
-logic fid0_wr = wr0|pu_wr0;
-logic fid1_wr = wr1|pu_wr1;
-logic [ID_NBITS-1:0] fid_waddr0 = wr0?enq_fid_sel:lat_fifo_pu_id;
-logic [ID_NBITS-1:0] fid_waddr1 = wr1?enq_fid_sel:lat_fifo_pu_id;
-logic [`FID_NBITS-1:0] fid_wdata0 = wr0?tcam[fid_waddr0].fid0_cnt+1:tcam[fid_waddr0].fid0_cnt-1;
-logic [`FID_NBITS-1:0] fid_wdata1 = wr0?tcam[fid_waddr1].fid1_cnt+1:tcam[fid_waddr1].fid1_cnt-1;
+wire fid0_wr = wr0|pu_wr0;
+wire fid1_wr = wr1|pu_wr1;
+wire [ID_NBITS-1:0] fid_waddr0 = wr0?enq_fid_sel:lat_fifo_pu_id;
+wire [ID_NBITS-1:0] fid_waddr1 = wr1?enq_fid_sel:lat_fifo_pu_id;
+wire [`FID_NBITS-1:0] fid_wdata0 = wr0?tcam[fid_waddr0].fid0_cnt+1:tcam[fid_waddr0].fid0_cnt-1;
+wire [`FID_NBITS-1:0] fid_wdata1 = wr0?tcam[fid_waddr1].fid1_cnt+1:tcam[fid_waddr1].fid1_cnt-1;
 
-logic lat_fifo_rd = pu_wr0|pu_wr1;
+wire lat_fifo_rd = pu_wr0|pu_wr1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

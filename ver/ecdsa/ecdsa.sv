@@ -105,8 +105,8 @@ logic reg_ms_topic_policy;
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 assign pio_ack = pio_ack0|pio_ack1;
-assign pio_rvalid = pio_ack0?pio_rvalid0:pio_rvalid1;
-assign pio_rdata = pio_ack0?pio_rdata0:pio_rdata1;
+assign pio_rvalid = pio_rvalid0|pio_rvalid1;
+assign pio_rdata = pio_rvalid0?pio_rdata0:pio_rdata1;
 
 /***************************** REGISTERED OUTPUTS ****************************/
 

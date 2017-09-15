@@ -56,10 +56,10 @@ logic `RESET_SIG_AXI;
 synchronizer u_synchronizer_0(.clk(clk_mac), .din(`RESET_SIG), .dout(`RESET_SIG_MAC));
 synchronizer u_synchronizer_1(.clk(clk_axi), .din(`RESET_SIG), .dout(`RESET_SIG_AXI));
 
-logic out_fifo_rd = s_axis_c2h_tvalid_x&s_axis_c2h_tready_x;
+wire out_fifo_rd = s_axis_c2h_tvalid_x&s_axis_c2h_tready_x;
 
-logic wr_en = tx_axis_tvalid&tx_axis_tready;
-logic out_fifo_wr = wr_en&(~even|tx_axis_tlast);
+wire wr_en = tx_axis_tvalid&tx_axis_tready;
+wire out_fifo_wr = wr_en&(~even|tx_axis_tlast);
 
 always @(posedge clk_mac) 
 	tx_axis_tdata_sv <= wr_en&even?tx_axis_tdata:tx_axis_tdata_sv;

@@ -170,7 +170,7 @@ logic [`EXP_TIME_NBITS-1:0] topic_etime_rdata_d1; /* synthesis keep = 1 */
 
 logic [`AGING_TIME_NBITS-1:0] aging_ctr;
 logic [FLOW_VALUE_DEPTH_NBITS-1:0] aging_fid;
-logic aging_en = (aging_ctr==aging_time);
+wire aging_en = (aging_ctr==aging_time);
 logic aging_fifo_empty;
 
 logic [7:0] in_fifo_traffic_class;
@@ -178,16 +178,16 @@ logic [127:0] in_fifo_data;
 logic in_fifo_sop;
 logic in_fifo_eop;
 aggr_par_meta_type  in_fifo_meta_data;
-logic in_fifo_discard = in_fifo_meta_data.discard;
+wire in_fifo_discard = in_fifo_meta_data.discard;
 
 logic in_fifo_empty;
 logic in_fifo_rd_en;
-logic in_fifo_rd = in_fifo_rd_en&~in_fifo_empty;
-logic in_fifo_rd_1st = in_fifo_rd&in_fifo_sop;
-logic in_fifo_rd_last = in_fifo_rd&in_fifo_eop;
+wire in_fifo_rd = in_fifo_rd_en&~in_fifo_empty;
+wire in_fifo_rd_1st = in_fifo_rd&in_fifo_sop;
+wire in_fifo_rd_last = in_fifo_rd&in_fifo_eop;
 
-logic lat_fifo2_rd = in_fifo_rd_last;
-logic lat_fifo3_rd = in_fifo_rd_1st;
+wire lat_fifo2_rd = in_fifo_rd_last;
+wire lat_fifo3_rd = lat_fifo2_rd;
 
 logic [FLOW_HASH_NBITS-1:0] flow_hash0;
 logic [FLOW_HASH_NBITS-1:0] flow_hash1;
@@ -202,10 +202,10 @@ logic [TOPIC_HASH_NBITS-1:0] lat_fifo1_topic_hash1;
 logic lat_fifo_type1;
 logic lat_fifo_type3;
 logic [FLOW_KEY_NBITS-1:0] lat_fifo_flow_key;
-logic [TOPIC_KEY_NBITS-1:0] lat_fifo_topic_key = lat_fifo_flow_key[FLOW_KEY_NBITS-1:FLOW_KEY_NBITS-1-127];
+wire [TOPIC_KEY_NBITS-1:0] lat_fifo_topic_key = lat_fifo_flow_key[FLOW_KEY_NBITS-1:FLOW_KEY_NBITS-1-127];
 
-logic flow_hash_compare = lat_fifo_flow_key==flow_key_rdata_d1[`FLOW_VALUE_KEY];
-logic topic_hash_compare = lat_fifo_topic_key==topic_key_rdata_d1[`TOPIC_VALUE_KEY];
+wire flow_hash_compare = lat_fifo_flow_key==flow_key_rdata_d1[`FLOW_VALUE_KEY];
+wire topic_hash_compare = lat_fifo_topic_key==topic_key_rdata_d1[`TOPIC_VALUE_KEY];
 
 logic [3:0] flow_compare_valid;
 logic [3:0] topic_compare_valid;
@@ -216,110 +216,119 @@ logic type1;
 logic type3;
 logic lf2_type1;
 logic lf2_type3;
-logic [`FID_NBITS-1:0] lf2_fid;
-logic [`TID_NBITS-1:0] lf2_tid;
 logic [3:0] lf2_flow_compare_valid;
 logic [3:0] lf2_topic_compare_valid;
 logic [3:0] lf2_flow_entry_valid;
 logic [3:0] lf2_topic_entry_valid;
 
-logic flow_hash_valid = flow_etime_rdata_d1>current_time_d1[`REAL_TIME_NBITS-1:`REAL_TIME_NBITS-1-`EXP_TIME_NBITS+1];
-logic topic_hash_valid = topic_etime_rdata_d1>current_time_d1[`REAL_TIME_NBITS-1:`REAL_TIME_NBITS-1-`EXP_TIME_NBITS+1];
+wire flow_hash_valid = flow_etime_rdata_d1>current_time_d1[`REAL_TIME_NBITS-1:`REAL_TIME_NBITS-1-`EXP_TIME_NBITS+1];
+wire topic_hash_valid = topic_etime_rdata_d1>current_time_d1[`REAL_TIME_NBITS-1:`REAL_TIME_NBITS-1-`EXP_TIME_NBITS+1];
 
-logic [`TID_NBITS-1:0] tid0 = topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
-logic [`TID_NBITS-1:0] tid1 = topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
-logic [`TID_NBITS-1:0] tid2 = topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
-logic [`TID_NBITS-1:0] tid3 = topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
+wire [`TID_NBITS-1:0] tid0 = topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
+wire [`TID_NBITS-1:0] tid1 = topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
+wire [`TID_NBITS-1:0] tid2 = topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
+wire [`TID_NBITS-1:0] tid3 = topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
 
-logic [TOPIC_VALUE_DEPTH_NBITS-1:0] n_topic_key_raddr = topic_hash_table0_ack_d[1]?tid0:
+wire [TOPIC_VALUE_DEPTH_NBITS-1:0] n_topic_key_raddr = topic_hash_table0_ack_d[1]?tid0:
 							topic_hash_table0_ack_d[2]?tid1:
 							topic_hash_table0_ack_d[3]?tid2:tid3;
 
 logic ip_da_ready;
 logic ip_da_ready_d1;
+logic ip_da_ready_d2;
 
 logic [63:0] data_sv;
 
-logic in_fifo_wr = aggr_par_hdr_valid_d1&(aggr_par_eop_d1|(data_cnt>2));
-logic [127:0] in_fifo_data_in = {data_sv, aggr_par_hdr_data_d1[127:64]};
-logic in_fifo_sop_in = aggr_par_eop_d1|(data_cnt==3);
-logic in_fifo_eop_in = aggr_par_eop_d1;
-aggr_par_meta_type  in_fifo_meta_data_in = aggr_par_meta_data_d1;
+logic aggr_par_eop_d2;
+wire en_aggr_par_eop_d2 = aggr_par_hdr_valid_d1&(data_cnt>3);
+
+wire in_fifo_wr = (aggr_par_hdr_valid_d1&(aggr_par_eop_d1|(data_cnt>2)))|aggr_par_eop_d2;
+wire [127:0] in_fifo_data_in = {data_sv, aggr_par_hdr_data_d1[127:64]};
+wire in_fifo_sop_in = (aggr_par_eop_d1&(data_cnt<3))|(data_cnt==3);
+wire in_fifo_eop_in = aggr_par_eop_d2|aggr_par_eop_d1&~en_aggr_par_eop_d2;
+aggr_par_meta_type  aggr_par_meta_data_d2;
+aggr_par_meta_type  in_fifo_meta_data_in;
+assign in_fifo_meta_data_in = aggr_par_eop_d2?aggr_par_meta_data_d2:aggr_par_meta_data_d1;
 
 logic [127:0] ip_da;
 logic [127:0] ip_sa;
 logic [19:0] flow_label;
 logic [7:0] traffic_class;
 
-logic [FLOW_KEY_NBITS-1:0] flow_key = {ip_da, ip_sa, flow_label};
-logic [TOPIC_KEY_NBITS-1:0] topic_key = ip_da;
+wire [FLOW_KEY_NBITS-1:0] flow_key = {ip_da, ip_sa, flow_label};
+wire [TOPIC_KEY_NBITS-1:0] topic_key = ip_da;
 
-logic n_flow_key_rd = |flow_hash_table0_ack_d;
-logic n_flow_etime_rd = |flow_hash_table0_ack_d|~aging_fifo_empty;
-logic aging_fifo_rd = ~(|flow_hash_table0_ack_d)&~aging_fifo_empty;
+wire n_flow_key_rd = |flow_hash_table0_ack_d;
+wire n_flow_etime_rd = |flow_hash_table0_ack_d|~aging_fifo_empty;
+wire aging_fifo_rd = ~(|flow_hash_table0_ack_d)&~aging_fifo_empty;
 
-logic [`FID_NBITS-1:0] fid0 = flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS*1-1:FLOW_ENTRY_NBITS*0+FLOW_HASH_NBITS];
-logic [`FID_NBITS-1:0] fid1 = flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS*2-1:FLOW_ENTRY_NBITS*1+FLOW_HASH_NBITS];
-logic [`FID_NBITS-1:0] fid2 = flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS*1-1:FLOW_ENTRY_NBITS*0+FLOW_HASH_NBITS];
-logic [`FID_NBITS-1:0] fid3 = flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS*2-1:FLOW_ENTRY_NBITS*1+FLOW_HASH_NBITS];
+wire [`FID_NBITS-1:0] fid0 = flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS*1-1:FLOW_ENTRY_NBITS*0+FLOW_HASH_NBITS];
+wire [`FID_NBITS-1:0] fid1 = flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS*2-1:FLOW_ENTRY_NBITS*1+FLOW_HASH_NBITS];
+wire [`FID_NBITS-1:0] fid2 = flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS*1-1:FLOW_ENTRY_NBITS*0+FLOW_HASH_NBITS];
+wire [`FID_NBITS-1:0] fid3 = flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS*2-1:FLOW_ENTRY_NBITS*1+FLOW_HASH_NBITS];
 
 logic [FLOW_VALUE_DEPTH_NBITS-1:0] aging_fifo_fid;
 
-logic [FLOW_VALUE_DEPTH_NBITS-1:0] n_flow_key_raddr = flow_hash_table0_ack_d[1]?fid0:
+wire [FLOW_VALUE_DEPTH_NBITS-1:0] n_flow_key_raddr = flow_hash_table0_ack_d[1]?fid0:
 							flow_hash_table0_ack_d[2]?fid1:
 							flow_hash_table0_ack_d[3]?fid2:
 							flow_hash_table0_ack_d[4]?fid3:aging_fifo_fid;
 
-logic lookup_done = flow_key_ack_d2&~flow_key_ack_d1;
-logic lat_fifo_rd = lookup_done;
-logic lat_fifo1_rd = lookup_done;
+wire lookup_done = flow_key_ack_d2&~flow_key_ack_d1;
+wire lat_fifo_rd = lookup_done;
+wire lat_fifo1_rd = lookup_done;
 
-logic en_flow_supervisor = lf2_flow_compare_valid==0&lf2_flow_entry_valid==4'hf&~in_fifo_discard;
-logic en_topic_supervisor = lf2_topic_compare_valid==0&lf2_topic_entry_valid==4'hf&~in_fifo_discard;
+wire en_flow_supervisor = lf2_flow_compare_valid==0&lf2_flow_entry_valid==4'hf&~in_fifo_discard;
+wire en_topic_supervisor = lf2_topic_compare_valid==0&lf2_topic_entry_valid==4'hf&~in_fifo_discard;
 
-logic flow_will_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid!=4'hf;
-logic topic_will_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid!=4'hf;
+wire flow_will_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid!=4'hf;
+wire topic_will_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid!=4'hf;
 
 logic flow_freeb_empty;
 logic [`FID_NBITS-1:0] flow_free_entry;
 logic topic_freeb_empty;
 logic [`TID_NBITS-1:0] topic_free_entry;
 
-logic mflow_freeb_empty = flow_freeb_empty|in_fifo_discard;
-logic mtopic_freeb_empty = topic_freeb_empty|in_fifo_discard;
+logic [`FID_NBITS-1:0] lf2_flow_free_entry;
+logic [`TID_NBITS-1:0] lf2_topic_free_entry;
 
-logic set_en_flow_discard = in_fifo_rd_1st&flow_will_wr&mflow_freeb_empty;
-logic set_en_topic_discard = in_fifo_rd_1st&topic_will_wr&mtopic_freeb_empty;
+wire mflow_freeb_empty = flow_freeb_empty|in_fifo_discard;
+wire mtopic_freeb_empty = topic_freeb_empty|in_fifo_discard;
+
+wire set_en_flow_discard = in_fifo_rd_1st&flow_will_wr&mflow_freeb_empty;
+wire set_en_topic_discard = in_fifo_rd_1st&topic_will_wr&mtopic_freeb_empty;
 
 logic en_flow_discard;
 logic en_topic_discard;
 
-logic en_discard = set_en_flow_discard|en_flow_discard|set_en_topic_discard|en_topic_discard;
+wire en_discard = set_en_flow_discard|en_flow_discard|set_en_topic_discard|en_topic_discard;
 
-logic en_flow_wr = ~mflow_freeb_empty&(~topic_will_wr|~mtopic_freeb_empty);
-logic en_flow_key_wr = flow_will_wr&en_flow_wr;
-logic en_flow_hash0_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid[1:0]!=2'h3&en_flow_wr;
-logic en_flow_hash1_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid[3:2]!=2'h3&lf2_flow_entry_valid[1:0]==2'h3&en_flow_wr;
+wire en_flow_wr = lf2_type1&~lf2_type3&~mflow_freeb_empty&(~topic_will_wr|~mtopic_freeb_empty);
+wire en_flow_key_wr = flow_will_wr&en_flow_wr;
+wire en_flow_hash0_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid[1:0]!=2'h3&en_flow_wr;
+wire en_flow_hash1_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid[3:2]!=2'h3&lf2_flow_entry_valid[1:0]==2'h3&en_flow_wr;
 
-logic en_topic_wr = ~mtopic_freeb_empty&(~flow_will_wr|~mflow_freeb_empty);
-logic en_topic_key_wr = topic_will_wr&en_topic_wr;
-logic en_topic_hash0_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid[1:0]!=2'h3&en_topic_wr;
-logic en_topic_hash1_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid[3:2]!=2'h3&lf2_topic_entry_valid[1:0]==2'h3&en_topic_wr;
+wire en_topic_wr = lf2_type1&~lf2_type3&~mtopic_freeb_empty&(~flow_will_wr|~mflow_freeb_empty);
+wire en_topic_key_wr = topic_will_wr&en_topic_wr;
+wire en_topic_hash0_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid[1:0]!=2'h3&en_topic_wr;
+wire en_topic_hash1_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid[3:2]!=2'h3&lf2_topic_entry_valid[1:0]==2'h3&en_topic_wr;
 
-logic [`FID_NBITS-1:0] fid = en_flow_key_wr?flow_free_entry:flow_compare_valid[0]?fid0:flow_compare_valid[1]?fid1:flow_compare_valid[2]?fid2:fid3;
-logic [`TID_NBITS-1:0] tid = en_topic_key_wr?topic_free_entry:topic_compare_valid[0]?tid0:topic_compare_valid[1]?tid1:topic_compare_valid[2]?tid2:tid3;
+wire [`FID_NBITS-1:0] fid = en_flow_key_wr?lf2_flow_free_entry:flow_compare_valid[0]?fid0:flow_compare_valid[1]?fid1:flow_compare_valid[2]?fid2:fid3;
+wire [`TID_NBITS-1:0] tid = en_topic_key_wr?lf2_topic_free_entry:topic_compare_valid[0]?tid0:topic_compare_valid[1]?tid1:topic_compare_valid[2]?tid2:tid3;
 
 logic [FLOW_VALUE_DEPTH_NBITS-1:0] aging_lat_fifo_fid;
 logic aging_lat_fifo_sel;
 
-logic flow_rel_buf_valid = flow_etime_ack_d1&~flow_hash_valid&~aging_lat_fifo_sel;
-logic [FLOW_VALUE_DEPTH_NBITS-1:0] flow_rel_buf_ptr = aging_lat_fifo_fid;
+wire flow_rel_buf_valid = flow_etime_ack_d1&~flow_hash_valid&~aging_lat_fifo_sel;
+wire [FLOW_VALUE_DEPTH_NBITS-1:0] flow_rel_buf_ptr = aging_lat_fifo_fid;
 
-logic topic_rel_buf_valid = flow_etime_ack_d1&~topic_hash_valid&~aging_lat_fifo_sel;
-logic [TOPIC_VALUE_DEPTH_NBITS-1:0] topic_rel_buf_ptr = aging_lat_fifo_fid[TOPIC_VALUE_DEPTH_NBITS-1:0];
+wire topic_rel_buf_valid = flow_etime_ack_d1&~topic_hash_valid&~aging_lat_fifo_sel;
+wire [TOPIC_VALUE_DEPTH_NBITS-1:0] topic_rel_buf_ptr = aging_lat_fifo_fid[TOPIC_VALUE_DEPTH_NBITS-1:0];
 
-logic flow_free_buf_rd = flow_key_wr;
-logic topic_free_buf_rd = topic_key_wr;
+wire flow_key_wr_p1 = in_fifo_rd_1st&en_flow_key_wr;
+wire flow_free_buf_rd = flow_key_wr_p1;
+wire topic_key_wr_p1 = in_fifo_rd_1st&en_topic_key_wr;
+wire topic_free_buf_rd = topic_key_wr_p1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -375,8 +384,8 @@ always @(posedge clk) begin
 		cla_irl_meta_data.len <= in_fifo_meta_data.len;
 		cla_irl_meta_data.port <= in_fifo_meta_data.port;
 		cla_irl_meta_data.rci <= in_fifo_meta_data.rci;
-		cla_irl_meta_data.fid <= lf2_fid;
-		cla_irl_meta_data.tid <= lf2_tid;
+		cla_irl_meta_data.fid <= fid;
+		cla_irl_meta_data.tid <= tid;
 		cla_irl_meta_data.type1 <= lf2_type1;
 		cla_irl_meta_data.type3 <= lf2_type3|en_discard;
 		cla_irl_meta_data.discard <= en_discard;
@@ -407,20 +416,20 @@ always @(`CLK_RST)
 
 	end else begin
 
-		flow_hash_table0_rd <= ip_da_ready_d1;
-		flow_hash_table1_rd <= ip_da_ready_d1;
+		flow_hash_table0_rd <= ip_da_ready_d2;
+		flow_hash_table1_rd <= ip_da_ready_d2;
 		flow_hash_table0_wr <= in_fifo_rd_1st&en_flow_hash0_wr;
 		flow_hash_table1_wr <= in_fifo_rd_1st&en_flow_hash1_wr;
 		flow_key_rd <= n_flow_key_rd;
 		flow_etime_rd <= n_flow_etime_rd;
-		flow_key_wr <= in_fifo_rd_1st&en_flow_key_wr;
-		topic_hash_table0_rd <= ip_da_ready_d1;
-		topic_hash_table1_rd <= ip_da_ready_d1;
+		flow_key_wr <= flow_key_wr_p1;
+		topic_hash_table0_rd <= ip_da_ready_d2;
+		topic_hash_table1_rd <= ip_da_ready_d2;
 		topic_hash_table0_wr <= in_fifo_rd_1st&en_topic_hash0_wr;
 		topic_hash_table1_wr <= in_fifo_rd_1st&en_topic_hash0_wr;
 		topic_key_rd <= n_flow_key_rd;
 		topic_etime_rd <= n_flow_etime_rd;
-		topic_key_wr <= in_fifo_rd_1st&en_topic_key_wr;
+		topic_key_wr <= topic_key_wr_p1;
 
 		cla_supervisor_flow_valid <= in_fifo_rd_1st&en_flow_supervisor;
 		cla_supervisor_topic_valid <= in_fifo_rd_1st&en_topic_supervisor;
@@ -438,16 +447,17 @@ always @(posedge clk) begin
 
 		aggr_par_hdr_data_d1 <= aggr_par_hdr_data;
 		aggr_par_meta_data_d1 <= aggr_par_meta_data;
+		aggr_par_meta_data_d2 <= aggr_par_meta_data_d1;
 		aggr_par_sop_d1 <= aggr_par_sop;
 		aggr_par_eop_d1 <= aggr_par_eop;
 
 		type3 <= aggr_par_hdr_valid_d1&aggr_par_sop_d1?aggr_par_hdr_data_d1[127-48:127-48-8+1]!=253:type3;
 		traffic_class <= aggr_par_hdr_valid_d1&aggr_par_sop_d1?aggr_par_hdr_data_d1[127-4:127-4-8+1]:traffic_class;
-		flow_label <= aggr_par_hdr_valid_d1&aggr_par_sop_d1?aggr_par_hdr_data_d1[127-14:127-14-20+1]:flow_label;
+		flow_label <= aggr_par_hdr_valid_d1&aggr_par_sop_d1?aggr_par_hdr_data_d1[127-12:127-12-20+1]:flow_label;
 		ip_sa[127:64] <= aggr_par_hdr_valid_d1&aggr_par_sop_d1?aggr_par_hdr_data_d1[63:0]:ip_sa[127:64];
 		{ip_sa[63:0], ip_da[127:64]} <= aggr_par_hdr_valid_d1&(data_cnt==1)?aggr_par_hdr_data_d1:{ip_sa[63:0], ip_da[127:64]};
 		ip_da[63:0] <= aggr_par_hdr_valid_d1&(data_cnt==2)?aggr_par_hdr_data_d1[127:64]:ip_da[63:0];
-		type1 <= aggr_par_hdr_valid_d1&(data_cnt==2)?aggr_par_hdr_data_d1[63:56]==8'h90:type1;
+		type1 <= aggr_par_hdr_valid_d1&(data_cnt==2)?aggr_par_hdr_data_d1[47:44]==4'h01:type1;
 
 		data_sv <= aggr_par_hdr_valid_d1?aggr_par_hdr_data_d1[63:0]:data_sv;
 
@@ -466,10 +476,12 @@ end
 always @(`CLK_RST) 
     	if (`ACTIVE_RESET) begin
 		aggr_par_hdr_valid_d1 <= 1'b0;
+		aggr_par_eop_d2 <= 1'b0;
 		data_cnt <= 0;
 
 		ip_da_ready <= 1'b0;
 		ip_da_ready_d1 <= 1'b0;
+		ip_da_ready_d2 <= 1'b0;
 
 		in_fifo_rd_en <= 0;
 
@@ -495,10 +507,12 @@ always @(`CLK_RST)
 
     	end else begin
 		aggr_par_hdr_valid_d1 <= aggr_par_hdr_valid;
+		aggr_par_eop_d2 <= en_aggr_par_eop_d2&aggr_par_eop_d1;
 		data_cnt <= aggr_par_hdr_valid_d1&aggr_par_eop_d1?0:~aggr_par_hdr_valid_d1?data_cnt:data_cnt+1;
 
-		ip_da_ready <= aggr_par_hdr_valid_d1&(aggr_par_eop_d1|(data_cnt==1));
+		ip_da_ready <= aggr_par_hdr_valid_d1&((aggr_par_eop_d1&data_cnt==0)|(data_cnt==1));
 		ip_da_ready_d1 <= ip_da_ready;
+		ip_da_ready_d2 <= ip_da_ready_d1;
 
 		in_fifo_rd_en <= lookup_done?1'b1:in_fifo_rd_last?1'b0:in_fifo_rd_en;
 
@@ -561,7 +575,7 @@ hash #(TOPIC_KEY_NBITS, TOPIC_HASH_NBITS) u_hash_3(
 
 );
 
-sfifo2f_fo #(`DATA_PATH_NBITS+2+8, 3) u_sfifo2f_fo_0(
+sfifo2f_fo #(`DATA_PATH_NBITS+2+8, 4) u_sfifo2f_fo_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -578,7 +592,7 @@ sfifo2f_fo #(`DATA_PATH_NBITS+2+8, 3) u_sfifo2f_fo_0(
         .dout({in_fifo_data, in_fifo_sop, in_fifo_eop, in_fifo_traffic_class})               
     );
 
-sfifo_aggr_par #(3) u_sfifo_aggr_par(
+sfifo_aggr_par #(4) u_sfifo_aggr_par(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -601,7 +615,7 @@ sfifo2f_fo #(2+FLOW_KEY_NBITS, 2) u_sfifo2f_fo_1(
 
         .din({type1, type3, flow_key}),
         .rd(lat_fifo_rd),
-        .wr(ip_da_ready),
+        .wr(ip_da_ready_d1),
 
         .ncount(),
         .count(),
@@ -649,7 +663,7 @@ sfifo2f_fo #(1+FLOW_VALUE_DEPTH_NBITS, 2) u_sfifo2f_fo_5(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
-        .din({aging_fifo_empty, aging_fifo_fid}),
+        .din({~aging_fifo_empty, aging_fifo_fid}),
         .rd(flow_etime_ack_d1),
         .wr(n_flow_etime_rd),
 
@@ -666,7 +680,7 @@ sfifo2f_fo #(2+4+4+4+4+`FID_NBITS+`TID_NBITS, 2) u_sfifo2f_fo_3(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
-        .din({lat_fifo_type1, lat_fifo_type3, flow_entry_valid, flow_compare_valid, topic_entry_valid, topic_compare_valid, fid, tid}),
+        .din({lat_fifo_type1, lat_fifo_type3, flow_entry_valid, flow_compare_valid, topic_entry_valid, topic_compare_valid, flow_free_entry, topic_free_entry}),
         .rd(lat_fifo2_rd),
         .wr(lookup_done),
 
@@ -676,7 +690,7 @@ sfifo2f_fo #(2+4+4+4+4+`FID_NBITS+`TID_NBITS, 2) u_sfifo2f_fo_3(
         .empty(),
         .fullm1(),
         .emptyp2(),
-        .dout({lf2_type1, lf2_type3, lf2_flow_entry_valid, lf2_flow_compare_valid, lf2_topic_entry_valid, lf2_topic_compare_valid, lf2_fid, lf2_tid})
+        .dout({lf2_type1, lf2_type3, lf2_flow_entry_valid, lf2_flow_compare_valid, lf2_topic_entry_valid, lf2_topic_compare_valid, lf2_flow_free_entry, lf2_topic_free_entry})
     );
 
 sfifo2f_fo #(FLOW_VALUE_DEPTH_NBITS, 4) u_sfifo2f_fo_4(

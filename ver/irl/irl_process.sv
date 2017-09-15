@@ -113,7 +113,7 @@ logic [`DATA_PATH_RANGE] cla_irl_hdr_data_d1;
 cla_irl_meta_type   cla_irl_meta_data_d1;
 logic cla_irl_sop_d1;
 logic cla_irl_eop_d1;
-logic cla_irl_discard = cla_irl_meta_data_d1.discard;
+wire cla_irl_discard = cla_irl_meta_data_d1.discard;
 logic cla_irl_discard_d1;
 logic cla_irl_discard_d2;
 logic cla_irl_discard_d3;
@@ -127,7 +127,7 @@ logic en_irl_d4;
 logic [`FID_NBITS-1:0] fid_ctr;
 logic [CTR_NBITS-1:0] ctr;
 
-logic fill_token_bucket = (ctr==CTR_END_VALUE);
+wire fill_token_bucket = (ctr==CTR_END_VALUE);
 
 logic [DEPTH_NBITS-1:0] token_bucket_raddr_d1;
 logic [DEPTH_NBITS-1:0] token_bucket_raddr_d2;
@@ -161,11 +161,11 @@ logic [`EIR_NBITS+2-1:0] eir_tb_rdata_d1;
 
 logic [`CLA_IRL_META_LEN_RANGE] len_d1;
 logic [`CLA_IRL_META_LEN_RANGE] len_d2;
-logic [`CLA_IRL_META_LEN_RANGE] len = cla_irl_meta_data_d1.len;
-logic [`CLA_IRL_META_FID_RANGE] fid = cla_irl_meta_data_d1.fid;
-logic [`CLA_IRL_META_PORT_RANGE] src_port = cla_irl_meta_data_d1.port;
-logic type3 = cla_irl_meta_data_d1.type3;
-logic type1 = (cla_irl_hdr_data_d1[127:120]==8'h90)&~type3;
+wire [`CLA_IRL_META_LEN_RANGE] len = cla_irl_meta_data_d1.len;
+wire [`CLA_IRL_META_FID_RANGE] fid = cla_irl_meta_data_d1.fid;
+wire [`CLA_IRL_META_PORT_RANGE] src_port = cla_irl_meta_data_d1.port;
+wire type3 = cla_irl_meta_data_d1.type3;
+wire type1 = (cla_irl_hdr_data_d1[127:120]==8'h90)&~type3;
 
 logic type1_d1;
 logic type1_d2;
@@ -184,24 +184,24 @@ cla_irl_meta_type   in_fifo_meta_data;
 logic in_fifo_sop;
 logic in_fifo_eop;
 
-logic in_fifo_discard = in_fifo_meta_data.discard;
+wire in_fifo_discard = in_fifo_meta_data.discard;
 
-logic en_irl = cla_irl_valid_d1&cla_irl_sop_d1;
+wire en_irl = cla_irl_valid_d1&cla_irl_sop_d1;
 
-logic lat_fifo_rd5 = ~en_irl&~lat_fifo_empty5;
+wire lat_fifo_rd5 = ~en_irl&~lat_fifo_empty5;
 
 logic in_fifo_empty;
 logic lat_fifo_empty;
 logic in_fifo_rd_en;
-logic in_fifo_rd = ~in_fifo_empty&in_fifo_rd_en;
+wire in_fifo_rd = ~in_fifo_empty&in_fifo_rd_en;
 
 logic lat_fifo_no_token;
-logic lat_fifo_rd = in_fifo_rd&in_fifo_eop;
+wire lat_fifo_rd = in_fifo_rd&in_fifo_eop;
 
-logic en_type1 = en_irl_d2&type1_d2;
+wire en_type1 = en_irl_d2&type1_d2;
 
-logic zero_rate = fill_tb_src_rdata_d1[`LIMITER_NBITS-1:0]==0;
-logic full_rate = fill_tb_src_rdata_d1[`LIMITER_NBITS-1:0]==63;
+wire zero_rate = fill_tb_src_rdata_d1[`LIMITER_NBITS-1:0]==0;
+wire full_rate = fill_tb_src_rdata_d1[`LIMITER_NBITS-1:0]==63;
 
 logic lat_fifo_zero_rate;
 logic lat_fifo_full_rate;
@@ -289,60 +289,60 @@ assign same_eir_tb_address_p1[1] = (eir_tb_raddr_d1==eir_tb_waddr)&eir_tb_wr;
 assign same_eir_tb_address_p1[2] = (eir_tb_raddr_d1==eir_tb_waddr_d1)&eir_tb_wr_d1;
 
 logic [`EIR_NBITS+2-1:0] meir_tb_wdata;
-logic [`EIR_NBITS+2-1:0] meir_tb_wdata_p1 = same_eir_tb_address_p1[1]?eir_tb_wdata:eir_tb_wdata_d1;
+wire [`EIR_NBITS+2-1:0] meir_tb_wdata_p1 = same_eir_tb_address_p1[1]?eir_tb_wdata:eir_tb_wdata_d1;
 
 logic same_eir_tb_address0;
 logic same_eir_tb_address21;
 
-logic [`EIR_NBITS+2-1:0] meir_tb_rdata_d1 = same_eir_tb_address0?eir_tb_wdata:same_eir_tb_address21?meir_tb_wdata:eir_tb_rdata_d1;
+wire [`EIR_NBITS+2-1:0] meir_tb_rdata_d1 = same_eir_tb_address0?eir_tb_wdata:same_eir_tb_address21?meir_tb_wdata:eir_tb_rdata_d1;
 
 logic [2:0] same_token_address_p1;
 assign same_token_address_p1[0] = (token_bucket_raddr_d1==token_bucket_raddr_d2)&token_bucket_wr_p1;
 assign same_token_address_p1[1] = (token_bucket_raddr_d1==token_bucket_waddr)&token_bucket_wr;
 assign same_token_address_p1[2] = (token_bucket_raddr_d1==token_bucket_waddr_d1)&token_bucket_wr_d1;
-logic same_token_address21_p1 = |same_token_address_p1[2:1];
+wire same_token_address21_p1 = |same_token_address_p1[2:1];
 
 logic [`CIR_NBITS+2+`EIR_NBITS+2-1:0] mtoken_bucket_wdata;
-logic [`CIR_NBITS+2+`EIR_NBITS+2-1:0] mtoken_bucket_wdata_p1 = same_token_address_p1[1]?token_bucket_wdata:token_bucket_wdata_d1;
+wire [`CIR_NBITS+2+`EIR_NBITS+2-1:0] mtoken_bucket_wdata_p1 = same_token_address_p1[1]?token_bucket_wdata:token_bucket_wdata_d1;
 
 logic same_token_address0;
 logic same_token_address21;
 
-logic [`CIR_NBITS+2+`EIR_NBITS+2-1:0] mtoken_bucket_rdata_d1 = same_token_address0?token_bucket_wdata:same_token_address21?mtoken_bucket_wdata:token_bucket_rdata_d1;
+wire [`CIR_NBITS+2+`EIR_NBITS+2-1:0] mtoken_bucket_rdata_d1 = same_token_address0?token_bucket_wdata:same_token_address21?mtoken_bucket_wdata:token_bucket_rdata_d1;
 
-logic [`CIR_NBITS+2-1:0] cir = mtoken_bucket_rdata_d1[`CIR_NBITS+2-1:0];
-logic [`EIR_NBITS+2-1:0] eir = mtoken_bucket_rdata_d1[`CIR_NBITS+2+`EIR_NBITS+2-1:`CIR_NBITS+2];
+wire [`CIR_NBITS+2-1:0] cir = mtoken_bucket_rdata_d1[`CIR_NBITS+2-1:0];
+wire [`EIR_NBITS+2-1:0] eir = mtoken_bucket_rdata_d1[`CIR_NBITS+2+`EIR_NBITS+2-1:`CIR_NBITS+2];
 
-logic negative_cir = cir[`CIR_NBITS+2-1]; 
-logic negative_eir = eir[`EIR_NBITS+2-1]; 
-logic no_token = negative_cir&negative_eir; // negative CIR and EIR tokens
+wire negative_cir = cir[`CIR_NBITS+2-1]; 
+wire negative_eir = eir[`EIR_NBITS+2-1]; 
+wire no_token = negative_cir&negative_eir; // negative CIR and EIR tokens
 
-logic positive_cir = ~negative_cir;
-logic positive_eir = ~negative_eir;
+wire positive_cir = ~negative_cir;
+wire positive_eir = ~negative_eir;
 
 // Token bucket update
 assign token_bucket_wr_p1 = init_wr|(~lat_fifo_zero_rate&~lat_fifo_full_rate&~no_token&en_irl_d4&~cla_irl_discard_d4)|lat_fifo_rd5_d4;
 assign token_bucket_waddr_p1 = init_wr?init_count:token_bucket_raddr_d2;
 
-logic [`CIR_NBITS+2-1:0] new_cir = cir[`CIR_NBITS+2-1]?cir:(cir-len_d2);
-logic [`EIR_NBITS+2-1:0] new_eir = (~eir[`CIR_NBITS+2-1]&cir[`CIR_NBITS+2-1])?(eir-len_d2):eir;
+wire [`CIR_NBITS+2-1:0] new_cir = cir[`CIR_NBITS+2-1]?cir:(cir-len_d2);
+wire [`EIR_NBITS+2-1:0] new_eir = (~eir[`CIR_NBITS+2-1]&cir[`CIR_NBITS+2-1])?(eir-len_d2):eir;
 
-logic [`CIR_NBITS-1:0] cir_token = limiting_profile_cir_rdata_d1[`CIR_NBITS-1:0];
-logic [`CIR_NBITS-1:0] cir_burst = limiting_profile_cir_rdata_d1[(`CIR_NBITS*2)-1:`CIR_NBITS];
-logic [`EIR_NBITS-1:0] eir_token = limiting_profile_eir_rdata_d1[`EIR_NBITS-1:0];
-logic [`EIR_NBITS-1:0] eir_burst = limiting_profile_eir_rdata_d1[(`EIR_NBITS*2)-1:`EIR_NBITS];
+wire [`CIR_NBITS-1:0] cir_token = limiting_profile_cir_rdata_d1[`CIR_NBITS-1:0];
+wire [`CIR_NBITS-1:0] cir_burst = limiting_profile_cir_rdata_d1[(`CIR_NBITS*2)-1:`CIR_NBITS];
+wire [`EIR_NBITS-1:0] eir_token = limiting_profile_eir_rdata_d1[`EIR_NBITS-1:0];
+wire [`EIR_NBITS-1:0] eir_burst = limiting_profile_eir_rdata_d1[(`EIR_NBITS*2)-1:`EIR_NBITS];
 
-//logic [`CIR_NBITS+2-1:0] cir_minus_burst = {1'b0, cir[`CIR_NBITS+2-1-1:0]}-cir_burst;
-//logic over_cir_burst = ~cir[`CIR_NBITS+2-1]&~cir_minus_burst[`CIR_NBITS+2-1];
-logic over_cir_burst = ~cir[`CIR_NBITS+2-1]&(cir[`CIR_NBITS+2-1-1:0]>cir_burst);
-logic [`CIR_NBITS+2-1:0] new_fill_cir = over_cir_burst?cir:cir + cir_token;
+//wire [`CIR_NBITS+2-1:0] cir_minus_burst = {1'b0, cir[`CIR_NBITS+2-1-1:0]}-cir_burst;
+//wire over_cir_burst = ~cir[`CIR_NBITS+2-1]&~cir_minus_burst[`CIR_NBITS+2-1];
+wire over_cir_burst = ~cir[`CIR_NBITS+2-1]&(cir[`CIR_NBITS+2-1-1:0]>cir_burst);
+wire [`CIR_NBITS+2-1:0] new_fill_cir = over_cir_burst?cir:cir + cir_token;
 
-//logic [`EIR_NBITS+2-1:0] eir_minus_burst = {1'b0, eir[`EIR_NBITS+2-1-1:0]}-eir_burst;
-//logic over_eir_burst = ~eir[`EIR_NBITS+2-1]&~eir_minus_burst[`EIR_NBITS+2-1];
-logic over_eir_burst = ~eir[`EIR_NBITS+2-1]&(eir[`EIR_NBITS+2-1-1:0]>eir_burst);
-logic eir_available = ~meir_tb_rdata_d1[`EIR_NBITS+1];
+//wire [`EIR_NBITS+2-1:0] eir_minus_burst = {1'b0, eir[`EIR_NBITS+2-1-1:0]}-eir_burst;
+//wire over_eir_burst = ~eir[`EIR_NBITS+2-1]&~eir_minus_burst[`EIR_NBITS+2-1];
+wire over_eir_burst = ~eir[`EIR_NBITS+2-1]&(eir[`EIR_NBITS+2-1-1:0]>eir_burst);
+wire eir_available = ~meir_tb_rdata_d1[`EIR_NBITS+1];
 
-logic [`EIR_NBITS+2-1:0] new_fill_eir = over_cir_burst|over_eir_burst|~eir_available?eir:eir+eir_token;
+wire [`EIR_NBITS+2-1:0] new_fill_eir = over_cir_burst|over_eir_burst|~eir_available?eir:eir+eir_token;
 assign token_bucket_wdata_p1 = init_wr?0:en_irl_d4?{new_eir, new_cir}:{new_fill_eir, new_fill_cir};
 
 // EIR Token bucket

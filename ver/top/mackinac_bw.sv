@@ -174,13 +174,13 @@ logic [`PORT_BUS_VB_RANGE] dec_aggr_valid_bytes5;
 logic [`RCI_NBITS-1:0] dec_aggr_rci5;    
 logic dec_aggr_error5;  
 
-logic dec_aggr_data_valid6 = 0;
-logic [`PORT_BUS_RANGE] dec_aggr_packet_data6 = 0;
-logic dec_aggr_sop6 = 0;
-logic dec_aggr_eop6 = 0;
-logic [`PORT_BUS_VB_RANGE] dec_aggr_valid_bytes6 = 0;    
-logic [`RCI_NBITS-1:0] dec_aggr_rci6 = 0;    
-logic dec_aggr_error6 = 0;  
+wire dec_aggr_data_valid6 = 0;
+wire [`PORT_BUS_RANGE] dec_aggr_packet_data6 = 0;
+wire dec_aggr_sop6 = 0;
+wire dec_aggr_eop6 = 0;
+wire [`PORT_BUS_VB_RANGE] dec_aggr_valid_bytes6 = 0;    
+wire [`RCI_NBITS-1:0] dec_aggr_rci6 = 0;    
+wire dec_aggr_error6 = 0;  
 
 logic bm_aggr_buf_valid;        
 logic [`BUF_PTR_RANGE] bm_aggr_buf_ptr;   
@@ -442,6 +442,8 @@ logic [1:0] dstr_enc_port_id3;
 
 logic [`NUM_OF_PORTS-1:0] bm_tm_bp;
 
+logic [`NUM_OF_PORTS-1:0] aggr_port_bp;
+
 logic tm_bm_enq_req;
 enq_pkt_desc_type tm_bm_enq_pkt_desc;
 logic [`PORT_ID_NBITS-1:0] tm_bm_enq_src_port;
@@ -548,6 +550,8 @@ decap u_decap(
     .m_axis_h2c_tdata_x3(m_axis_h2c_tdata_x3),
 
     .m_axis_h2c_tready_x3(m_axis_h2c_tready_x3),
+
+    .aggr_port_bp(aggr_port_bp),
 
     .dec_aggr_data_valid0(dec_aggr_data_valid0),
     .dec_aggr_packet_data0(dec_aggr_packet_data0),
@@ -673,7 +677,7 @@ aggr u_aggr(
     .aggr_par_sop(aggr_par_sop),
     .aggr_par_eop(aggr_par_eop),
 
-    .aggr_port_bp(),
+    .aggr_port_bp(aggr_port_bp),
 
     .aggr_bm_buf_req(aggr_bm_buf_req),
 
