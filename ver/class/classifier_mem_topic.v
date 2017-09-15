@@ -72,6 +72,8 @@ output [`EXP_TIME_NBITS-1:0] topic_etime_rdata  /* synthesis keep = 1 */
 );
 
 /***************************** LOCAL VARIABLES *******************************/
+reg init_wr;
+reg [VALUE_DEPTH_NBITS:0] init_addr;
 
 reg topic_key_wr_d1; 
 reg [VALUE_DEPTH_NBITS-1:0] topic_key_waddr_d1;
@@ -87,14 +89,16 @@ wire [`PIO_RANGE] topic_hash_table0_mem_rdata;
 wire topic_hash_table1_mem_ack;
 wire [`PIO_RANGE] topic_hash_table1_mem_rdata;
 
-wire reg_ms_topic_hash_table0 = reg_ms_topic_hash_table&~reg_addr[DEPTH_NBITS];
-wire reg_ms_topic_hash_table1 = reg_ms_topic_hash_table&reg_addr[DEPTH_NBITS];
+wire [`PIO_ADDR_MSB-3:0] reg_addr_qw = reg_addr[`PIO_ADDR_MSB:3];
+
+wire reg_ms_topic_hash_table0 = reg_ms_topic_hash_table&~reg_addr_qw[DEPTH_NBITS];
+wire reg_ms_topic_hash_table1 = reg_ms_topic_hash_table&reg_addr_qw[DEPTH_NBITS];
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 always @(*) begin
-	topic_hash_table_mem_ack = reg_addr[DEPTH_NBITS]?topic_hash_table0_mem_ack:topic_hash_table1_mem_ack;
-	topic_hash_table_mem_rdata = reg_addr[DEPTH_NBITS]?topic_hash_table0_mem_rdata:topic_hash_table1_mem_rdata;
+	topic_hash_table_mem_ack = ~reg_addr_qw[DEPTH_NBITS]?topic_hash_table0_mem_ack:topic_hash_table1_mem_ack;
+	topic_hash_table_mem_rdata = ~reg_addr_qw[DEPTH_NBITS]?topic_hash_table0_mem_rdata:topic_hash_table1_mem_rdata;
 end
 	
 /***************************** REGISTERED OUTPUTS ****************************/
@@ -120,9 +124,13 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
+	        init_wr <= 1'b0;
+	        init_addr <= 0;
 	        topic_key_wr_d1 <= 1'b0;
 	        topic_etime_wr <= 1'b0;
 	end else begin
+	        init_wr <= ~init_addr[VALUE_DEPTH_NBITS];
+	        init_addr <= init_addr[VALUE_DEPTH_NBITS]?(1<<VALUE_DEPTH_NBITS):init_addr+1;
 	        topic_key_wr_d1 <= topic_key_wr;
 	        topic_etime_wr <= ecdsa_classifier_topic_valid;
 	end
@@ -182,20 +190,20 @@ pio_rw_wmem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_rw_wmem1(
 
 ram_1r1w #(`TOPIC_KEY_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_0(
 		.clk(clk),
-		.wr(topic_key_wr_d1),
+		.wr(init_wr|topic_key_wr_d1),
 		.raddr(topic_key_raddr),
-		.waddr(topic_key_waddr_d1),
-		.din(topic_key_wdata_d1),
+		.waddr(init_wr?init_addr:topic_key_waddr_d1),
+		.din(init_wr?0:topic_key_wdata_d1),
 
 		.dout(topic_key_rdata)
 );
 
 ram_1r1w #(`EXP_TIME_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_2(
 		.clk(clk),
-		.wr(topic_etime_wr),
+		.wr(init_wr|topic_etime_wr),
 		.raddr(topic_etime_raddr),
-		.waddr(topic_etime_waddr),
-		.din(topic_etime_wdata),
+		.waddr(init_wr?init_addr:topic_etime_waddr),
+		.din(init_wr?0:topic_etime_wdata),
 
 		.dout(topic_etime_rdata)
 );

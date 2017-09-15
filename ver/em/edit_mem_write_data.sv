@@ -49,14 +49,17 @@ parameter LEN_NBITS = `PD_CHUNK_NBITS
 
 /***************************** LOCAL VARIABLES *******************************/
 
-localparam PREFETCH_FIFO_DEPTH_NBITS = 3;
-localparam PREFETCH_FIFO_FULL = (1<<PREFETCH_FIFO_DEPTH_NBITS);
+localparam PREFETCH_FIFO_DEPTH_NBITS = 4;
+localparam PREFETCH_FIFO_NEAR_FULL = (1<<PREFETCH_FIFO_DEPTH_NBITS)-2;
 
 logic [LEN_NBITS-1:0] len[`NUM_OF_PU-1:0];
 logic [BPTR_NBITS-1:0] first_pu_buf_ptr_saved[`NUM_OF_PU-1:0];
 logic [BPTR_NBITS-1:0] pu_buf_ptr_saved[`NUM_OF_PU-1:0];
 logic [`NUM_OF_PU-1:0] discard_saved;
 logic [`NUM_OF_PU-1:0] sop_discard_saved;
+
+logic pu_buf_valid_d1; 
+logic pu_buf_available_d1;  
 
 logic pu_em_data_valid_d1;
 logic pu_em_sop_d1;            
@@ -71,10 +74,13 @@ logic [BPTR_NBITS-1:0] prefetch_fifo_dout;
 logic prefetch_fifo_empty;
 logic [PREFETCH_FIFO_DEPTH_NBITS:0] prefetch_fifo_count;
 
-logic pu_buf_req_p1 = prefetch_fifo_count<PREFETCH_FIFO_FULL;
+wire pu_buf_req_p1 = prefetch_fifo_count<PREFETCH_FIFO_NEAR_FULL;
 
-logic pu_data_valid_p1 = pu_em_data_valid_d1&~prefetch_fifo_empty&~discard_saved[pu_em_port_id_d1];
-logic prefetch_fifo_rd = pu_data_valid_p1;
+wire pu_data_valid_p1 = pu_em_data_valid_d1&~prefetch_fifo_empty&~discard_saved[pu_em_port_id_d1];
+wire prefetch_fifo_rd = pu_data_valid_p1;
+
+wire inc_prefetch_fifo = pu_buf_req_p1;
+wire dec_prefetch_fifo = pu_buf_valid_d1&~pu_buf_available_d1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -111,6 +117,8 @@ always @(`CLK_RST)
 
 always @(posedge clk) begin
         
+	pu_buf_available_d1 <= pu_buf_available;
+
         pu_em_port_id_d1 <= pu_em_port_id;
         pu_em_sop_d1 <= pu_em_sop;
 
@@ -124,15 +132,27 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
+	pu_buf_valid_d1 <= 1'b0;
         pu_em_data_valid_d1 <= 0;
-        prefetch_fifo_count <= 0;
         for (i = 0; i < `NUM_OF_PU; i = i + 1) 
           len[i] <= 0;
+        prefetch_fifo_count <= 0;
     end else begin
+	pu_buf_valid_d1 <= pu_buf_valid;
         pu_em_data_valid_d1 <= pu_em_data_valid;
-        prefetch_fifo_count <= ~(prefetch_fifo_rd^pu_buf_req_p1)?prefetch_fifo_count:prefetch_fifo_rd?prefetch_fifo_count-1:prefetch_fifo_count+1;
         for (i = 0; i < `NUM_OF_PU; i = i + 1) 
           len[i] <= ~pu_em_data_valid_d1&(pu_em_port_id_d1==i)?len[i]:pu_em_eop_d1?0:prefetch_fifo_empty|discard_saved[i]?len[i]:len[i]+1;
+	case ({inc_prefetch_fifo, dec_prefetch_fifo, prefetch_fifo_rd})
+		3'b000: prefetch_fifo_count <= prefetch_fifo_count;
+		3'b001: prefetch_fifo_count <= prefetch_fifo_count-1;
+		3'b010: prefetch_fifo_count <= prefetch_fifo_count-1;
+		3'b011: prefetch_fifo_count <= prefetch_fifo_count-2;
+		3'b100: prefetch_fifo_count <= prefetch_fifo_count+1;
+		3'b101: prefetch_fifo_count <= prefetch_fifo_count;
+		3'b110: prefetch_fifo_count <= prefetch_fifo_count;
+		default: prefetch_fifo_count <= prefetch_fifo_count-1;
+	endcase
+
     end
  
 /***************************** FIFO ***************************************/

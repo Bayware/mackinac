@@ -260,8 +260,8 @@ wire [7:0] dscp_ecn;
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 assign pio_ack = pio_ack0|pio_ack1;
-assign pio_rvalid = pio_ack0?pio_rvalid0:pio_rvalid1;
-assign pio_rdata = pio_ack0?pio_rdata0:pio_rdata1;
+assign pio_rvalid = pio_rvalid0|pio_rvalid1;
+assign pio_rdata = pio_rvalid0?pio_rdata0:pio_rdata1;
 
 /***************************** REGISTERED OUTPUTS ****************************/
 
@@ -321,9 +321,9 @@ encap_pio u_encap_pio(
     .reg_ms_ekey_hash_table(reg_ms_ekey_hash_table),
     .reg_ms_ekey_value(reg_ms_ekey_value),
 
-    .pio_ack(pio_ack),
-    .pio_rvalid(pio_rvalid),
-    .pio_rdata(pio_rdata)
+    .pio_ack(pio_ack0),
+    .pio_rvalid(pio_rvalid0),
+    .pio_rdata(pio_rdata0)
 
 );
 
@@ -351,9 +351,9 @@ encap_reg u_encap_reg(
     .ttl(ttl),
     .dscp_ecn(dscp_ecn),
 
-    .pio_ack(pio_ack),
-    .pio_rvalid(pio_rvalid),
-    .pio_rdata(pio_rdata)
+    .pio_ack(pio_ack1),
+    .pio_rvalid(pio_rvalid1),
+    .pio_rdata(pio_rdata1)
 
 );
 

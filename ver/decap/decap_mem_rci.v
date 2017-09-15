@@ -76,8 +76,10 @@ wire [`PIO_RANGE] rci_value3_mem_rdata;
 wire rci_value4_mem_ack;
 wire [`PIO_RANGE] rci_value4_mem_rdata;
 
-wire reg_ms_rci_hash_table0 = reg_ms_rci_hash_table&~reg_addr[DEPTH_NBITS];
-wire reg_ms_rci_hash_table1 = reg_ms_rci_hash_table&reg_addr[DEPTH_NBITS];
+wire [`PIO_ADDR_MSB-2:0] reg_addr_dw = reg_addr[`PIO_ADDR_MSB:2];
+
+wire reg_ms_rci_hash_table0 = reg_ms_rci_hash_table&~reg_addr_dw[DEPTH_NBITS];
+wire reg_ms_rci_hash_table1 = reg_ms_rci_hash_table&reg_addr_dw[DEPTH_NBITS];
 
 wire [`PIO_ADDR_MSB-3:0] reg_addr_qw = reg_addr[`PIO_ADDR_MSB:3];
 
@@ -88,12 +90,13 @@ wire reg_ms_rci_value3 = reg_ms_rci_value&reg_addr_qw[2:0]==3;
 wire reg_ms_rci_value4 = reg_ms_rci_value&reg_addr_qw[2:0]==4;
 
 wire [`PIO_RANGE] rci_value_reg_addr = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr[2:0]};
+wire [`PIO_RANGE] rci_value_reg_addr1 = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr[1:0]};
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 always @(*) begin
-	rci_hash_table_mem_ack = reg_addr[DEPTH_NBITS]?rci_hash_table0_mem_ack:rci_hash_table1_mem_ack;
-	rci_hash_table_mem_rdata = reg_addr[DEPTH_NBITS]?rci_hash_table0_mem_rdata:rci_hash_table1_mem_rdata;
+	rci_hash_table_mem_ack = ~reg_addr_dw[DEPTH_NBITS]?rci_hash_table0_mem_ack:rci_hash_table1_mem_ack;
+	rci_hash_table_mem_rdata = ~reg_addr_dw[DEPTH_NBITS]?rci_hash_table0_mem_rdata:rci_hash_table1_mem_rdata;
 	case (reg_addr_qw[2:0])
 		3'h0: begin
 			rci_value_mem_ack = rci_value0_mem_ack;
@@ -122,7 +125,6 @@ end
 
 
 /***************************** PROGRAM BODY **********************************/
-
 
 pio_mem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_mem0(
 		.clk(clk),
@@ -262,7 +264,7 @@ pio_mem #(VALUE_NBITS-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_mem20(
 
 		.clk_div(clk_div),
 
-	        .reg_addr(rci_value_reg_addr),
+	        .reg_addr(rci_value_reg_addr1),
        	 	.reg_din(reg_din),
         	.reg_rd(reg_rd),
         	.reg_wr(reg_wr),

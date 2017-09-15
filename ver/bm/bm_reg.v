@@ -39,6 +39,7 @@ output reg [3:0]  dt_alpha
 );
 
 /***************************** LOCAL VARIABLES *******************************/
+reg reg_rd_d1;
 
 reg n_pio_ack;
 reg n_pio_rvalid;
@@ -57,6 +58,8 @@ reg sel_dt_alpha;
 
 wire wr_freeb_init = reg_wr&reg_bs&sel_freeb_init;
 wire wr_dt_alpha = reg_wr&reg_bs&sel_dt_alpha;
+
+wire rd_en = reg_rd|reg_rd_d1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -114,8 +117,8 @@ always @(`CLK_RST) begin
 		freeb_init <= 1'b0;
 		dt_alpha <= 4'b0;
 	end else begin
-		pio_ack <= clk_div?n_pio_ack:pio_ack;
-		pio_rvalid <= clk_div?n_pio_rvalid:pio_rvalid;
+		pio_ack <= clk_div?n_pio_ack&~rd_en:pio_ack;
+		pio_rvalid <= clk_div?n_pio_rvalid&reg_bs&rd_en&n_pio_ack:pio_rvalid;
 
 		freeb_init <= wr_freeb_init?reg_din[0]:freeb_init;
 		dt_alpha <= wr_dt_alpha?reg_din[3:0]:dt_alpha;
@@ -131,12 +134,14 @@ always @(`CLK_RST) begin
 		ll_rd_count <= {(`BUF_PTR_NBITS){1'b0}};
 		ll_wr_count <= {(`BUF_PTR_NBITS){1'b0}};
 		n_pio_ack <= 1'b0;
+		reg_rd_d1 <= 1'b0;
 	end else begin
 		freeb_rd_count <= freeb_rd_count+inc_freeb_rd_count;
 		freeb_wr_count <= freeb_wr_count+inc_freeb_wr_count;
 		ll_rd_count <= ll_rd_count+inc_ll_rd_count;
 		ll_wr_count <= ll_wr_count+inc_ll_wr_count;
-		n_pio_ack <= (reg_rd|reg_wr)?1'b1:clk_div?1'b0:n_pio_ack;
+		n_pio_ack <= (reg_rd|reg_wr)&reg_bs?1'b1:clk_div?1'b0:n_pio_ack;
+		reg_rd_d1 <= reg_rd?reg_bs:pio_rvalid?1'b0:reg_rd_d1;
 	end
 end
 

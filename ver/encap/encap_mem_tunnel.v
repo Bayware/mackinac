@@ -96,8 +96,8 @@ wire [`PIO_RANGE] tunnel_value_reg_addr = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 always @(*) begin
-	tunnel_hash_table_mem_ack = reg_addr[DEPTH_NBITS]?tunnel_hash_table0_mem_ack:tunnel_hash_table1_mem_ack;
-	tunnel_hash_table_mem_rdata = reg_addr[DEPTH_NBITS]?tunnel_hash_table0_mem_rdata:tunnel_hash_table1_mem_rdata;
+	tunnel_hash_table_mem_ack = ~reg_addr[DEPTH_NBITS]?tunnel_hash_table0_mem_ack:tunnel_hash_table1_mem_ack;
+	tunnel_hash_table_mem_rdata = ~reg_addr[DEPTH_NBITS]?tunnel_hash_table0_mem_rdata:tunnel_hash_table1_mem_rdata;
 	case (reg_addr_qw[2:0])
 		3'h0: begin
 			tunnel_value_mem_ack = tunnel_value0_mem_ack;

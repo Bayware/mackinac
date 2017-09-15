@@ -69,10 +69,10 @@ logic [`PU_ID_NBITS-1:0] pu_asa_pu_id_d1;
 logic         pu_asa_start_d2;
 
 localparam RAS_FLAG_UP_NBITS = 16 + `RAS_FLAG_NFASCF_NBITS;
-logic [RAS_FLAG_UP_NBITS-1:0] lat_fifo_din1 = {pu_asa_data_d1[31:16], pu_asa_data_d1[`RAS_FLAG_NFASCF_NBITS-1+8*0:8*0]};
+wire [RAS_FLAG_UP_NBITS-1:0] lat_fifo_din1 = {pu_asa_data_d1[31:16], pu_asa_data_d1[`RAS_FLAG_NFASCF_NBITS-1+8*0:8*0]};
 localparam RAS_FLAG_LOW_NBITS = `RAS_FLAG_UPPD_NBITS+`RAS_FLAG_UPPP_NBITS+`RAS_FLAG_UFDAST_NBITS+`RAS_FLAG_EAST_NBITS;
 logic [RAS_FLAG_LOW_NBITS-1:0] lat_fifo_din0_d1;
-logic [RAS_FLAG_LOW_NBITS-1:0] lat_fifo_din0 = {pu_asa_data_d1[`RAS_FLAG_UPPD_NBITS-1+8*3:8*3], pu_asa_data_d1[`RAS_FLAG_UPPP_NBITS-1+8*2:8*2], pu_asa_data_d1[`RAS_FLAG_UFDAST_NBITS-1+8*1:8*1], pu_asa_data_d1[`RAS_FLAG_EAST_NBITS-1+8*0:8*0]};
+wire [RAS_FLAG_LOW_NBITS-1:0] lat_fifo_din0 = {pu_asa_data_d1[`RAS_FLAG_UPPD_NBITS-1+8*3:8*3], pu_asa_data_d1[`RAS_FLAG_UPPP_NBITS-1+8*2:8*2], pu_asa_data_d1[`RAS_FLAG_UFDAST_NBITS-1+8*1:8*1], pu_asa_data_d1[`RAS_FLAG_EAST_NBITS-1+8*0:8*0]};
 
 logic [1:0] lat_fifo_invalid_rci;
 logic         lat_fifo_pu_asa_eop;
@@ -111,25 +111,25 @@ logic [`NUM_OF_PU-1:0] buf_ptr_empty;
 logic [FIFO_DEPTH_NBITS:0] buf_ptr_wptr[`NUM_OF_PU-1:0];
 logic [FIFO_DEPTH_NBITS:0] buf_ptr_rptr[`NUM_OF_PU-1:0];
 
-logic lat_fifo_rd_1st = rci2sci_table_ack&(ras_wr_cnt==1);
+wire lat_fifo_rd_1st = rci2sci_table_ack&(ras_wr_cnt==1);
 
-logic lat_fifo_rd = rci2sci_table_ack&(ras_wr_cnt>1);
+wire lat_fifo_rd = rci2sci_table_ack&(ras_wr_cnt>1);
 
-logic ras_wr_one = rci2sci_table_ack;
+wire ras_wr_one = rci2sci_table_ack;
 
-logic ras_wr = ras_wr_one&lat_fifo_pu_asa_eop;
+wire ras_wr = ras_wr_one&lat_fifo_pu_asa_eop;
 logic [`RAS_FLAG_NBITS-1:0] ras_wdata0;
 logic [(1+`SCI_NBITS)*9-1:0] ras_wdata51;
 logic [(1+`SCI_NBITS)*9-1:0] ras_wdata51_d1;
-logic [FIFO_DEPTH_NBITS-1:0] ras_wptr_sel = ras_wptr[lat_fifo_pu_asa_pu_id];
-logic [RAM_DEPTH_NBITS-1:0] ras_waddr = {pu_asa_pu_id_d1, ras_wptr_sel};
+wire [FIFO_DEPTH_NBITS-1:0] ras_wptr_sel = ras_wptr[lat_fifo_pu_asa_pu_id];
+wire [RAM_DEPTH_NBITS-1:0] ras_waddr = {pu_asa_pu_id_d1, ras_wptr_sel};
 
-logic buf_ptr_wr = em_asa_valid_d1;
-logic [`EM_BUF_PTR_NBITS-1:0] buf_ptr_wdata = em_asa_buf_ptr_d1;
-logic [FIFO_DEPTH_NBITS-1:0] buf_ptr_wptr_sel = buf_ptr_wptr[em_asa_pu_id_d1];
-logic [RAM_DEPTH_NBITS-1:0] buf_ptr_waddr = {em_asa_pu_id_d1, buf_ptr_wptr_sel};
+wire buf_ptr_wr = em_asa_valid_d1;
+wire [`EM_BUF_PTR_NBITS-1:0] buf_ptr_wdata = em_asa_buf_ptr_d1;
+wire [FIFO_DEPTH_NBITS-1:0] buf_ptr_wptr_sel = buf_ptr_wptr[em_asa_pu_id_d1];
+wire [RAM_DEPTH_NBITS-1:0] buf_ptr_waddr = {em_asa_pu_id_d1, buf_ptr_wptr_sel};
 
-logic meta_wr = piarb_asa_valid_d2&~piarb_asa_type3_d2;
+wire meta_wr = piarb_asa_valid_d2&~piarb_asa_type3_d2;
 localparam META_MEM_NBITS = `CHUNK_LEN_NBITS*2;
 piarb_asa_meta_type mpiarb_asa_meta_data_d2;
 assign mpiarb_asa_meta_data_d2.domain_id = piarb_asa_meta_data_d2.domain_id;
@@ -146,10 +146,10 @@ assign mpiarb_asa_meta_data_d2.type3 = piarb_asa_meta_data.type3;
 assign mpiarb_asa_meta_data_d2.creation_time = piarb_asa_meta_data.creation_time;
 assign mpiarb_asa_meta_data_d2.discard = piarb_asa_meta_data.discard;
 
-logic [FIFO_DEPTH_NBITS-1:0] meta_wptr_sel = meta_wptr[piarb_asa_pu_id_d2];
-logic [RAM_DEPTH_NBITS-1:0] meta_waddr = {piarb_asa_pu_id_d2, meta_wptr_sel};
+wire [FIFO_DEPTH_NBITS-1:0] meta_wptr_sel = meta_wptr[piarb_asa_pu_id_d2];
+wire [RAM_DEPTH_NBITS-1:0] meta_waddr = {piarb_asa_pu_id_d2, meta_wptr_sel};
 
-logic type3_fifo_wr = piarb_asa_valid_d2&piarb_asa_type3_d2;
+wire type3_fifo_wr = piarb_asa_valid_d2&piarb_asa_type3_d2;
 piarb_asa_meta_type type3_fifo_wdata = mpiarb_asa_meta_data_d2;
 
 piarb_asa_meta_type type3_fifo_rdata;
@@ -157,27 +157,27 @@ logic type3_fifo_empty;
 
 logic event_fifo_empty;
 logic sel_type3_d1;
-logic sel_type3 = sel_type3_d1?event_fifo_empty&~type3_fifo_empty:~type3_fifo_empty;
+wire sel_type3 = sel_type3_d1?event_fifo_empty&~type3_fifo_empty:~type3_fifo_empty;
 
-logic type3_fifo_rd = sel_type3&~type3_fifo_empty;
+wire type3_fifo_rd = sel_type3&~type3_fifo_empty;
 
-logic event_fifo_rd = ~sel_type3&~event_fifo_empty;
+wire event_fifo_rd = ~sel_type3&~event_fifo_empty;
 logic event_fifo_rd_d1;
 logic [`PU_ID_NBITS-1:0] event_fifo_rdata;
 logic [`PU_ID_NBITS-1:0] event_fifo_rdata_d1;
-logic event_fifo_wr1 = ras_wr&ras_empty[pu_asa_pu_id_d1];
-logic event_fifo_wr = event_fifo_wr1|event_fifo_rd_d1&~ras_empty[event_fifo_rdata_d1];
-logic [`PU_ID_NBITS-1:0] event_fifo_wdata = event_fifo_wr1?pu_asa_pu_id_d1:event_fifo_rdata_d1;
+wire event_fifo_wr1 = ras_wr&ras_empty[pu_asa_pu_id_d1];
+wire event_fifo_wr = event_fifo_wr1|event_fifo_rd_d1&~ras_empty[event_fifo_rdata_d1];
+wire [`PU_ID_NBITS-1:0] event_fifo_wdata = event_fifo_wr1?pu_asa_pu_id_d1:event_fifo_rdata_d1;
 
-logic ras_rd = event_fifo_rd&~buf_ptr_empty[event_fifo_rdata];
-logic buf_ptr_rd = ras_rd;
-logic meta_rd = ras_rd;
-logic [FIFO_DEPTH_NBITS-1:0] ras_rptr_sel = ras_rptr[event_fifo_rdata];
-logic [RAM_DEPTH_NBITS-1:0] ras_raddr = {event_fifo_rdata, ras_rptr_sel};
-logic [FIFO_DEPTH_NBITS-1:0] buf_ptr_rptr_sel = buf_ptr_rptr[event_fifo_rdata];
-logic [RAM_DEPTH_NBITS-1:0] buf_ptr_raddr = {event_fifo_rdata, buf_ptr_rptr_sel};
-logic [FIFO_DEPTH_NBITS-1:0] meta_rptr_sel = meta_rptr[event_fifo_rdata];
-logic [RAM_DEPTH_NBITS-1:0] meta_raddr = {event_fifo_rdata, meta_rptr_sel};
+wire ras_rd = event_fifo_rd&~buf_ptr_empty[event_fifo_rdata];
+wire buf_ptr_rd = ras_rd;
+wire meta_rd = ras_rd;
+wire [FIFO_DEPTH_NBITS-1:0] ras_rptr_sel = ras_rptr[event_fifo_rdata];
+wire [RAM_DEPTH_NBITS-1:0] ras_raddr = {event_fifo_rdata, ras_rptr_sel};
+wire [FIFO_DEPTH_NBITS-1:0] buf_ptr_rptr_sel = buf_ptr_rptr[event_fifo_rdata];
+wire [RAM_DEPTH_NBITS-1:0] buf_ptr_raddr = {event_fifo_rdata, buf_ptr_rptr_sel};
+wire [FIFO_DEPTH_NBITS-1:0] meta_rptr_sel = meta_rptr[event_fifo_rdata];
+wire [RAM_DEPTH_NBITS-1:0] meta_raddr = {event_fifo_rdata, meta_rptr_sel};
 logic [RAS_WIDTH-1:0] ras_rdata;
 logic [`EM_BUF_PTR_NBITS-1:0] buf_ptr_rdata;
 logic [LEN_NBITS-1:0] buf_ptr_len;
@@ -185,11 +185,11 @@ logic buf_ptr_discard;
 logic [META_MEM_NBITS-1:0] meta_rdata;
 piarb_asa_meta_type meta_rdata_struct;	
 
-logic asa_proc_valid_p1 = type3_fifo_rd|ras_rd; 
+wire asa_proc_valid_p1 = type3_fifo_rd|ras_rd; 
 
-logic [RAS_WIDTH-1:0] ras_wdata = {ras_wdata51, ras_wdata0};
+wire [RAS_WIDTH-1:0] ras_wdata = {ras_wdata51, ras_wdata0};
 
-logic [1:0] invalid_rci = {pu_asa_data_d1[31:16]==0, pu_asa_data_d1[15:0]==0};
+wire [1:0] invalid_rci = {pu_asa_data_d1[31:16]==0, pu_asa_data_d1[15:0]==0};
 
 piarb_asa_meta_type sel_meta= sel_type3_d1?type3_fifo_rdata:meta_rdata_struct;
 
@@ -238,7 +238,7 @@ always @(`CLK_RST)
 
 /***************************** PROGRAM BODY **********************************/
 
-logic [(1+`SCI_NBITS)*2-1:0] n_wdata = {lat_fifo_invalid_rci[1], rci2sci_table_rdata[`SCI_NBITS*2-1:`SCI_NBITS], lat_fifo_invalid_rci[0], rci2sci_table_rdata[`SCI_NBITS-1:0]};
+wire [(1+`SCI_NBITS)*2-1:0] n_wdata = {lat_fifo_invalid_rci[1], rci2sci_table_rdata[`SCI_NBITS*2-1:`SCI_NBITS], lat_fifo_invalid_rci[0], rci2sci_table_rdata[`SCI_NBITS-1:0]};
 
 always @(*) begin
 	ras_wdata51[(`PU_ASA_TS-3)*(1+`SCI_NBITS)*2+(1+`SCI_NBITS)-1:(`PU_ASA_TS-3)*(1+`SCI_NBITS)*2] = ras_wr_one&(ras_wr_cnt==`PU_ASA_TS-1)?{lat_fifo_invalid_rci, rci2sci_table_rdata[`SCI_NBITS-1:0]}:ras_wdata51_d1[(`PU_ASA_TS-3)*(1+`SCI_NBITS)*2+(1+`SCI_NBITS)-1:(`PU_ASA_TS-3)*(1+`SCI_NBITS)*2];

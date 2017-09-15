@@ -45,17 +45,17 @@ logic arb_rd_gnt;
 logic [`PU_ID_NBITS-1:0] arb_wr_sel;
 logic arb_wr_gnt;
 
-logic atomic_rd = io_cmd_d1[arb_rd_sel].atomic&arb_rd_gnt;
+wire atomic_rd = io_cmd_d1[arb_rd_sel].atomic&arb_rd_gnt;
 logic atomic_rd_d1;
 logic atomic_rd_d2;
 
 logic [NUM_OF_PU-1:0] rd_req;
-logic [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd&rd_req;
+wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd&rd_req;
 
 logic [NUM_OF_PU-1:0] wr_req;
 logic [NUM_OF_PU-1:0] arb_wr_req;
 
-logic [DEPTH_NBITS-1:0] ram_raddr = {io_cmd_d1[arb_rd_sel].tid, io_cmd_d1[arb_rd_sel].addr[`TOPIC_PD_NBITS-2-1:0]};
+wire [DEPTH_NBITS-1:0] ram_raddr = {io_cmd_d1[arb_rd_sel].tid, io_cmd_d1[arb_rd_sel].addr[`TOPIC_PD_NBITS-2-1:0]};
 logic [DEPTH_NBITS-1:0] ram_raddr_d1;
 logic [DEPTH_NBITS-1:0] ram_raddr_d2;
 
@@ -102,7 +102,7 @@ always @(*) begin
 	end
 end
 
-logic dis_wr_en = atomic_rd_d1;
+wire dis_wr_en = atomic_rd_d1;
 
 always @(posedge clk) begin
 	io_cmd_wdata <= io_cmd_d1[arb_rd_sel_d1].wdata;
@@ -124,9 +124,9 @@ always @(`CLK_RST)
         in_fifo_rd_d1 <= in_fifo_rd;
     end
 
-logic ram_wr = io_cmd_d1[arb_wr_sel].wr&arb_wr_gnt|atomic_rd_d2;
-logic [WIDTH_NBITS-1:0] ram_wdata = atomic_rd_d2?mod_ram_rdata:io_cmd_d1[arb_wr_sel].wdata;
-logic [DEPTH_NBITS-1:0] ram_waddr = atomic_rd_d2?ram_raddr_d2:{io_cmd_d1[arb_wr_sel].tid, io_cmd_d1[arb_wr_sel].addr[`TOPIC_PD_NBITS-2-1:0]};
+wire ram_wr = io_cmd_d1[arb_wr_sel].wr&arb_wr_gnt|atomic_rd_d2;
+wire [WIDTH_NBITS-1:0] ram_wdata = atomic_rd_d2?mod_ram_rdata:io_cmd_d1[arb_wr_sel].wdata;
+wire [DEPTH_NBITS-1:0] ram_waddr = atomic_rd_d2?ram_raddr_d2:{io_cmd_d1[arb_wr_sel].tid, io_cmd_d1[arb_wr_sel].addr[`TOPIC_PD_NBITS-2-1:0]};
 
 genvar gi;
 

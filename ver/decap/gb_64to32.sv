@@ -19,6 +19,8 @@ input m_axis_h2c_tvalid_x,
 input m_axis_h2c_tlast_x,
 input [DMA_BUS_NBITS-1:0] m_axis_h2c_tdata_x,
 
+input dec_bp,
+
 output m_axis_h2c_tready_x,
 
 output logic [PBUS_NBITS-1:0] rx_axis_tdata,
@@ -41,11 +43,11 @@ logic [DMA_BUS_NBITS-1:0] in_fifo_data;
 
 logic even;
 
-logic in_fifo_wr = m_axis_h2c_tvalid_x&m_axis_h2c_tready_x;
+wire in_fifo_wr = m_axis_h2c_tvalid_x&m_axis_h2c_tready_x;
 
-logic rx_axis_tvalid_p1 = ~in_fifo_empty;
+wire rx_axis_tvalid_p1 = ~in_fifo_empty&~dec_bp;
 
-logic in_fifo_rd = rx_axis_tvalid_p1&~even;
+wire in_fifo_rd = rx_axis_tvalid_p1&~even;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -58,14 +60,14 @@ always @(posedge clk_mac) begin
 
 		rx_axis_tdata <= even?in_fifo_data[63:32]:in_fifo_data[31:0];
 		rx_axis_tkeep <= 4'hf;
-		rx_axis_tuser <= 1'b1;
+		rx_axis_tuser <= 1'b0;
 		rx_axis_tlast <= in_fifo_eop&~even;
 end
 
 
 always @(`CLK_RST_MAC) 
-    if (`ACTIVE_RESET) begin
-		rx_axis_tvalid <= 1'b1;
+    if (`ACTIVE_RESET_MAC) begin
+		rx_axis_tvalid <= 1'b0;
 	end else begin
 		rx_axis_tvalid <= rx_axis_tvalid_p1;
 	end

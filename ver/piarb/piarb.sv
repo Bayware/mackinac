@@ -368,7 +368,21 @@ piarb_bm #(`PIARB_INST_BUF_PTR_NBITS, `DATA_PATH_NBITS, `PU_ID_NBITS, `PU_QUEUE_
 	.data_ack_data(piarb_pu_inst_data),
 	.data_ack_inst(piarb_pu_inst_pd),
 	.data_ack_meta()
+);
 
+piarb_sch u_piarb_sch(
+        .clk(clk),
+        .`RESET_SIG(`RESET_SIG),
+
+	.enq_ack(enq_ack), 
+	.enq_to_empty(enq_to_empty), 
+	.enq_ack_qid(enq_ack_qid), 
+
+	.deq_depth_ack(deq_depth_ack), 
+	.deq_depth_from_emptyp2(deq_depth_from_emptyp2), 
+
+	.deq_req(deq_req), 
+	.deq_qid(deq_qid)
 );
 
 piarb_qm u_piarb_qm(

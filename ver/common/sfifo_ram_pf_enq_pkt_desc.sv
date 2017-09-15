@@ -50,9 +50,9 @@ always @(`CLK_RST)
 
 /***************************** PROGRAM BODY **********************************/
 
-logic prefetch_fifo_wr = fifo_rd_d1;
+wire prefetch_fifo_wr = fifo_rd_d1;
 
-logic fifo_rd = ~fifo_empty&~(prefetch_fifo_wr&prefetch_fifo_fullm1|prefetch_fifo_full);
+wire fifo_rd = ~fifo_empty&~(prefetch_fifo_wr&prefetch_fifo_fullm1|prefetch_fifo_full);
 
 
 always @(`CLK_RST) 
@@ -79,7 +79,7 @@ sfifo_ram_enq_pkt_desc #(DEPTH_NBITS) u_sfifo_ram_enq_pkt_desc(
 
 	.wptr(), 
 	.count(), 
-	.full(),
+	.full(full),
 	.empty(fifo_empty),
     .dout(fifo_dout)       
 );
@@ -95,7 +95,7 @@ sfifo_enq_pkt_desc #(2) u_sfifo_enq_pkt_desc(
 	.ncount(),
 	.count(),
 	.full(prefetch_fifo_full),
-	.empty(),
+	.empty(empty),
 	.fullm1(prefetch_fifo_fullm1),
 	.emptyp2(),
     .dout(dout)       

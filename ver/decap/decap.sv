@@ -67,6 +67,8 @@ input [DMA_BUS_NBITS-1:0] m_axis_h2c_tdata_x3,
 
 output m_axis_h2c_tready_x3,
 
+input [`NUM_OF_PORTS-1:0] aggr_port_bp,
+
 output dec_aggr_data_valid0,
 output [`PORT_BUS_RANGE] dec_aggr_packet_data0,
 output dec_aggr_sop0,
@@ -173,30 +175,37 @@ wire [`PIO_RANGE] ekey_value_mem_rdata;
 wire [RING_NBITS-1:0] decr_ring_in_data;
 wire decr_ring_in_sof;
 wire decr_ring_in_sos;
+wire decr_ring_in_valid;
 
 wire [RING_NBITS-1:0] decr_ring_out_data;
 wire decr_ring_out_sof;
 wire decr_ring_out_sos;
+wire decr_ring_out_valid;
 
 wire [RING_NBITS-1:0] decr_ring_out_data0;
 wire decr_ring_out_sof0;
 wire decr_ring_out_sos0;
+wire decr_ring_out_valid0;
 
 wire [RING_NBITS-1:0] decr_ring_out_data1;
 wire decr_ring_out_sof1;
 wire decr_ring_out_sos1;
+wire decr_ring_out_valid1;
 
 wire [RING_NBITS-1:0] decr_ring_out_data2;
 wire decr_ring_out_sof2;
 wire decr_ring_out_sos2;
+wire decr_ring_out_valid2;
 
 wire [RING_NBITS-1:0] decr_ring_out_data3;
 wire decr_ring_out_sof3;
 wire decr_ring_out_sos3;
+wire decr_ring_out_valid3;
 
 wire [RING_NBITS-1:0] decr_ring_out_data4;
 wire decr_ring_out_sof4;
 wire decr_ring_out_sos4;
+wire decr_ring_out_valid4;
 
 wire rci_hash_table0_ack; 
 wire [RCI_BUCKET_NBITS-1:0] rci_hash_table0_rdata  /* synthesis keep = 1 */;
@@ -238,6 +247,7 @@ wire ekey_value_wr;
 wire [EKEY_VALUE_DEPTH_NBITS-1:0] ekey_value_waddr;
 wire [WR_NBITS-1:0] ekey_value_wdata;
 
+wire [`NUM_OF_PORTS-1:2] dec_bp;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -399,6 +409,7 @@ decap_lookup u_decap_lookup(
     .decr_ring_in_data(decr_ring_in_data),
     .decr_ring_in_sof(decr_ring_in_sof),
     .decr_ring_in_sos(decr_ring_in_sos),
+    .decr_ring_in_valid(decr_ring_in_valid),
  
     .rci_hash_table0_ack(rci_hash_table0_ack),
     .rci_hash_table0_rdata(rci_hash_table0_rdata),
@@ -443,7 +454,8 @@ decap_lookup u_decap_lookup(
 
     .decr_ring_out_data(decr_ring_out_data),
     .decr_ring_out_sof(decr_ring_out_sof),
-    .decr_ring_out_sos(decr_ring_out_sos)
+    .decr_ring_out_sos(decr_ring_out_sos),
+    .decr_ring_out_valid(decr_ring_out_valid)
  
 );
 
@@ -463,10 +475,16 @@ decap_port #(.DECRYPTOR_ID(0)) u_decap_port_0(
     .decr_ring_in_data(decr_ring_out_data),
     .decr_ring_in_sof(decr_ring_out_sof),
     .decr_ring_in_sos(decr_ring_out_sos),
+    .decr_ring_in_valid(decr_ring_out_valid),
+
+    .aggr_port_bp(aggr_port_bp[0]),
+
+    .dec_bp(),
 
     .decr_ring_out_data(decr_ring_out_data0),
     .decr_ring_out_sof(decr_ring_out_sof0),
     .decr_ring_out_sos(decr_ring_out_sos0),
+    .decr_ring_out_valid(decr_ring_out_valid0),
  
     .dec_aggr_data_valid(dec_aggr_data_valid0),
     .dec_aggr_packet_data(dec_aggr_packet_data0),
@@ -494,10 +512,16 @@ decap_port #(.DECRYPTOR_ID(1)) u_decap_port_1(
     .decr_ring_in_data(decr_ring_out_data0),
     .decr_ring_in_sof(decr_ring_out_sof0),
     .decr_ring_in_sos(decr_ring_out_sos0),
+    .decr_ring_in_valid(decr_ring_out_valid0),
+
+    .aggr_port_bp(aggr_port_bp[1]),
+
+    .dec_bp(),
 
     .decr_ring_out_data(decr_ring_out_data1),
     .decr_ring_out_sof(decr_ring_out_sof1),
     .decr_ring_out_sos(decr_ring_out_sos1),
+    .decr_ring_out_valid(decr_ring_out_valid1),
  
     .dec_aggr_data_valid(dec_aggr_data_valid1),
     .dec_aggr_packet_data(dec_aggr_packet_data1),
@@ -522,6 +546,8 @@ gb_64to32 u_gb_64to32_2(
 
     .m_axis_h2c_tready_x(m_axis_h2c_tready_x0),
 
+    .dec_bp(dec_bp[2]),
+
     .rx_axis_tdata(rx_axis_tdata2),
     .rx_axis_tkeep(rx_axis_tkeep2),
     .rx_axis_tvalid(rx_axis_tvalid2),
@@ -545,10 +571,16 @@ decap_port #(.DECRYPTOR_ID(2)) u_decap_port_2(
     .decr_ring_in_data(decr_ring_out_data1),
     .decr_ring_in_sof(decr_ring_out_sof1),
     .decr_ring_in_sos(decr_ring_out_sos1),
+    .decr_ring_in_valid(decr_ring_out_valid1),
+
+    .aggr_port_bp(aggr_port_bp[2]),
+
+    .dec_bp(dec_bp[2]),
 
     .decr_ring_out_data(decr_ring_out_data2),
     .decr_ring_out_sof(decr_ring_out_sof2),
     .decr_ring_out_sos(decr_ring_out_sos2),
+    .decr_ring_out_valid(decr_ring_out_valid2),
  
     .dec_aggr_data_valid(dec_aggr_data_valid2),
     .dec_aggr_packet_data(dec_aggr_packet_data2),
@@ -573,6 +605,8 @@ gb_64to32 u_gb_64to32_3(
 
     .m_axis_h2c_tready_x(m_axis_h2c_tready_x1),
 
+    .dec_bp(dec_bp[3]),
+
     .rx_axis_tdata(rx_axis_tdata3),
     .rx_axis_tkeep(rx_axis_tkeep3),
     .rx_axis_tvalid(rx_axis_tvalid3),
@@ -596,10 +630,16 @@ decap_port #(.DECRYPTOR_ID(3)) u_decap_port_3(
     .decr_ring_in_data(decr_ring_out_data2),
     .decr_ring_in_sof(decr_ring_out_sof2),
     .decr_ring_in_sos(decr_ring_out_sos2),
+    .decr_ring_in_valid(decr_ring_out_valid2),
+
+    .aggr_port_bp(aggr_port_bp[3]),
+
+    .dec_bp(dec_bp[3]),
 
     .decr_ring_out_data(decr_ring_out_data3),
     .decr_ring_out_sof(decr_ring_out_sof3),
     .decr_ring_out_sos(decr_ring_out_sos3),
+    .decr_ring_out_valid(decr_ring_out_valid3),
  
     .dec_aggr_data_valid(dec_aggr_data_valid3),
     .dec_aggr_packet_data(dec_aggr_packet_data3),
@@ -624,6 +664,8 @@ gb_64to32 u_gb_64to32_4(
 
     .m_axis_h2c_tready_x(m_axis_h2c_tready_x2),
 
+    .dec_bp(dec_bp[4]),
+
     .rx_axis_tdata(rx_axis_tdata4),
     .rx_axis_tkeep(rx_axis_tkeep4),
     .rx_axis_tvalid(rx_axis_tvalid4),
@@ -647,10 +689,16 @@ decap_port #(.DECRYPTOR_ID(4)) u_decap_port_4(
     .decr_ring_in_data(decr_ring_out_data3),
     .decr_ring_in_sof(decr_ring_out_sof3),
     .decr_ring_in_sos(decr_ring_out_sos3),
+    .decr_ring_in_valid(decr_ring_out_valid3),
+
+    .aggr_port_bp(aggr_port_bp[4]),
+
+    .dec_bp(dec_bp[4]),
 
     .decr_ring_out_data(decr_ring_out_data4),
     .decr_ring_out_sof(decr_ring_out_sof4),
     .decr_ring_out_sos(decr_ring_out_sos4),
+    .decr_ring_out_valid(decr_ring_out_valid4),
  
     .dec_aggr_data_valid(dec_aggr_data_valid4),
     .dec_aggr_packet_data(dec_aggr_packet_data4),
@@ -673,6 +721,8 @@ gb_64to32 u_gb_64to32_5(
     .m_axis_h2c_tdata_x(m_axis_h2c_tdata_x3),
 
     .m_axis_h2c_tready_x(m_axis_h2c_tready_x3),
+
+    .dec_bp(dec_bp[5]),
 
     .rx_axis_tdata(rx_axis_tdata5),
     .rx_axis_tkeep(rx_axis_tkeep5),
@@ -697,10 +747,16 @@ decap_port #(.DECRYPTOR_ID(5)) u_decap_port_5(
     .decr_ring_in_data(decr_ring_out_data4),
     .decr_ring_in_sof(decr_ring_out_sof4),
     .decr_ring_in_sos(decr_ring_out_sos4),
+    .decr_ring_in_valid(decr_ring_out_valid4),
+
+    .aggr_port_bp(aggr_port_bp[5]),
+
+    .dec_bp(dec_bp[5]),
 
     .decr_ring_out_data(decr_ring_in_data),
     .decr_ring_out_sof(decr_ring_in_sof),
     .decr_ring_out_sos(decr_ring_in_sos),
+    .decr_ring_out_valid(decr_ring_in_valid),
  
     .dec_aggr_data_valid(dec_aggr_data_valid5),
     .dec_aggr_packet_data(dec_aggr_packet_data5),

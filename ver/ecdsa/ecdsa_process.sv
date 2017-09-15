@@ -95,7 +95,7 @@ logic lh_ecdsa_eop_d1;
 
 logic lh_fifo_empty;
 logic [`LOGIC_HASH_NBITS-1:0] lh_fifo_data;
-logic lh_fifo_rd = ecdsa_lh_wr;
+wire lh_fifo_rd = ecdsa_lh_wr;
 
 logic pmeta_fifo_empty;
 logic [PMETA_FIFO_DEPTH_NBITS:0] pmeta_fifo_count;
@@ -107,8 +107,8 @@ logic meta_fifo_empty;
 lh_ecdsa_meta_type meta_fifo_data;
 logic [`CHUNK_LEN_NBITS-1:0] meta_fifo_auth_len;
 
-logic [`LH_ECDSA_META_FID_RANGE] fid = meta_fifo_data.fid;
-logic [`LH_ECDSA_META_TID_RANGE] tid = meta_fifo_data.tid;
+wire [`LH_ECDSA_META_FID_RANGE] fid = meta_fifo_data.fid;
+wire [`LH_ECDSA_META_TID_RANGE] tid = meta_fifo_data.tid;
 
 logic pdata_fifo_empty;
 logic [PDATA_FIFO_DEPTH_NBITS:0] pdata_fifo_count;
@@ -125,17 +125,17 @@ logic data_fifo_eop_d1;
 
 logic ecdsa_ip_ready;
 logic pdata_fifo_rd;
-logic set_pdata_fifo_rd_en = ~pdata_fifo_empty&~pmeta_fifo_empty&pdata_fifo_sop&ecdsa_ip_ready;
-logic reset_pdata_fifo_rd_en = pdata_fifo_rd&pdata_fifo_eop;
+wire set_pdata_fifo_rd_en = ~pdata_fifo_empty&~pmeta_fifo_empty&pdata_fifo_sop&ecdsa_ip_ready;
+wire reset_pdata_fifo_rd_en = pdata_fifo_rd&pdata_fifo_eop;
 logic pdata_fifo_rd_en;
 assign pdata_fifo_rd = ~pdata_fifo_empty&~data_fifo_full&pdata_fifo_rd_en&(~pdata_fifo_eop|~meta_fifo_full);
-logic pdata_fifo_rd_1st = pdata_fifo_rd&pdata_fifo_sop;
-logic pdata_fifo_rd_last = pdata_fifo_rd&pdata_fifo_eop;
+wire pdata_fifo_rd_1st = pdata_fifo_rd&pdata_fifo_sop;
+wire pdata_fifo_rd_last = pdata_fifo_rd&pdata_fifo_eop;
 
-logic data_fifo_wr = pdata_fifo_rd;
+wire data_fifo_wr = pdata_fifo_rd;
 
-logic pmeta_fifo_rd = pdata_fifo_rd_last;
-logic meta_fifo_wr = pmeta_fifo_rd;
+wire pmeta_fifo_rd = pdata_fifo_rd_last;
+wire meta_fifo_wr = pmeta_fifo_rd;
 
 logic signature_valid;
 logic signature_verified;
@@ -158,11 +158,11 @@ logic out_meta_fifo_full;
 
 logic data_fifo_rd;
 logic data_fifo_rd_d1;
-logic set_data_fifo_rd_en = ~data_fifo_empty&~meta_fifo_empty&data_fifo_sop&~signature_fifo_empty;
-logic reset_data_fifo_rd_en = data_fifo_rd&data_fifo_eop;
+wire set_data_fifo_rd_en = ~data_fifo_empty&~meta_fifo_empty&data_fifo_sop&~signature_fifo_empty;
+wire reset_data_fifo_rd_en = data_fifo_rd&data_fifo_eop;
 logic data_fifo_rd_en;
 assign data_fifo_rd = ~data_fifo_empty&data_fifo_rd_en&~out_data_fifo_full&(~data_fifo_eop|~out_meta_fifo_full);
-logic data_fifo_rd_last = data_fifo_rd&data_fifo_eop;
+wire data_fifo_rd_last = data_fifo_rd&data_fifo_eop;
 
 lh_ecdsa_meta_type mpmeta_fifo_data;
 assign mpmeta_fifo_data.traffic_class = pmeta_fifo_data.traffic_class;
@@ -177,21 +177,21 @@ assign mpmeta_fifo_data.type1 = pmeta_fifo_data.type1;
 assign mpmeta_fifo_data.type3 = pmeta_fifo_data.type3;
 assign mpmeta_fifo_data.discard = pmeta_fifo_data.discard|~signature_fifo_data;
 
-logic out_data_fifo_wr = signature_fifo_data?(data_fifo_rd&(data_cnt>5))|(data_fifo_rd_d1&data_fifo_eop_d1):data_fifo_rd_last;
-logic out_data_fifo_sop_in = (data_cnt==6);
-logic [`DATA_PATH_RANGE] out_data_fifo_data_in = {data_sv, data_fifo_data[`DATA_PATH_NBITS-1:32]};
-logic out_data_fifo_eop_in = ~signature_fifo_data|data_fifo_eop_d1;
+wire out_data_fifo_wr = signature_fifo_data?(data_fifo_rd&(data_cnt>5))|(data_fifo_rd_d1&data_fifo_eop_d1):data_fifo_rd_last;
+wire out_data_fifo_sop_in = (data_cnt==6);
+wire [`DATA_PATH_RANGE] out_data_fifo_data_in = {data_sv, data_fifo_data[`DATA_PATH_NBITS-1:32]};
+wire out_data_fifo_eop_in = ~signature_fifo_data|data_fifo_eop_d1;
 
-logic meta_fifo_rd = data_fifo_rd_last;
-logic out_meta_fifo_wr = meta_fifo_rd;
-logic signature_fifo_rd = meta_fifo_rd;
+wire meta_fifo_rd = data_fifo_rd_last;
+wire out_meta_fifo_wr = meta_fifo_rd;
+wire signature_fifo_rd = meta_fifo_rd;
 
 lh_ecdsa_meta_type out_meta_fifo_data;
 logic [`DOMAIN_ID_NBITS-1:0] out_meta_fifo_domain_id;
 logic [`CHUNK_LEN_NBITS-1:0] out_meta_fifo_auth_len;
 
-logic out_data_fifo_rd = ecdsa_pp_valid&pp_ecdsa_ready;
-logic out_meta_fifo_rd = out_data_fifo_rd&out_data_fifo_eop;
+wire out_data_fifo_rd = ecdsa_pp_valid&pp_ecdsa_ready;
+wire out_meta_fifo_rd = out_data_fifo_rd&out_data_fifo_eop;
 
 logic [`PPL_NBITS-1:0] ppl;
 logic [`ISSUER_ID_NBITS-1:0] issuer_id;
@@ -210,7 +210,7 @@ logic ba_valid;
 
 logic [`REAL_TIME_NBITS-1:0] current_time_d1;		
 
-logic [`REAL_TIME_NBITS-1:0] target_exp_time = current_time_d1+default_exp_time;		
+wire [`REAL_TIME_NBITS-1:0] target_exp_time = current_time_d1+default_exp_time;		
 
 logic out_data_fifo_empty;
 logic out_meta_fifo_empty;
@@ -230,7 +230,7 @@ always @*
 		default: topic_maskon = maskon;
 	endcase
 
-logic topic_fifo_rd = ~topic_fifo_empty&ba_valid;
+wire topic_fifo_rd = ~topic_fifo_empty&ba_valid;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

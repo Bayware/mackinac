@@ -95,12 +95,12 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
-	fifo_reset <= 1'b1;
+	fifo_reset <= `ACTIVE_RESET_LEVEL;
         rel_buf_valid_d1 <= 0;
         freeb_init_wr <= 1'b0;
         fifo_rd_d1 <= 0;
     end else begin
-	fifo_reset <= (nxt_init_st==RESET_FREEB);
+	fifo_reset <= (nxt_init_st==RESET_FREEB)?`ACTIVE_RESET_LEVEL:`INACTIVE_RESET_LEVEL;
         rel_buf_valid_d1 <= rel_buf_valid;
         freeb_init_wr <= (nxt_init_st==INIT_FREEB);
         fifo_rd_d1 <= fifo_rd;

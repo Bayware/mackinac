@@ -81,10 +81,10 @@ wire [`PIO_RANGE] ekey_value3_mem_rdata;
 wire ekey_value4_mem_ack;
 wire [`PIO_RANGE] ekey_value4_mem_rdata;
 
-wire reg_ms_ekey_hash_table0 = reg_ms_ekey_hash_table&~reg_addr[DEPTH_NBITS];
-wire reg_ms_ekey_hash_table1 = reg_ms_ekey_hash_table&reg_addr[DEPTH_NBITS];
-
 wire [`PIO_ADDR_MSB-3:0] reg_addr_qw = reg_addr[`PIO_ADDR_MSB:3];
+
+wire reg_ms_ekey_hash_table0 = reg_ms_ekey_hash_table&~reg_addr_qw[DEPTH_NBITS];
+wire reg_ms_ekey_hash_table1 = reg_ms_ekey_hash_table&reg_addr_qw[DEPTH_NBITS];
 
 wire reg_ms_ekey_value0 = reg_ms_ekey_value&reg_addr_qw[2:0]==0;
 wire reg_ms_ekey_value1 = reg_ms_ekey_value&reg_addr_qw[2:0]==1;
@@ -97,8 +97,8 @@ wire [`PIO_RANGE] ekey_value_reg_addr = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr[2
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 always @(*) begin
-	ekey_hash_table_mem_ack = reg_addr[DEPTH_NBITS]?ekey_hash_table0_mem_ack:ekey_hash_table1_mem_ack;
-	ekey_hash_table_mem_rdata = reg_addr[DEPTH_NBITS]?ekey_hash_table0_mem_rdata:ekey_hash_table1_mem_rdata;
+	ekey_hash_table_mem_ack = ~reg_addr_qw[DEPTH_NBITS]?ekey_hash_table0_mem_ack:ekey_hash_table1_mem_ack;
+	ekey_hash_table_mem_rdata = ~reg_addr_qw[DEPTH_NBITS]?ekey_hash_table0_mem_rdata:ekey_hash_table1_mem_rdata;
 	case (reg_addr_qw[2:0])
 		3'h0: begin
 			ekey_value_mem_ack = ekey_value0_mem_ack;

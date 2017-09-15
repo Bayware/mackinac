@@ -1475,7 +1475,7 @@ pio2reg_bus #(
 
 tm_pio u_tm_pio(
 
-    .clk(), 
+    .clk(clk), 
     .`RESET_SIG(`RESET_SIG), 
 
     .clk_div(clk_div),

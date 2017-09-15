@@ -90,8 +90,10 @@ output logic write_sop
 
 /***************************** LOCAL VARIABLES *******************************/
 
-localparam INST_PREFETCH_FIFO_DEPTH_NBITS = 3;
-localparam PREFETCH_FIFO_DEPTH_NBITS = 3;
+localparam INST_PREFETCH_FIFO_DEPTH_NBITS = 4;
+localparam INST_PREFETCH_FIFO_NEAR_FULL = (1<<INST_PREFETCH_FIFO_DEPTH_NBITS)-2;
+localparam PREFETCH_FIFO_DEPTH_NBITS = 4;
+localparam PREFETCH_FIFO_NEAR_FULL = (1<<PREFETCH_FIFO_DEPTH_NBITS)-2;
 localparam INST_BUF_FIFO_DEPTH_NBITS = `PIARB_INST_BUF_FIFO_DEPTH_NBITS;
 localparam BUF_FIFO_DEPTH_NBITS = `PIARB_BUF_FIFO_DEPTH_NBITS;
 
@@ -146,8 +148,8 @@ integer i;
 
 logic [INST_PREFETCH_FIFO_DEPTH_NBITS:0] inst_prefetch_fifo_count;
 logic [PREFETCH_FIFO_DEPTH_NBITS:0] prefetch_fifo_count;
-logic inst_free_buf_req_p1 = inst_prefetch_fifo_count!=(1<<INST_PREFETCH_FIFO_DEPTH_NBITS);
-logic free_buf_req_p1 = prefetch_fifo_count!=(1<<PREFETCH_FIFO_DEPTH_NBITS);
+wire inst_free_buf_req_p1 = inst_prefetch_fifo_count<INST_PREFETCH_FIFO_NEAR_FULL;
+wire free_buf_req_p1 = prefetch_fifo_count<PREFETCH_FIFO_NEAR_FULL;
 
 logic  inst_buf_fifo_empty;
 logic  inst_buf_fifo_sop;
@@ -165,7 +167,7 @@ logic  buf_fifo_eop;
 logic [BUF_FIFO_DEPTH_NBITS:0] buf_fifo_ncount;
 logic [DATA_NBITS-1:0] buf_fifo_data;
 
-logic  meta_fifo_wr = pp_pu_hop_valid&pp_pu_hop_eop;
+wire  meta_fifo_wr = pp_pu_hop_valid&pp_pu_hop_eop;
 logic  meta_fifo_empty;
 logic  meta_fifo_full;
 logic [BUF_FIFO_DEPTH_NBITS/2:0] meta_fifo_count;
@@ -204,59 +206,59 @@ pp_piarb_meta_type fid_fifo_meta_data_d1;
 logic [ID_NBITS-1:0] fid_fifo_fid_sel_id_d1;
 logic fid_fifo_fid_sel_d1;
 
-logic in_discard = fid_fifo_meta_data.discard;
-logic type3 = fid_fifo_meta_data.type3;
+wire in_discard = fid_fifo_meta_data.discard;
+wire type3 = fid_fifo_meta_data.type3;
 
 logic [1:0] pfid_hit;
 
 logic [1:0] buf_rd_st;
 
-logic inst_buf_fifo_rd_en = (buf_rd_st==BOTH_BUF_RD_ST)|(buf_rd_st==INST_BUF_RD_ST);
-logic inst_buf_fifo_rd = ~inst_buf_fifo_empty&inst_buf_fifo_rd_en&(in_discard|~inst_prefetch_fifo_empty);
-logic inst_buf_fifo_rd_last = inst_buf_fifo_rd_en&inst_buf_fifo_eop;
+wire inst_buf_fifo_rd_en = (buf_rd_st==BOTH_BUF_RD_ST)|(buf_rd_st==INST_BUF_RD_ST);
+wire inst_buf_fifo_rd = ~inst_buf_fifo_empty&inst_buf_fifo_rd_en&(in_discard|~inst_prefetch_fifo_empty);
+wire inst_buf_fifo_rd_last = inst_buf_fifo_rd_en&inst_buf_fifo_eop;
 
-logic inst_write_data_valid_p1 = ~in_discard&~type3&inst_buf_fifo_rd;
-logic inst_prefetch_fifo_rd = inst_write_data_valid_p1;
-logic inst_write_eop_p1 = inst_buf_fifo_eop&~inst_buf_fifo_inst_pd;
-logic [ID_NBITS-1:0] inst_write_port_id_p1 = fid_sel_id;
+wire inst_write_data_valid_p1 = ~in_discard&~type3&inst_buf_fifo_rd;
+wire inst_prefetch_fifo_rd = inst_write_data_valid_p1;
+wire inst_write_eop_p1 = inst_buf_fifo_eop&~inst_buf_fifo_inst_pd;
+wire [ID_NBITS-1:0] inst_write_port_id_p1 = fid_sel_id;
 
-logic inst_write_sop_p1 = inst_buf_fifo_sop;
-logic inst_buf_ptr_fifo_wr = inst_write_data_valid_p1&inst_write_sop_p1;
-logic [INST_BPTR_NBITS-1:0] inst_write_buf_ptr_p1 = inst_prefetch_fifo_buf_ptr;
-logic [INST_BPTR_NBITS-1:0] inst_buf_ptr_fifo_wdata = inst_write_buf_ptr_p1;
+wire inst_write_sop_p1 = inst_buf_fifo_sop;
+wire inst_buf_ptr_fifo_wr = inst_write_data_valid_p1&inst_write_sop_p1;
+wire [INST_BPTR_NBITS-1:0] inst_write_buf_ptr_p1 = inst_prefetch_fifo_buf_ptr;
+wire [INST_BPTR_NBITS-1:0] inst_buf_ptr_fifo_wdata = inst_write_buf_ptr_p1;
 
-logic buf_fifo_rd_en = (buf_rd_st==BOTH_BUF_RD_ST)|(buf_rd_st==BUF_RD_ST);
-logic buf_fifo_rd = ~buf_fifo_empty&buf_fifo_rd_en&(in_discard|~prefetch_fifo_empty);
-logic buf_fifo_rd_last = buf_fifo_rd_en&buf_fifo_eop;
+wire buf_fifo_rd_en = (buf_rd_st==BOTH_BUF_RD_ST)|(buf_rd_st==BUF_RD_ST);
+wire buf_fifo_rd = ~buf_fifo_empty&buf_fifo_rd_en&(in_discard|~prefetch_fifo_empty);
+wire buf_fifo_rd_last = buf_fifo_rd_en&buf_fifo_eop;
 
-logic write_data_valid_p1 = ~in_discard&~type3&buf_fifo_rd;
-logic prefetch_fifo_rd = write_data_valid_p1;
-logic write_eop_p1 = buf_fifo_eop;
-logic [ID_NBITS-1:0] write_port_id_p1 = fid_sel_id;
+wire write_data_valid_p1 = ~in_discard&~type3&buf_fifo_rd;
+wire prefetch_fifo_rd = write_data_valid_p1;
+wire write_eop_p1 = buf_fifo_eop;
+wire [ID_NBITS-1:0] write_port_id_p1 = fid_sel_id;
 
-logic write_sop_p1 = buf_fifo_sop;
-logic buf_ptr_fifo_wr = write_data_valid_p1&write_sop_p1;
-logic [BPTR_NBITS-1:0] write_buf_ptr_p1 = prefetch_fifo_buf_ptr;
-logic [BPTR_NBITS-1:0] buf_ptr_fifo_wdata = write_buf_ptr_p1;
+wire write_sop_p1 = buf_fifo_sop;
+wire buf_ptr_fifo_wr = write_data_valid_p1&write_sop_p1;
+wire [BPTR_NBITS-1:0] write_buf_ptr_p1 = prefetch_fifo_buf_ptr;
+wire [BPTR_NBITS-1:0] buf_ptr_fifo_wdata = write_buf_ptr_p1;
 
-logic fid_fifo_wr = fid_lookup_ack&~stall;
+wire fid_fifo_wr = fid_lookup_ack&~stall;
 
-logic meta_fifo_rd = fid_fifo_wr;
+wire meta_fifo_rd = fid_fifo_wr;
 
-logic inst_meta_fifo_rd = meta_fifo_rd;
+wire inst_meta_fifo_rd = meta_fifo_rd;
 
-logic fid_fifo_rd = (buf_rd_st==BOTH_BUF_RD_ST)?inst_buf_fifo_rd_last&buf_fifo_rd_last:
+wire fid_fifo_rd = (buf_rd_st==BOTH_BUF_RD_ST)?inst_buf_fifo_rd_last&buf_fifo_rd_last:
 			(buf_rd_st==INST_BUF_RD_ST)?inst_buf_fifo_rd_last:
 			(buf_rd_st==BUF_RD_ST)?buf_fifo_rd_last:1'b0;
 
-logic inst_buf_ptr_fifo_rd = fid_fifo_rd;
-logic buf_ptr_fifo_rd = fid_fifo_rd;
+wire inst_buf_ptr_fifo_rd = fid_fifo_rd;
+wire buf_ptr_fifo_rd = fid_fifo_rd;
 
-logic en_rd = ~buf_fifo_empty&~fid_fifo_empty;
+wire en_rd = ~buf_fifo_empty&~fid_fifo_empty;
 
-logic fid_fifo_av = fid_lookup_req_d1|fid_lookup_req?fid_fifo_count<3:~fid_fifo_full;
-logic meta_fifo_av = fid_lookup_req_d1|fid_lookup_req?meta_fifo_count>1:~meta_fifo_empty;
-logic fid_lookup_req_p1 = meta_fifo_av&fid_fifo_av&~fid_lookup_req;
+wire fid_fifo_av = fid_lookup_req_d1|fid_lookup_req?fid_fifo_count<3:~fid_fifo_full;
+wire meta_fifo_av = fid_lookup_req_d1|fid_lookup_req?meta_fifo_count>1:~meta_fifo_empty;
+wire fid_lookup_req_p1 = meta_fifo_av&fid_fifo_av&~fid_lookup_req;
 
 piarb_asa_meta_type piarb_asa_meta_data_p1;
 
@@ -409,11 +411,11 @@ always @(posedge clk) begin
 
 end
 
-logic inst_inc_prefetch_fifo = inst_free_buf_req_p1;
-logic inst_dec_prefetch_fifo = inst_free_buf_valid_d1&~inst_free_buf_available_d1;
+wire inst_inc_prefetch_fifo = inst_free_buf_req_p1;
+wire inst_dec_prefetch_fifo = inst_free_buf_valid_d1&~inst_free_buf_available_d1;
 
-logic inc_prefetch_fifo = free_buf_req_p1;
-logic dec_prefetch_fifo = free_buf_valid_d1&~free_buf_available_d1;
+wire inc_prefetch_fifo = free_buf_req_p1;
+wire dec_prefetch_fifo = free_buf_valid_d1&~free_buf_available_d1;
 
 always @(`CLK_RST) 
   
@@ -430,8 +432,8 @@ always @(`CLK_RST)
         pd_len <= 0;
         len <= 0;
         inst_free_buf_valid_d1 <= 0;
-        inst_prefetch_fifo_count <= 0;
         free_buf_valid_d1 <= 0;
+        inst_prefetch_fifo_count <= 0;
         prefetch_fifo_count <= 0;
         fid_lookup_req_d1 <= 0;
 
@@ -482,6 +484,7 @@ always @(`CLK_RST)
 		3'b011: inst_prefetch_fifo_count <= inst_prefetch_fifo_count-2;
 		3'b100: inst_prefetch_fifo_count <= inst_prefetch_fifo_count+1;
 		3'b101: inst_prefetch_fifo_count <= inst_prefetch_fifo_count;
+		3'b110: inst_prefetch_fifo_count <= inst_prefetch_fifo_count;
 		default: inst_prefetch_fifo_count <= inst_prefetch_fifo_count-1;
 	endcase
 	case ({inc_prefetch_fifo, dec_prefetch_fifo, prefetch_fifo_rd})
@@ -491,12 +494,13 @@ always @(`CLK_RST)
 		3'b011: prefetch_fifo_count <= prefetch_fifo_count-2;
 		3'b100: prefetch_fifo_count <= prefetch_fifo_count+1;
 		3'b101: prefetch_fifo_count <= prefetch_fifo_count;
+		3'b110: prefetch_fifo_count <= prefetch_fifo_count;
 		default: prefetch_fifo_count <= prefetch_fifo_count-1;
 	endcase
 
         fid_lookup_req_d1 <= fid_lookup_req;
     end
- 
+
 /***************************** FIFO ***************************************/
 
 sfifo2f_2f1 #(DATA_NBITS+2, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_0(

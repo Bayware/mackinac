@@ -40,6 +40,7 @@ output reg [7:0] dscp_ecn
 );
 
 /***************************** LOCAL VARIABLES *******************************/
+reg reg_rd_d1;
 
 reg n_pio_ack;
 reg n_pio_rvalid;
@@ -78,6 +79,8 @@ wire wr_iv_msb = reg_wr&reg_bs&sel_iv_msb;
 wire wr_gre_header = reg_wr&reg_bs&sel_gre_header;
 wire wr_id_ttl_dscp = reg_wr&reg_bs&sel_id_ttl_dscp;
 wire wr_flow_label = reg_wr&reg_bs&sel_flow_label;
+
+wire rd_en = reg_rd|reg_rd_d1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -178,8 +181,8 @@ always @(`CLK_RST) begin
 		flow_label <= 0;
 		{identification, ttl, dscp_ecn} <= 0;
 	end else begin
-		pio_ack <= clk_div?n_pio_ack:pio_ack;
-		pio_rvalid <= clk_div?n_pio_rvalid:pio_rvalid;
+		pio_ack <= clk_div?n_pio_ack&~rd_en:pio_ack;
+		pio_rvalid <= clk_div?n_pio_rvalid&reg_bs&rd_en&n_pio_ack:pio_rvalid;
 
 		in_vlan <= wr_in_vlan?reg_din:in_vlan;
 		gre_header <= wr_gre_header?reg_din:gre_header;
@@ -193,6 +196,7 @@ end
 always @(`CLK_RST) begin
 	if(`ACTIVE_RESET) begin
 		n_pio_ack <= 1'b0;
+		reg_rd_d1 <= 1'b0;
 
 		in_mac_da_lsb <= 0;
 		in_mac_da_msb <= 0;
@@ -203,7 +207,8 @@ always @(`CLK_RST) begin
 		iv_lsb <= 0;
 		iv_msb <= 0;
 	end else begin
-		n_pio_ack <= (reg_rd|reg_wr)?1'b1:clk_div?1'b0:n_pio_ack;
+		n_pio_ack <= (reg_rd|reg_wr)&reg_bs?1'b1:clk_div?1'b0:n_pio_ack;
+		reg_rd_d1 <= reg_rd?reg_bs:pio_rvalid?1'b0:reg_rd_d1;
 
 		in_mac_da_lsb <= wr_in_mac_da_lsb?reg_din:in_mac_da_lsb;
 		in_mac_da_msb <= wr_in_mac_da_msb?reg_din:in_mac_da_msb;

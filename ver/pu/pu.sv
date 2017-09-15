@@ -144,28 +144,28 @@ logic [`NUM_OF_PU:0] piarb_pu_inst_eop_in;
 logic [DATA_NBITS-1:0] piarb_pu_inst_data_in[`NUM_OF_PU:0];
 logic [`NUM_OF_PU:0] piarb_pu_inst_pd_in;
    
-logic [`NUM_OF_PU-1:0] io_ack = io_ack0|io_ack1|io_ack2|io_ack3|io_ack4|io_ack5; 
+wire [`NUM_OF_PU-1:0] io_ack = io_ack0|io_ack1|io_ack2|io_ack3|io_ack4|io_ack5; 
 logic [WIDTH_NBITS-1:0] io_ack_data[`NUM_OF_PU-1:0];
 integer j;
 always @(*)
 	for(j=0; j<`NUM_OF_PU; j++)
 		io_ack_data[j] = io_ack_data0[j]|io_ack_data1[j]|io_ack_data2[j]|io_ack_data3[j]|io_ack_data4[j]|io_ack_data5[j]; 
 
-logic [`NUM_OF_PU:0] pu_asa_start_in; 
-logic [`NUM_OF_PU:0] pu_asa_valid_in; 
-logic [WIDTH_NBITS-1:0] pu_asa_data_in[`NUM_OF_PU:0]; 
-logic [`NUM_OF_PU:0] pu_asa_eop_in; 
-logic [`PU_ID_NBITS-1:0] pu_asa_pu_id_in[`NUM_OF_PU:0];
+logic [`NUM_OF_PU:0] pu_asa_start_out; 
+logic [`NUM_OF_PU:0] pu_asa_valid_out; 
+logic [`NUM_OF_PU:0] pu_asa_eop_out; 
+logic [WIDTH_NBITS-1:0] pu_asa_data_out[`NUM_OF_PU:0]; 
+logic [`PU_ID_NBITS-1:0] pu_asa_pu_id_out[`NUM_OF_PU:0];
 
-logic [`NUM_OF_PU:0] pu_em_data_valid_in;
-logic [`NUM_OF_PU:0] pu_em_sop_in;
-logic [`NUM_OF_PU:0] pu_em_eop_in;
-logic [ID_NBITS-1:0] pu_em_port_id_in[`NUM_OF_PU:0];        
-logic [DATA_NBITS-1:0] pu_em_packet_data_in[`NUM_OF_PU:0];
+logic [`NUM_OF_PU:0] pu_em_data_valid_out;
+logic [`NUM_OF_PU:0] pu_em_sop_out;
+logic [`NUM_OF_PU:0] pu_em_eop_out;
+logic [ID_NBITS-1:0] pu_em_port_id_out[`NUM_OF_PU:0];        
+logic [DATA_NBITS-1:0] pu_em_packet_data_out[`NUM_OF_PU:0];
 
-logic [`NUM_OF_PU:0] pu_fid_done_in;
-logic [`PU_ID_NBITS-1:0] pu_id_in[`NUM_OF_PU:0];
-logic [`NUM_OF_PU:0] pu_fid_sel_in;
+logic [`NUM_OF_PU:0] pu_fid_done_out;
+logic [`PU_ID_NBITS-1:0] pu_id_out[`NUM_OF_PU:0];
+logic [`NUM_OF_PU:0] pu_fid_sel_out;
 
 logic [`NUM_OF_PU-1:0] pu_req;
 
@@ -188,42 +188,26 @@ logic [`NUM_OF_PU:0] piarb_pu_inst_pd_out;
 logic [`NUM_OF_PU-1:0] io_req; 
 io_type io_cmd[`NUM_OF_PU-1:0]; 
 
-logic [`NUM_OF_PU:0] pu_asa_start_out; 
-logic [`NUM_OF_PU:0] pu_asa_valid_out; 
-logic [WIDTH_NBITS-1:0] pu_asa_data_out[`NUM_OF_PU:0]; 
-logic [`NUM_OF_PU:0] pu_asa_eop_out; 
-logic [`PU_ID_NBITS-1:0] pu_asa_pu_id_out[`NUM_OF_PU:0];
+assign piarb_pu_valid_out[`NUM_OF_PU] = piarb_pu_valid;
+assign piarb_pu_pid_out[`NUM_OF_PU] = piarb_pu_pid;
+assign piarb_pu_sop_out[`NUM_OF_PU] = piarb_pu_sop;
+assign piarb_pu_eop_out[`NUM_OF_PU] = piarb_pu_eop;
+assign piarb_pu_fid_sel_out[`NUM_OF_PU] = piarb_pu_fid_sel;
+assign piarb_pu_data_out[`NUM_OF_PU] = piarb_pu_data;
+assign piarb_pu_meta_data_out[`NUM_OF_PU] = piarb_pu_meta_data;
 
-logic [`NUM_OF_PU:0] pu_em_data_valid_out;
-logic [`NUM_OF_PU:0] pu_em_sop_out;
-logic [`NUM_OF_PU:0] pu_em_eop_out;
-logic [ID_NBITS-1:0] pu_em_port_id_out[`NUM_OF_PU:0];        
-logic [DATA_NBITS-1:0] pu_em_packet_data_out[`NUM_OF_PU:0];
+assign piarb_pu_inst_valid_out[`NUM_OF_PU] = piarb_pu_inst_valid;
+assign piarb_pu_inst_pid_out[`NUM_OF_PU] = piarb_pu_inst_pid;
+assign piarb_pu_inst_sop_out[`NUM_OF_PU] = piarb_pu_inst_sop;
+assign piarb_pu_inst_eop_out[`NUM_OF_PU] = piarb_pu_inst_eop;
+assign piarb_pu_inst_data_out[`NUM_OF_PU] = piarb_pu_inst_data;
+assign piarb_pu_inst_pd_out[`NUM_OF_PU] = piarb_pu_inst_pd;
 
-logic [`NUM_OF_PU:0] pu_fid_done_out;
-logic [`PU_ID_NBITS-1:0] pu_id_out[`NUM_OF_PU:0];
-logic [`NUM_OF_PU:0] pu_fid_sel_out;
-
-assign piarb_pu_valid_in[`NUM_OF_PU] = piarb_pu_valid;
-assign piarb_pu_pid_in[`NUM_OF_PU] = piarb_pu_pid;
-assign piarb_pu_sop_in[`NUM_OF_PU] = piarb_pu_sop;
-assign piarb_pu_eop_in[`NUM_OF_PU] = piarb_pu_eop;
-assign piarb_pu_fid_sel_in[`NUM_OF_PU] = piarb_pu_fid_sel;
-assign piarb_pu_data_in[`NUM_OF_PU] = piarb_pu_data;
-assign piarb_pu_meta_data_in[`NUM_OF_PU] = piarb_pu_meta_data;
-
-assign piarb_pu_inst_valid_in[`NUM_OF_PU] = piarb_pu_inst_valid;
-assign piarb_pu_inst_pid_in[`NUM_OF_PU] = piarb_pu_inst_pid;
-assign piarb_pu_inst_sop_in[`NUM_OF_PU] = piarb_pu_inst_sop;
-assign piarb_pu_inst_eop_in[`NUM_OF_PU] = piarb_pu_inst_eop;
-assign piarb_pu_inst_data_in[`NUM_OF_PU] = piarb_pu_inst_data;
-assign piarb_pu_inst_pd_in[`NUM_OF_PU] = piarb_pu_inst_pd;
-
-assign pu_asa_start_in[`NUM_OF_PU] = 1'b0;
-assign pu_asa_valid_in[`NUM_OF_PU] = 1'b0;
-assign pu_asa_data_in[`NUM_OF_PU] = 0;
-assign pu_asa_eop_in[`NUM_OF_PU] = 1'b0;
-assign pu_asa_pu_id_in[`NUM_OF_PU] = 0;
+assign pu_asa_start_out[`NUM_OF_PU] = 1'b0;
+assign pu_asa_valid_out[`NUM_OF_PU] = 1'b0;
+assign pu_asa_data_out[`NUM_OF_PU] = 0;
+assign pu_asa_eop_out[`NUM_OF_PU] = 1'b0;
+assign pu_asa_pu_id_out[`NUM_OF_PU] = 0;
 
 assign pu_asa_start = pu_asa_start_out[0];
 assign pu_asa_valid = pu_asa_valid_out[0];
@@ -231,11 +215,11 @@ assign pu_asa_data = pu_asa_data_out[0];
 assign pu_asa_eop = pu_asa_eop_out[0];
 assign pu_asa_pu_id = pu_asa_pu_id_out[0];
 
-assign pu_em_data_valid_in[`NUM_OF_PU] = 1'b0;
-assign pu_em_sop_in[`NUM_OF_PU] = 1'b0;
-assign pu_em_eop_in[`NUM_OF_PU] = 1'b0;
-assign pu_em_port_id_in[`NUM_OF_PU] = 0;
-assign pu_em_packet_data_in[`NUM_OF_PU] = 0;
+assign pu_em_data_valid_out[`NUM_OF_PU] = 1'b0;
+assign pu_em_sop_out[`NUM_OF_PU] = 1'b0;
+assign pu_em_eop_out[`NUM_OF_PU] = 1'b0;
+assign pu_em_port_id_out[`NUM_OF_PU] = 0;
+assign pu_em_packet_data_out[`NUM_OF_PU] = 0;
 
 assign pu_em_data_valid = pu_em_data_valid_out[0];
 assign pu_em_sop = pu_em_sop_out[0];
@@ -243,9 +227,9 @@ assign pu_em_eop = pu_em_eop_out[0];
 assign pu_em_port_id = pu_em_port_id_out[0];
 assign pu_em_packet_data = pu_em_packet_data_out[0];
 
-assign pu_fid_done_in[`NUM_OF_PU] = 1'b0;
-assign pu_id_in[`NUM_OF_PU] = 0;
-assign pu_fid_sel_in[`NUM_OF_PU] = 1'b0;
+assign pu_fid_done_out[`NUM_OF_PU] = 1'b0;
+assign pu_id_out[`NUM_OF_PU] = 0;
+assign pu_fid_sel_out[`NUM_OF_PU] = 1'b0;
 
 assign pu_fid_done = pu_fid_done_out[0];
 assign pu_id = pu_id_out[0];

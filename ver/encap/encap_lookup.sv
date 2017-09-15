@@ -116,18 +116,18 @@ logic [EEKEY_VALUE_NBITS-1:0] ekey_value_rdata_d1;
 
 logic [2:0] segment_count;
 logic [2:0] word_count;
-logic last_word_count = word_count==4;
-logic last_segment_count = segment_count==5;
+wire last_word_count = word_count==4;
+wire last_segment_count = segment_count==5;
 
 logic [4:0] in_frame_count;
 logic [2:0] in_segment_count;
 logic [2:0] in_segment_count_d1;
 logic [2:0] in_word_count;
-logic last_in_word_count = in_word_count==4;
-logic last_in_segment_count = in_segment_count==5;
+wire last_in_word_count = in_word_count==4;
+wire last_in_segment_count = in_segment_count==5;
 
-logic [TUNNEL_KEY_NBITS-1:0] tunnel_key = encr_ring_in_data_d2;
-logic tunnel_key_valid = encr_ring_in_valid_d2;
+wire [TUNNEL_KEY_NBITS-1:0] tunnel_key = encr_ring_in_data_d2;
+wire tunnel_key_valid = encr_ring_in_valid_d2;
 
 logic in_fifo_empty;
 logic [2:0] in_fifo_segment_count;
@@ -136,9 +136,9 @@ logic in_fifo_tunnel_key_valid;
 
 logic ring_ready;
 
-logic in_fifo_wr = ring_ready&in_word_count==0;
+wire in_fifo_wr = ring_ready&in_word_count==0;
 logic [4:1] in_fifo_rd_d;
-logic in_fifo_rd = ~in_fifo_empty&~(|in_fifo_rd_d[4:1]);
+wire in_fifo_rd = ~in_fifo_empty&~(|in_fifo_rd_d[4:1]);
 
 logic [TUNNEL_DEPTH_NBITS-1:0] tunnel_hash0;
 logic [TUNNEL_DEPTH_NBITS-1:0] tunnel_hash1;
@@ -154,11 +154,11 @@ logic ekey_latency_fifo_tunnel_lookup_valid;
 logic ekey_latency_fifo_tunnel_key_valid;
 logic [TUNNEL_VALUE_PAYLOAD_NBITS-1:0] ekey_latency_fifo_tunnel_lookup_result;
 
-logic tunnel_hash_compare = latency_fifo_tunnel_key==tunnel_value_rdata_d1[`TUNNEL_VALUE_KEY];
+wire tunnel_hash_compare = latency_fifo_tunnel_key==tunnel_value_rdata_d1[`TUNNEL_VALUE_KEY];
 
-logic [`SPI_NBITS-1:0] ekey_latency_fifo_ekey_key = ekey_latency_fifo_tunnel_lookup_result[`TUNNEL_VALUE_SPI];
-logic [`SPI_NBITS-1:0] ekey_value_key = ekey_value_rdata_d1[`EEKEY_VALUE_KEY];
-logic ekey_hash_compare = ekey_latency_fifo_ekey_key==ekey_value_key;
+wire [`SPI_NBITS-1:0] ekey_latency_fifo_ekey_key = ekey_latency_fifo_tunnel_lookup_result[`TUNNEL_VALUE_SPI];
+wire [`SPI_NBITS-1:0] ekey_value_key = ekey_value_rdata_d1[`EEKEY_VALUE_KEY];
+wire ekey_hash_compare = ekey_latency_fifo_ekey_key==ekey_value_key;
 
 logic [TUNNEL_VALUE_PAYLOAD_NBITS-1:0] tunnel_lookup_result;
 logic [EEKEY_VALUE_PAYLOAD_NBITS-1:0] ekey_lookup_result;
@@ -171,15 +171,15 @@ logic pending_fifo_ekey_valid;
 logic [EEKEY_VALUE_PAYLOAD_NBITS-1:0] pending_fifo_ekey_result;
 
 logic latency_fifo_rd_d1;
-logic latency_fifo_rd = tunnel_value_ack_d2&~tunnel_value_ack_d1;
-logic ekey_latency_fifo_rd = ekey_value_ack_d2&~ekey_value_ack_d1;
-logic pending_fifo_wr = ekey_latency_fifo_rd;
+wire latency_fifo_rd = tunnel_value_ack_d2&~tunnel_value_ack_d1;
+wire ekey_latency_fifo_rd = ekey_value_ack_d2&~ekey_value_ack_d1;
+wire pending_fifo_wr = ekey_latency_fifo_rd;
 
-logic n_segment_count = !last_word_count?segment_count:last_segment_count?0:segment_count+1;
-logic set_enable_out = (pending_fifo_segment_count==n_segment_count)&last_word_count;
+wire n_segment_count = !last_word_count?segment_count:last_segment_count?0:segment_count+1;
+wire set_enable_out = (pending_fifo_segment_count==n_segment_count)&last_word_count;
 logic enable_out;
 
-logic pending_fifo_rd = enable_out&last_word_count;
+wire pending_fifo_rd = enable_out&last_word_count;
 
 logic [3:0] tunnel_hash_valid;
 
@@ -195,9 +195,9 @@ assign ekey_hash_valid[1] = ekey_hash_table0_rdata_d1[EEKEY_ENTRY_NBITS*2-1];
 assign ekey_hash_valid[2] = ekey_hash_table1_rdata_d1[EEKEY_ENTRY_NBITS*1-1];
 assign ekey_hash_valid[3] = ekey_hash_table1_rdata_d1[EEKEY_ENTRY_NBITS*2-1];
 
-logic valid_fifo_wr = tunnel_hash_table0_ack_d[2];
+wire valid_fifo_wr = tunnel_hash_table0_ack_d[2];
 logic [3:0] valid_fifo_tunnel_valid;
-logic ekey_valid_fifo_wr = ekey_hash_table0_ack_d[2];
+wire ekey_valid_fifo_wr = ekey_hash_table0_ack_d[2];
 logic [3:0] ekey_valid_fifo_ekey_valid;
 
 logic [1:0] tunnel_value_ack_cnt;
@@ -206,18 +206,18 @@ logic [1:0] ekey_value_ack_cnt;
 logic tunnel_lookup_valid;
 logic ekey_lookup_valid;
 
-logic valid_fifo_rd = latency_fifo_rd;
-logic ekey_valid_fifo_rd = ekey_latency_fifo_rd;
+wire valid_fifo_rd = latency_fifo_rd;
+wire ekey_valid_fifo_rd = ekey_latency_fifo_rd;
 
-logic ekey_latency_fifo_wr = latency_fifo_rd;
+wire ekey_latency_fifo_wr = latency_fifo_rd;
 
-logic n_ekey_value_wr = ekey_value_ack_d1&ekey_valid_fifo_ekey_valid[ekey_value_ack_cnt]&ekey_hash_compare;
+wire n_ekey_value_wr = ekey_value_ack_d1&ekey_valid_fifo_ekey_valid[ekey_value_ack_cnt]&ekey_hash_compare;
 
-logic [`SEQUENCE_NUMBER_NBITS-1:0] ekey_value_sn_p1 = ekey_value_rdata_d1[`EEKEY_VALUE_SN]+1;
+wire [`SEQUENCE_NUMBER_NBITS-1:0] ekey_value_sn_p1 = ekey_value_rdata_d1[`EEKEY_VALUE_SN]+1;
 
-logic n_ekey_value_rd = |ekey_hash_table0_ack_d;
+wire n_ekey_value_rd = |ekey_hash_table0_ack_d;
 
-logic [EEKEY_VALUE_DEPTH_NBITS-1:0] n_ekey_value_raddr = ekey_hash_table0_ack_d[1]?
+wire [EEKEY_VALUE_DEPTH_NBITS-1:0] n_ekey_value_raddr = ekey_hash_table0_ack_d[1]?
 			ekey_hash_table0_rdata_d1[EEKEY_ENTRY_NBITS*1-1-1:EEKEY_ENTRY_NBITS*0+EEKEY_HASH_NBITS]:
 				ekey_hash_table0_ack_d[2]?
 			ekey_hash_table0_rdata_d1[EEKEY_ENTRY_NBITS*2-1-1:EEKEY_ENTRY_NBITS*1+EEKEY_HASH_NBITS]:
@@ -226,11 +226,11 @@ logic [EEKEY_VALUE_DEPTH_NBITS-1:0] n_ekey_value_raddr = ekey_hash_table0_ack_d[
 			ekey_hash_table1_rdata_d1[EEKEY_ENTRY_NBITS*2-1-1:EEKEY_ENTRY_NBITS*1+EEKEY_HASH_NBITS];
 
 logic [EEKEY_VALUE_DEPTH_NBITS-1:0] raddr_fifo_data;
-logic raddr_fifo_rd = ekey_value_ack_d1;
+wire raddr_fifo_rd = ekey_value_ack_d1;
 
-logic [EEKEY_KEY_NBITS-1:0] ekey_key = tunnel_lookup_result[`TUNNEL_VALUE_SPI];
+wire [EEKEY_KEY_NBITS-1:0] ekey_key = tunnel_lookup_result[`TUNNEL_VALUE_SPI];
 
-//logic [EEKEY_KEY_NBITS-1:0] pending_fifo_ekey_result_ekey = pending_fifo_ekey_result[`EEKEY_VALUE_EKEY];
+//wire [EEKEY_KEY_NBITS-1:0] pending_fifo_ekey_result_ekey = pending_fifo_ekey_result[`EEKEY_VALUE_EKEY];
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

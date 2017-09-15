@@ -44,8 +44,8 @@ logic arb_wr_gnt;
 logic [`PU_ID_NBITS-1:0] fifo_arb_sel;
 
 logic [WIDTH_NBITS-1:0] ram_rdata;
-logic [WIDTH_NBITS-1:0] flow_pd_rdata = ram_rdata;
-logic flow_pd_ack = in_fifo_rd_d1;
+wire [WIDTH_NBITS-1:0] flow_pd_rdata = ram_rdata;
+wire flow_pd_ack = in_fifo_rd_d1;
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
@@ -80,11 +80,11 @@ always @(`CLK_RST)
     end
 
 
-logic [DEPTH_NBITS-1:0] ram_raddr = {io_cmd_d1[arb_rd_sel].fid, io_cmd_d1[arb_rd_sel].addr[`FLOW_PD_NBITS-2-1:0]};
+wire [DEPTH_NBITS-1:0] ram_raddr = {io_cmd_d1[arb_rd_sel].fid, io_cmd_d1[arb_rd_sel].addr[`FLOW_PD_NBITS-2-1:0]};
 
-logic ram_wr = io_cmd_d1[arb_wr_sel].wr&arb_wr_gnt;
-logic [WIDTH_NBITS-1:0] ram_wdata = io_cmd_d1[arb_wr_sel].wdata;
-logic [DEPTH_NBITS-1:0] ram_waddr = {io_cmd_d1[arb_wr_sel].fid, io_cmd_d1[arb_wr_sel].addr[`FLOW_PD_NBITS-2-1:0]};
+wire ram_wr = io_cmd_d1[arb_wr_sel].wr&arb_wr_gnt;
+wire [WIDTH_NBITS-1:0] ram_wdata = io_cmd_d1[arb_wr_sel].wdata;
+wire [DEPTH_NBITS-1:0] ram_waddr = {io_cmd_d1[arb_wr_sel].fid, io_cmd_d1[arb_wr_sel].addr[`FLOW_PD_NBITS-2-1:0]};
 
 genvar gi;
 

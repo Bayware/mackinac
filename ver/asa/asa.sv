@@ -155,9 +155,9 @@ logic discard_req;
 logic [`EM_BUF_PTR_NBITS-1:0] discard_em_buf_ptr;
 logic [LEN_NBITS-1:0] discard_em_len;
 discard_info_type discard_info;
-logic [`PACKET_LENGTH_NBITS-1:0] discard_packet_length = discard_info.len;
-logic [`PORT_ID_NBITS-1:0] discard_src_port = discard_info.src_port;
-logic [`BUF_PTR_NBITS-1:0] discard_buf_ptr = discard_info.buf_ptr;
+wire [`PACKET_LENGTH_NBITS-1:0] discard_packet_length = discard_info.len;
+wire [`PORT_ID_NBITS-1:0] discard_src_port = discard_info.src_port;
+wire [`BUF_PTR_NBITS-1:0] discard_buf_ptr = discard_info.buf_ptr;
 
 logic   wr_active;
 logic [`RCI_NBITS-1:0] wr_addr;
@@ -166,8 +166,8 @@ logic [`SCI_NBITS-1:0] wr_data;
 /***************************** NON REGISTERED OUTPUTS ****************************/
 
 assign pio_ack = pio_ack0|pio_ack1;
-assign pio_rvalid = pio_ack0?pio_rvalid0:pio_rvalid1;
-assign pio_rdata = pio_ack0?pio_rdata0:pio_rdata1;
+assign pio_rvalid = pio_rvalid0|pio_rvalid1;
+assign pio_rdata = pio_rvalid0?pio_rdata0:pio_rdata1;
 
 assign asa_pu_table_wr = wr_active;
 assign asa_pu_table_waddr = wr_addr;

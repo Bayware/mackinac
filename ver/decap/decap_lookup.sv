@@ -34,6 +34,7 @@ input `RESET_SIG,
 input [RING_NBITS-1:0] decr_ring_in_data,
 input decr_ring_in_sof,
 input decr_ring_in_sos,
+input decr_ring_in_valid,
 
 input rci_hash_table0_ack, 
 input [RCI_BUCKET_NBITS-1:0] rci_hash_table0_rdata  /* synthesis keep = 1 */,
@@ -77,7 +78,8 @@ output logic [EKEY_VALUE_DEPTH_NBITS-1:0] ekey_value_raddr,
 
 output logic [RING_NBITS-1:0] decr_ring_out_data,
 output logic decr_ring_out_sof,
-output logic decr_ring_out_sos
+output logic decr_ring_out_sos,
+output logic decr_ring_out_valid
 
 );
 
@@ -85,10 +87,12 @@ output logic decr_ring_out_sos
 logic [RING_NBITS-1:0] decr_ring_in_data_d1;
 logic decr_ring_in_sof_d1;
 logic decr_ring_in_sos_d1;
+logic decr_ring_in_valid_d1;
 
 logic [RING_NBITS-1:0] decr_ring_in_data_d2;
 logic decr_ring_in_sof_d2;
 logic decr_ring_in_sos_d2;
+logic decr_ring_in_valid_d2;
 
 logic [4:1] rci_hash_table0_ack_d;
 logic [RCI_BUCKET_NBITS-1:0] rci_hash_table0_rdata_sv;
@@ -112,15 +116,17 @@ logic [EKEY_VALUE_NBITS-1:0] ekey_value_rdata_d1;
 
 logic [2:0] segment_count;
 logic [2:0] word_count;
-logic last_word_count = word_count==4;
-logic last_segment_count = segment_count==5;
+wire last_word_count = word_count==4;
+wire last_segment_count = segment_count==5;
 
 logic [4:0] in_frame_count;
 logic [2:0] in_segment_count;
 logic [2:0] in_segment_count_d1;
 logic [2:0] in_word_count;
-logic last_in_word_count = in_word_count==4;
-logic last_in_segment_count = in_segment_count==5;
+wire last_in_word_count = in_word_count==4;
+wire last_in_segment_count = in_segment_count==5;
+
+logic lookup_valid;
 
 logic [RCI_KEY_NBITS-1:0] rci_key;
 logic [EKEY_KEY_NBITS-1:0] ekey_key;
@@ -134,9 +140,9 @@ logic [EKEY_SN_NBITS-1:0] in_fifo_ekey_sn;
 
 logic ring_ready;
 
-logic in_fifo_wr = ring_ready&in_word_count==0;
+wire in_fifo_wr = lookup_valid&ring_ready&in_word_count==0;
 logic [4:1] in_fifo_rd_d;
-logic in_fifo_rd = ~in_fifo_empty&~(|in_fifo_rd_d[4:1]);
+wire in_fifo_rd = ~in_fifo_empty&~(|in_fifo_rd_d[4:1]);
 
 logic [RCI_DEPTH_NBITS-1:0] rci_hash0;
 logic [RCI_DEPTH_NBITS-1:0] rci_hash1;
@@ -148,9 +154,10 @@ logic [RCI_KEY_NBITS-1:0] latency_fifo_rci_key;
 logic [EKEY_KEY_NBITS-1:0] latency_fifo_ekey_key;
 logic [EKEY_SN_NBITS-1:0] latency_fifo_ekey_sn;
 
-logic rci_hash_compare = latency_fifo_rci_key==rci_value_rdata_d1[`RCI_VALUE_KEY];
-logic ekey_hash_compare = latency_fifo_ekey_key==ekey_value_rdata_d1[`EKEY_VALUE_KEY];
-logic sn_hash_compare = latency_fifo_ekey_sn==ekey_value_rdata_d1[`EKEY_VALUE_SN];
+wire latency_fifo_empty;
+wire rci_hash_compare = ~latency_fifo_empty&(latency_fifo_rci_key==rci_value_rdata_d1[`RCI_VALUE_KEY]);
+wire ekey_hash_compare = ~latency_fifo_empty&(latency_fifo_ekey_key==ekey_value_rdata_d1[`EKEY_VALUE_KEY]);
+wire sn_hash_compare = ~latency_fifo_empty&(latency_fifo_ekey_sn==ekey_value_rdata_d1[`EKEY_VALUE_SN]);
 
 logic [RCI_NBITS-1:0] rci_lookup_result;
 logic [EKEY_NBITS-1:0] ekey_lookup_result;
@@ -161,14 +168,14 @@ logic [EKEY_NBITS-1:0] pending_fifo_ekey;
 logic pending_fifo_rci_valid;
 logic pending_fifo_ekey_valid;
 
-logic latency_fifo_rd = rci_value_ack_d2&~rci_value_ack_d1;
-logic pending_fifo_wr = latency_fifo_rd;
+wire latency_fifo_rd = rci_value_ack_d2&~rci_value_ack_d1;
+wire pending_fifo_wr = latency_fifo_rd;
 
-logic n_segment_count = ~last_word_count?segment_count:last_segment_count?0:segment_count+1;
-logic set_enable_out = (pending_fifo_segment_count==n_segment_count)&last_word_count;
-logic enable_out;
+wire [2:0] n_segment_count = ~last_word_count?segment_count:last_segment_count?0:segment_count+1;
+wire pending_fifo_empty;
 
-logic pending_fifo_rd = enable_out&last_word_count;
+wire same_segment = ~pending_fifo_empty&(pending_fifo_segment_count==segment_count);
+wire pending_fifo_rd = last_word_count&same_segment;
 
 logic [3:0] rci_hash_valid;
 
@@ -184,7 +191,7 @@ assign ekey_hash_valid[1] = ekey_hash_table0_rdata_sv[EKEY_ENTRY_NBITS*2-1];
 assign ekey_hash_valid[2] = ekey_hash_table1_rdata_sv[EKEY_ENTRY_NBITS*1-1];
 assign ekey_hash_valid[3] = ekey_hash_table1_rdata_sv[EKEY_ENTRY_NBITS*2-1];
 
-logic valid_fifo_wr = rci_hash_table0_ack_d[2];
+wire valid_fifo_wr = rci_hash_table0_ack_d[2];
 logic [3:0] valid_fifo_rci_valid;
 logic [3:0] valid_fifo_ekey_valid;
 
@@ -193,16 +200,16 @@ logic [1:0] rci_value_ack_cnt;
 logic rci_lookup_valid;
 logic ekey_lookup_valid;
 
-logic valid_fifo_rd = latency_fifo_rd;
+wire valid_fifo_rd = latency_fifo_rd;
 
-logic n_ekey_value_wr = ekey_value_ack_d1&valid_fifo_ekey_valid[rci_value_ack_cnt]&ekey_hash_compare&sn_hash_compare;
+wire n_ekey_value_wr = ekey_value_ack_d1&valid_fifo_ekey_valid[rci_value_ack_cnt]&ekey_hash_compare&sn_hash_compare;
 
-logic [`SEQUENCE_NUMBER_NBITS-1:0] ekey_value_sn_p1 = ekey_value_rdata_d1[`EKEY_VALUE_SN]+1;
-logic [`SPI_NBITS-1:0] ekey_value_key = ekey_value_rdata_d1[`EKEY_VALUE_KEY];
+wire [`SEQUENCE_NUMBER_NBITS-1:0] ekey_value_sn_p1 = ekey_value_rdata_d1[`EKEY_VALUE_SN]+1;
+wire [`SPI_NBITS-1:0] ekey_value_key = ekey_value_rdata_d1[`EKEY_VALUE_KEY];
 
-logic n_ekey_value_rd = |ekey_hash_table0_ack_d;
+wire n_ekey_value_rd = |ekey_hash_table0_ack_d;
 
-logic [EKEY_VALUE_DEPTH_NBITS-1:0] n_ekey_value_raddr = ekey_hash_table0_ack_d[1]?
+wire [EKEY_VALUE_DEPTH_NBITS-1:0] n_ekey_value_raddr = ekey_hash_table0_ack_d[1]?
 			ekey_hash_table0_rdata_sv[EKEY_ENTRY_NBITS*1-1-1:EKEY_ENTRY_NBITS*0+EKEY_HASH_NBITS]:
 				ekey_hash_table0_ack_d[2]?
 			ekey_hash_table0_rdata_sv[EKEY_ENTRY_NBITS*2-1-1:EKEY_ENTRY_NBITS*1+EKEY_HASH_NBITS]:
@@ -211,7 +218,7 @@ logic [EKEY_VALUE_DEPTH_NBITS-1:0] n_ekey_value_raddr = ekey_hash_table0_ack_d[1
 			ekey_hash_table1_rdata_sv[EKEY_ENTRY_NBITS*2-1-1:EKEY_ENTRY_NBITS*1+EKEY_HASH_NBITS];
 
 logic [EKEY_VALUE_DEPTH_NBITS-1:0] raddr_fifo_data;
-logic raddr_fifo_rd = ekey_value_ack_d1;
+wire raddr_fifo_rd = ekey_value_ack_d1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -243,8 +250,9 @@ end
 always @(`CLK_RST) 
     	if (`ACTIVE_RESET) begin
 		decr_ring_out_data <= 0;
-		decr_ring_out_sof <= 0;
-		decr_ring_out_sos <= 0;
+		decr_ring_out_sof <= 1;
+		decr_ring_out_sos <= 1;
+		decr_ring_out_valid <= 0;
 
 		rci_hash_table0_rd <= 1'b0;
 		rci_hash_table1_rd <= 1'b0;
@@ -255,19 +263,17 @@ always @(`CLK_RST)
 		ekey_value_wr <= 1'b0;
 
 	end else begin
-		if (~enable_out) 
-			decr_ring_out_data <= 0;
-		else
-			case (word_count)
-				3'd0: decr_ring_out_data <= {pending_fifo_ekey_valid, pending_fifo_rci_valid, pending_fifo_rci};
-				3'd1: decr_ring_out_data <= pending_fifo_ekey[RING_NBITS*1-1:RING_NBITS*0];
-				3'd2: decr_ring_out_data <= pending_fifo_ekey[RING_NBITS*2-1:RING_NBITS*1];
-				3'd3: decr_ring_out_data <= pending_fifo_ekey[RING_NBITS*3-1:RING_NBITS*2];
-				default: decr_ring_out_data <= pending_fifo_ekey[RING_NBITS*4-1:RING_NBITS*3];
-			endcase
+		case (word_count)
+			3'd0: decr_ring_out_data <= {pending_fifo_ekey_valid, pending_fifo_rci_valid, pending_fifo_rci};
+			3'd1: decr_ring_out_data <= pending_fifo_ekey[RING_NBITS*1-1:RING_NBITS*0];
+			3'd2: decr_ring_out_data <= pending_fifo_ekey[RING_NBITS*2-1:RING_NBITS*1];
+			3'd3: decr_ring_out_data <= pending_fifo_ekey[RING_NBITS*3-1:RING_NBITS*2];
+			default: decr_ring_out_data <= pending_fifo_ekey[RING_NBITS*4-1:RING_NBITS*3];
+		endcase
 
-		decr_ring_out_sof <= last_segment_count&last_word_count;
-		decr_ring_out_sos <= last_word_count;
+		decr_ring_out_sof <= segment_count==0&word_count==0;
+		decr_ring_out_sos <= word_count==0;
+		decr_ring_out_valid <= word_count==0&same_segment;
 
 		rci_hash_table0_rd <= in_fifo_rd_d[1];
 		rci_hash_table1_rd <= in_fifo_rd_d[1];
@@ -287,10 +293,12 @@ always @(posedge clk) begin
 		decr_ring_in_data_d1 <= decr_ring_in_data;
 		decr_ring_in_sof_d1 <= decr_ring_in_sof;
 		decr_ring_in_sos_d1 <= decr_ring_in_sos;
+		decr_ring_in_valid_d1 <= decr_ring_in_valid;
 
 		decr_ring_in_data_d2 <= decr_ring_in_data_d1;
 		decr_ring_in_sof_d2 <= decr_ring_in_sof_d1;
 		decr_ring_in_sos_d2 <= decr_ring_in_sos_d1;
+		decr_ring_in_valid_d2 <= decr_ring_in_valid_d1;
 
 		rci_hash_table0_rdata_sv <= rci_hash_table0_ack?rci_hash_table0_rdata:rci_hash_table0_rdata_sv;
 		rci_hash_table1_rdata_sv <= rci_hash_table1_ack?rci_hash_table1_rdata:rci_hash_table1_rdata_sv;
@@ -302,6 +310,7 @@ always @(posedge clk) begin
 
 		ekey_value_rdata_d1 <= ekey_value_rdata;
 
+		lookup_valid <= in_word_count==0?decr_ring_in_valid_d2:lookup_valid;
 		rci_key[RING_NBITS*1-1:RING_NBITS*0] <= in_word_count==0?decr_ring_in_data_d2:rci_key[RING_NBITS*1-1:RING_NBITS*0];
 		rci_key[RING_NBITS*2-1:RING_NBITS*1] <= in_word_count==1?decr_ring_in_data_d2:rci_key[RING_NBITS*2-1:RING_NBITS*1];
 		rci_key[RING_NBITS*3-1:RING_NBITS*2] <= in_word_count==2?decr_ring_in_data_d2:rci_key[RING_NBITS*3-1:RING_NBITS*2];
@@ -337,8 +346,6 @@ always @(`CLK_RST)
 		ekey_value_ack_d1 <= 0;
 		ekey_value_ack_d2 <= 0;
 
-		enable_out <= 0;
-
 		rci_value_ack_cnt <= 0;
 
     	end else begin
@@ -362,8 +369,6 @@ always @(`CLK_RST)
 
 		ekey_value_ack_d1 <= ekey_value_ack;
 		ekey_value_ack_d2 <= ekey_value_ack_d1;
-
-		enable_out <= set_enable_out?1'b1:enable_out;
 
 		rci_value_ack_cnt <= rci_value_ack_d1?rci_value_ack_cnt+1:rci_value_ack_cnt;
     	end
@@ -434,7 +439,7 @@ sfifo2f_fo #(3+RCI_KEY_NBITS+EKEY_KEY_NBITS+EKEY_SN_NBITS, 3) u_sfifo2f_fo_1(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(latency_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({latency_fifo_segment_count, latency_fifo_rci_key, latency_fifo_ekey_key, latency_fifo_ekey_sn})
@@ -485,7 +490,7 @@ sfifo2f_fo #(2+3+RCI_NBITS+EKEY_NBITS, 3) u_sfifo2f_fo_4(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(pending_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({pending_fifo_rci_valid, pending_fifo_ekey_valid, pending_fifo_segment_count, pending_fifo_rci, pending_fifo_ekey})

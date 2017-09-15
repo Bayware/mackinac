@@ -109,7 +109,7 @@ logic [NUM_OF_PORTS-1:0] last_rd;
 logic [PD_FIFO_DEPTH_NBITS:0] pd_fifo_count[NUM_OF_PORTS-1:0];
 logic [NUM_OF_PORTS-1:0] pd_fifo_full;
 
-logic [ID_NBITS-1:0] port_data_valid;
+logic [`NUM_OF_PORTS-1:0] port_data_valid;
 
 logic [`ENQ_ED_CMD_PD_LEN_NBITS:0] pd_len[NUM_OF_PORTS-1:0];
 logic [NUM_OF_PORTS-1:0] start_pd;
@@ -120,14 +120,14 @@ logic [VB_NBITS:0] end_pd_loc[NUM_OF_PORTS-1:0];
 logic [NUM_OF_PORTS-1:0] pd_loc_hit_st;
 logic [VB_NBITS:0] first_pd_len[NUM_OF_PORTS-1:0];
 
-logic n_edit_mem_req = |edit_mem_req_port;
+wire n_edit_mem_req = |edit_mem_req_port;
 
 logic [ID_NBITS-1:0] port_fifo_data;
-logic port_fifo_wr = n_edit_mem_req;
-logic port_fifo_rd = edit_mem_ack_d1;
+wire port_fifo_wr = n_edit_mem_req;
+wire port_fifo_rd = edit_mem_ack_d1;
 
-logic [`ENQ_ED_CMD_OUT_RCI_RANGE] bm_ed_rci_d1 = bm_ed_cmd_d1.out_rci;
-logic [`ENQ_ED_CMD_PKT_LEN_RANGE] bm_ed_pkt_len_d1 = bm_ed_cmd_d1.len;
+wire [`ENQ_ED_CMD_OUT_RCI_RANGE] bm_ed_rci_d1 = bm_ed_cmd_d1.out_rci;
+wire [`ENQ_ED_CMD_PKT_LEN_RANGE] bm_ed_pkt_len_d1 = bm_ed_cmd_d1.len;
 
 /***************************** NON-REGISTERED OUTPUTS ************************/
 

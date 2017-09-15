@@ -51,7 +51,7 @@ logic [NUM_OF_PU-1:0] in_fifo_wr;
 logic [NUM_OF_PU-1:0] in_fifo_rd;
 logic [NUM_OF_PU-1:0] in_fifo_empty;
 
-logic [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd;
+wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel_d1;
 logic arb_rd_gnt;
@@ -92,11 +92,11 @@ always @(posedge clk) begin
 		io_cmd_d1[i] <= io_req[i]?io_cmd[i]:io_cmd_d1[i];
 end
 
-logic [`RCI_NBITS-1:0] ram_raddr = io_cmd_d1[arb_rd_sel].addr[`RCI_NBITS-1+`CONNECTION_CONTEXT_DEPTH_NBITS:`CONNECTION_CONTEXT_DEPTH_NBITS];
+wire [`RCI_NBITS-1:0] ram_raddr = io_cmd_d1[arb_rd_sel].addr[`RCI_NBITS-1+`CONNECTION_CONTEXT_DEPTH_NBITS:`CONNECTION_CONTEXT_DEPTH_NBITS];
 logic [`SCI_NBITS-1:0] ram_rdata;
 
-logic conn_context_rd = arb_rd_gnt_d1;
-logic [DEPTH_NBITS-1:0] conn_context_raddr = {ram_rdata, io_cmd_d1[arb_rd_sel_d1].addr[`CONNECTION_CONTEXT_DEPTH_NBITS-1:0]};
+wire conn_context_rd = arb_rd_gnt_d1;
+wire [DEPTH_NBITS-1:0] conn_context_raddr = {ram_rdata, io_cmd_d1[arb_rd_sel_d1].addr[`CONNECTION_CONTEXT_DEPTH_NBITS-1:0]};
 
 genvar gi;
 

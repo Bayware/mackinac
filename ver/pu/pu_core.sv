@@ -204,16 +204,16 @@ always @(`CLK_RST)
 
 /***************************** PROGRAM BODY **********************************/
 
-logic en_hop_wr0 = piarb_pu_valid&piarb_pu_pid==PU_ID;
+wire en_hop_wr0 = piarb_pu_valid&piarb_pu_pid==PU_ID;
 logic piarb_pu_valid_eop_d1, piarb_pu_valid_eop_d2;
-logic toggle_wr0 = piarb_pu_valid_eop_d2;
+wire toggle_wr0 = piarb_pu_valid_eop_d2;
 
 logic [2:0] hop_wr_cnt;
 logic en_hop_wr1;
-logic last_en_hop_wr0 = en_hop_wr0&piarb_pu_eop;
-logic en_hop_wr1_p1 = last_en_hop_wr0?1'b1:hop_wr_cnt==7?1'b0:en_hop_wr1;
+wire last_en_hop_wr0 = en_hop_wr0&piarb_pu_eop;
+wire en_hop_wr1_p1 = last_en_hop_wr0?1'b1:hop_wr_cnt==7?1'b0:en_hop_wr1;
 flop_rst #(1, 0) u_flop_rst_0(.clk(clk), .`RESET_SIG(`RESET_SIG), .din({en_hop_wr1_p1}), .dout({en_hop_wr1}));
-logic [2:0] hop_wr_cnt_p1 = last_en_hop_wr0?0:hop_wr_cnt+1;
+wire [2:0] hop_wr_cnt_p1 = last_en_hop_wr0?0:hop_wr_cnt+1;
 flop_rst #(3, 0) u_flop_rst_1(.clk(clk), .`RESET_SIG(`RESET_SIG), .din({hop_wr_cnt_p1}), .dout({hop_wr_cnt}));
 
 pu_hop_meta_type piarb_pu_meta_data_d1;
@@ -222,42 +222,42 @@ always @(posedge clk) piarb_pu_meta_data_d1 <= last_en_hop_wr0?piarb_pu_meta_dat
 logic wr_hop_buf_sel;
 flop_rst_en #(1) u_flop_rst_en_3(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(toggle_wr0), .din({~wr_hop_buf_sel}), .dout({wr_hop_buf_sel}));
 
-logic en_hop_wr = en_hop_wr0|en_hop_wr1;
+wire en_hop_wr = en_hop_wr0|en_hop_wr1;
 logic [HOP_DEPTH_NBITS-1:0] hop_wr_addr;
-logic [HOP_DEPTH_NBITS-1:0] hop_wr_addr_p1 = ~en_hop_wr?hop_wr_addr:(en_hop_wr0?piarb_pu_eop:|hop_wr_cnt==4)?0:hop_wr_addr+1;
+wire [HOP_DEPTH_NBITS-1:0] hop_wr_addr_p1 = ~en_hop_wr?hop_wr_addr:(en_hop_wr0?piarb_pu_eop:|hop_wr_cnt==4)?0:hop_wr_addr+1;
 flop_rst #(HOP_DEPTH_NBITS, 3) u_flop_rst_4(.clk(clk), .`RESET_SIG(`RESET_SIG), .din({hop_wr_addr_p1}), .dout({hop_wr_addr}));
 
-logic ram_wr01 = en_hop_wr0|en_hop_wr1;
-logic [WIDTH_NBITS-1:0] ram_wdata01 = en_hop_wr0?piarb_pu_data:hop_wr_cnt==0?piarb_pu_meta_data_d1.creation_time:hop_wr_cnt==1?{piarb_pu_meta_data_d1.rci_type, 8'b0, piarb_pu_meta_data_d1.pkt_type}:hop_wr_cnt==2?piarb_pu_meta_data_d1.switch_tag:hop_wr_cnt==3?{piarb_pu_meta_data_d1.f_payload}:{piarb_pu_meta_data_d1.fid, {(16-`TID_NBITS){1'b0}}, piarb_pu_meta_data_d1.tid};
+wire ram_wr01 = en_hop_wr0|en_hop_wr1;
+wire [WIDTH_NBITS-1:0] ram_wdata01 = en_hop_wr0?piarb_pu_data:hop_wr_cnt==0?piarb_pu_meta_data_d1.creation_time:hop_wr_cnt==1?{piarb_pu_meta_data_d1.rci_type, 8'b0, piarb_pu_meta_data_d1.pkt_type}:hop_wr_cnt==2?piarb_pu_meta_data_d1.switch_tag:hop_wr_cnt==3?{piarb_pu_meta_data_d1.f_payload}:{piarb_pu_meta_data_d1.fid, {(16-`TID_NBITS){1'b0}}, piarb_pu_meta_data_d1.tid};
 
-logic [MEM_DEPTH_NBITS:0] ram_waddr01 = {wr_hop_buf_sel, {(MEM_DEPTH_NBITS-HOP_DEPTH_NBITS-4){1'b0}}, (hop_wr_cnt>2?`PU_RAS_MEM_RAS:`PU_RAS_MEM_META), hop_wr_addr};
+wire [MEM_DEPTH_NBITS:0] ram_waddr01 = {wr_hop_buf_sel, {(MEM_DEPTH_NBITS-HOP_DEPTH_NBITS-4){1'b0}}, (hop_wr_cnt>2?`PU_RAS_MEM_RAS:`PU_RAS_MEM_META), hop_wr_addr};
 
-logic en_inst_wr = piarb_pu_inst_valid&piarb_pu_inst_pd&piarb_pu_inst_pid==PU_ID;
-logic toggle_wr1 = en_inst_wr&piarb_pu_inst_eop;
+wire en_inst_wr = piarb_pu_inst_valid&piarb_pu_inst_pd&piarb_pu_inst_pid==PU_ID;
+wire toggle_wr1 = en_inst_wr&piarb_pu_inst_eop;
 
 logic wr_inst_buf_sel;
 flop_rst_en #(1) u_flop_rst_en_5(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(toggle_wr1), .din({~wr_inst_buf_sel}), .dout({wr_inst_buf_sel}));
 
 logic [INST_DEPTH_NBITS-1:0] inst_wr_addr_lsb;
-logic [INST_DEPTH_NBITS-1:0] inst_wr_addr_lsb_p1 = ~en_inst_wr?inst_wr_addr_lsb:piarb_pu_inst_eop?0:inst_wr_addr_lsb+1;
+wire [INST_DEPTH_NBITS-1:0] inst_wr_addr_lsb_p1 = ~en_inst_wr?inst_wr_addr_lsb:piarb_pu_inst_eop?0:inst_wr_addr_lsb+1;
 flop_rst_en #(INST_DEPTH_NBITS) u_flop_rst_en_6(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(en_inst_wr), .din({inst_wr_addr_lsb_p1}), .dout({inst_wr_addr_lsb}));
-logic [INST_DEPTH_NBITS:0] inst_wr_addr = {wr_inst_buf_sel, inst_wr_addr_lsb};
+wire [INST_DEPTH_NBITS:0] inst_wr_addr = {wr_inst_buf_sel, inst_wr_addr_lsb};
 
 logic [PD_DEPTH_NBITS-1:0] pd_cnt;
-logic en_pd_wr = piarb_pu_inst_valid&~piarb_pu_inst_pd&piarb_pu_inst_pid==PU_ID;
+wire en_pd_wr = piarb_pu_inst_valid&~piarb_pu_inst_pd&piarb_pu_inst_pid==PU_ID;
 
-logic [PD_DEPTH_NBITS-1:0] nxt_pd_cnt = pd_cnt+1;
-logic [PD_DEPTH_NBITS-1:0] pd_cnt_p1 = ~en_pd_wr?pd_cnt:piarb_pu_inst_eop?0:nxt_pd_cnt;
-logic last_en_pd_wr = en_pd_wr&piarb_pu_inst_eop;
+wire [PD_DEPTH_NBITS-1:0] nxt_pd_cnt = pd_cnt+1;
+wire [PD_DEPTH_NBITS-1:0] pd_cnt_p1 = ~en_pd_wr?pd_cnt:piarb_pu_inst_eop?0:nxt_pd_cnt;
+wire last_en_pd_wr = en_pd_wr&piarb_pu_inst_eop;
 flop_rst #(PD_DEPTH_NBITS) u_flop_rst_60(.clk(clk), .`RESET_SIG(`RESET_SIG), .din({pd_cnt_p1}), .dout({pd_cnt}));
 
-logic toggle_wr2 = en_pd_wr&piarb_pu_inst_eop;
+wire toggle_wr2 = en_pd_wr&piarb_pu_inst_eop;
 
 logic wr_pd_buf_sel;
 flop_rst_en #(1) u_flop_rst_en_61(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(toggle_wr2), .din({~wr_pd_buf_sel}), .dout({wr_pd_buf_sel}));
 
 logic [PD_DEPTH_NBITS-1:0] pd_wr_addr_lsb;
-logic [PD_DEPTH_NBITS-1:0] pd_wr_addr_lsb_p1 = ~en_pd_wr?pd_wr_addr_lsb:piarb_pu_inst_eop?0:pd_wr_addr_lsb+1;
+wire [PD_DEPTH_NBITS-1:0] pd_wr_addr_lsb_p1 = ~en_pd_wr?pd_wr_addr_lsb:piarb_pu_inst_eop?0:pd_wr_addr_lsb+1;
 flop_rst_en #(PD_DEPTH_NBITS) u_flop_rst_en_62(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(en_pd_wr), .din({pd_wr_addr_lsb_p1}), .dout({pd_wr_addr_lsb}));
 
 logic end_program;
@@ -269,8 +269,8 @@ logic [`FID_NBITS-1:0] db_fifo_fid;
 logic db_fifo_fid_sel;
 logic db_fifo_buf_sel;
 logic db_fifo_empty;
-logic db_fifo_wr = last_en_hop_wr0;
-logic db_fifo_rd = dec_update_pc&end_program;
+wire db_fifo_wr = last_en_hop_wr0;
+wire db_fifo_rd = dec_update_pc&end_program;
 
 logic buf_sel;
 flop_rst_en #(1) u_flop_rst_en_7(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(db_fifo_rd), .din({~buf_sel}), .dout({buf_sel}));
@@ -279,22 +279,22 @@ sfifo2f1 #(2+`TID_NBITS+`FID_NBITS) u_sfifo2f1_0(.clk(clk), .`RESET_SIG(`RESET_S
 
 /* issue */
 
-logic en_update_pc = ~db_fifo_empty;
+wire en_update_pc = ~db_fifo_empty;
 
 logic inst_fifo_full;
 logic inst_fifo_rd;
 
-logic inst_fifo_av = ~inst_fifo_full|inst_fifo_rd;
+wire inst_fifo_av = ~inst_fifo_full|inst_fifo_rd;
 
 logic stall_pipeline;
-logic update_pc = ~stall_pipeline&en_update_pc&inst_fifo_av;
+wire update_pc = ~stall_pipeline&en_update_pc&inst_fifo_av;
 
 logic [PC_NBITS-1:0] dec_pc;
 logic [PC_NBITS-1:0] exec_pc;
 
 logic [PC_NBITS-1:0] pc;
-logic [PC_NBITS-1:0] next_pc = dec_update_pc?(end_program?0:dec_pc):exec_update_pc?exec_pc:pc+2;
-logic load_pc = toggle_wr1|dec_update_pc|exec_update_pc;
+wire [PC_NBITS-1:0] next_pc = dec_update_pc?(end_program?0:dec_pc):exec_update_pc?exec_pc:pc+2;
+wire load_pc = toggle_wr1|dec_update_pc|exec_update_pc;
 logic load_pc_d1;
 
 logic dec_flag;
@@ -321,10 +321,10 @@ logic upper_av;
 logic [15:0] inst_sv;
 flop_rst_en #(16+1) u_flop_rst_en_11(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(update_pc_d1), .din({ram_inst[31:16], pc_d1[0]}), .dout({inst_sv, upper_av}));
 
-logic upper_av1 = upper_av&~load_pc_d1;
-logic [WIDTH_NBITS-1:0] instruction = upper_av1?{ram_inst[15:0], inst_sv}:ram_inst;
+wire upper_av1 = upper_av&~load_pc_d1;
+wire [WIDTH_NBITS-1:0] instruction = upper_av1?{ram_inst[15:0], inst_sv}:ram_inst;
 
-logic inst_fifo_wr = update_pc&(~pc[0]|upper_av1);
+wire inst_fifo_wr = update_pc&(~pc[0]|upper_av1);
 
 logic [`TID_NBITS-1:0] inst_fifo_tid;
 logic [`FID_NBITS-1:0] inst_fifo_fid;
@@ -342,13 +342,13 @@ logic [15:0] inst_up_half;
 
 logic up_half_av;
 
-logic inst_32b = up_half_av?&inst_up_half[1:0]:&instruction[1:0];
+wire inst_32b = up_half_av?&inst_up_half[1:0]:&instruction[1:0];
 
-logic inst_16b_av = ~inst_32b&up_half_av;
-logic fetch_fifo_wr = ~stall_pipeline&(inst_16b_av|~inst_fifo_empty);
+wire inst_16b_av = ~inst_32b&up_half_av;
+wire fetch_fifo_wr = ~stall_pipeline&(inst_16b_av|~inst_fifo_empty);
 assign inst_fifo_rd = ~stall_pipeline&~inst_fifo_empty&~inst_16b_av;
 
-logic up_half = inst_32b&up_half_av;
+wire up_half = inst_32b&up_half_av;
 
 flop_rst_en #(16+1) u_flop_rst_en_12(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(fetch_fifo_wr), .din({instruction[31:16], up_half}), .dout({inst_up_half, up_half_av}));
 
@@ -360,8 +360,8 @@ logic fetch_fifo_fid_sel;
 logic fetch_fifo_buf_sel;
 logic fetch_fifo_dec_flag;
 logic fetch_fifo_exec_flag;
-logic [WIDTH_NBITS-1:0] fetch_fifo_din1 = up_half_av?{instruction[15:0], inst_up_half}:instruction;
-logic [WIDTH_NBITS-1:0] fetch_fifo_din = inst_32b?fetch_fifo_din1:expansion(fetch_fifo_din1[15:0]);
+wire [WIDTH_NBITS-1:0] fetch_fifo_din1 = up_half_av?{instruction[15:0], inst_up_half}:instruction;
+wire [WIDTH_NBITS-1:0] fetch_fifo_din = inst_32b?fetch_fifo_din1:expansion(fetch_fifo_din1[15:0]);
 logic fetch_fifo_empty;
 logic fetch_fifo_rd;
 logic [WIDTH_NBITS-1:0] fetch_fifo_dout;
@@ -380,9 +380,9 @@ logic [WIDTH_NBITS-1:0] rf_data0, rf_data1;
 
 pu_rf #(WIDTH_NBITS, RF_DEPTH_NBITS) u_pu_rf(.clk(clk), .wr(wb_en), .raddr0(dec_cmd.rs1), .raddr1(dec_cmd.rs2), .waddr(wb_addr), .din(wb_data), .dout0(rf_data0), .dout1(rf_data1));
 
-logic inst_16b = ~fetch_fifo_inst_32b;
+wire inst_16b = ~fetch_fifo_inst_32b;
 
-logic dec_fifo_wr_en = ~stall_pipeline&~inst_fifo_empty;
+wire dec_fifo_wr_en = ~stall_pipeline&~inst_fifo_empty;
 assign fetch_fifo_rd = dec_fifo_wr_en;
 
 assign end_program = dec_cmd.end_program;
@@ -392,7 +392,7 @@ assign dec_pc = 0;
 logic dec_dec_flag;
 flop_rst_en #(1) u_flop_rst_en_13(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(dec_update_pc), .din({~dec_dec_flag}), .dout({dec_dec_flag}));
 
-logic dec_fifo_wr = dec_fifo_wr_en&(dec_dec_flag==fetch_fifo_dec_flag)&~(dec_update_pc&~end_program);
+wire dec_fifo_wr = dec_fifo_wr_en&(dec_dec_flag==fetch_fifo_dec_flag)&~(dec_update_pc&~end_program);
 
 dec_type dec_cmd_d1;
 always @(posedge clk) dec_cmd_d1 <= dec_fifo_wr?dec_cmd:dec_cmd_d1;
@@ -419,35 +419,35 @@ logic io_wb_en;
 logic [WIDTH_NBITS-1:0] io_wb_data;
 logic [RF_DEPTH_NBITS-1:0] io_wb_addr;
 
-logic [WIDTH_NBITS-1:0] mrf_data0 = dec_cmd_d1.rs1==0?0:
+wire [WIDTH_NBITS-1:0] mrf_data0 = dec_cmd_d1.rs1==0?0:
 				mem_wb_en&(dec_cmd_d1.rs1==mem_wb_addr)?mem_wb_data:
 				io_wb_en&(dec_cmd_d1.rs1==io_wb_addr)?io_wb_data:rf_data0;
 
-logic [WIDTH_NBITS-1:0] mrf_data1 = dec_cmd_d1.rs2==0?0:
+wire [WIDTH_NBITS-1:0] mrf_data1 = dec_cmd_d1.rs2==0?0:
 				mem_wb_en&(dec_cmd_d1.rs2==mem_wb_addr)?mem_wb_data:
 				io_wb_en&(dec_cmd_d1.rs2==io_wb_addr)?io_wb_data:rf_data1;
 
 logic [WIDTH_NBITS-1:0] alu_out;
 pu_alu u_pu_alu(.use_imm(dec_cmd_d1.use_imm), .imm(dec_cmd_d1.imm), .rs1(mrf_data0), .rs2(mrf_data1), .funct3(dec_cmd_d1.funct3), .funct5(dec_cmd_d1.funct5), .alu(alu_out));
 
-logic exec_fifo_wr_en = ~stall_pipeline&~dec_fifo_empty;
+wire exec_fifo_wr_en = ~stall_pipeline&~dec_fifo_empty;
 assign dec_fifo_rd = exec_fifo_wr_en;
 
-logic [INST_DEPTH_NBITS-1:0] pc_offset = dec_cmd_d1.imm;
+wire [INST_DEPTH_NBITS-1:0] pc_offset = dec_cmd_d1.imm;
 assign exec_pc = (dec_cmd_d1.jalr?mrf_data0:dec_fifo_pc)+pc_offset;
 assign exec_update_pc = exec_fifo_wr_en&(dec_cmd_d1.jal|dec_cmd_d1.jalr|(dec_cmd_d1.branch&(dec_cmd_d1.take_branch?alu_out==0:alu_out!=0)));
 
-logic [WIDTH_NBITS-1:0] exec_update_pc_wb_data = dec_fifo_inst_32b?dec_fifo_pc+4:dec_fifo_pc+2;
-logic exec_update_pc_wb = (dec_cmd_d1.jal|dec_cmd_d1.jalr)&dec_cmd_d1.rd!=0;
+wire [WIDTH_NBITS-1:0] exec_update_pc_wb_data = dec_fifo_inst_32b?dec_fifo_pc+4:dec_fifo_pc+2;
+wire exec_update_pc_wb = (dec_cmd_d1.jal|dec_cmd_d1.jalr)&dec_cmd_d1.rd!=0;
 
-logic [WIDTH_NBITS-1:0] auipc_wb_data = exec_pc;
-logic auipc_wb = dec_cmd_d1.auipc;
+wire [WIDTH_NBITS-1:0] auipc_wb_data = exec_pc;
+wire auipc_wb = dec_cmd_d1.auipc;
 
-logic [WIDTH_NBITS-1:0] lui_wb_data = dec_cmd_d1.imm;
-logic lui_wb = dec_cmd_d1.lui;
+wire [WIDTH_NBITS-1:0] lui_wb_data = dec_cmd_d1.imm;
+wire lui_wb = dec_cmd_d1.lui;
 
-logic [WIDTH_NBITS-1:0] op_wb_data = alu_out;
-logic op_wb = dec_cmd_d1.op|dec_cmd_d1.opi;
+wire [WIDTH_NBITS-1:0] op_wb_data = alu_out;
+wire op_wb = dec_cmd_d1.op|dec_cmd_d1.opi;
 
 exec_type exec_cmd;
 assign exec_cmd.funct3 = dec_cmd_d1.funct3;
@@ -467,7 +467,7 @@ assign exec_cmd.mem_wr = dec_cmd_d1.store|dec_cmd_d1.atomic;
 logic exec_exec_flag;
 flop_rst_en #(1) u_flop_rst_en_14(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(exec_update_pc), .din({~exec_exec_flag}), .dout({exec_exec_flag}));
 
-logic exec_fifo_wr = exec_fifo_wr_en&(exec_exec_flag==dec_fifo_exec_flag)&~(exec_update_pc&~exec_update_pc_wb);
+wire exec_fifo_wr = exec_fifo_wr_en&(exec_exec_flag==dec_fifo_exec_flag)&~(exec_update_pc&~exec_update_pc_wb);
 
 exec_type exec_cmd_d1;
 always @(posedge clk) exec_cmd_d1 <= exec_fifo_wr?exec_cmd:exec_cmd_d1;
@@ -487,8 +487,8 @@ assign mem_wb_en = exec_cmd_d1.wb_en;
 assign mem_wb_data = exec_cmd_d1.wb_data;
 assign mem_wb_addr = exec_cmd_d1.wb_addr;
 
-logic load_mem00 = (exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_RAS_MEM);
-logic ram_wr00 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_RAS_MEM);
+wire load_mem00 = (exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_RAS_MEM);
+wire ram_wr00 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_RAS_MEM);
 logic [3:0] ram_we;
 always @(*)
 	case (exec_cmd_d1.funct3[2:0])
@@ -496,11 +496,11 @@ always @(*)
 		2'b1: for (i=0; i<4; i=i+1) ram_we[i] = (i>>1)==exec_cmd_d1.mem_addr[1];
 		default: ram_we = 4'hf;
 	endcase
-logic [3:0] ram_we00 = ram_we;
+wire [3:0] ram_we00 = ram_we;
 
-logic [MEM_DEPTH_NBITS-1:0] ram_waddr00 = exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_LSB_RANGE];
-logic [WIDTH_NBITS-1:0] ram_wdata00 = exec_cmd_d1.mem_wdata;
-logic [MEM_DEPTH_NBITS-1:0] ram_raddr00 = ram_waddr00;
+wire [MEM_DEPTH_NBITS-1:0] ram_waddr00 = exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_LSB_RANGE];
+wire [WIDTH_NBITS-1:0] ram_wdata00 = exec_cmd_d1.mem_wdata;
+wire [MEM_DEPTH_NBITS-1:0] ram_raddr00 = ram_waddr00;
 logic [WIDTH_NBITS-1:0] ram_rdata00;
 
 logic [MEM_DEPTH_NBITS-1+1:0] ram_raddr01;
@@ -508,24 +508,24 @@ logic [WIDTH_NBITS-1:0] ram_rdata01;
 
 ram_dual_we_bram #(WIDTH_NBITS, MEM_DEPTH_NBITS+1) u_ram_dual_we_bram(.clk1(clk), .wr1(ram_wr00), .we1(), .raddr1({exec_fifo_buf_sel, ram_raddr00}), .waddr1({exec_fifo_buf_sel, ram_waddr00}), .din1(ram_wdata00), .dout1(ram_rdata00), .clk2(clk), .wr2(ram_wr01), .we2({(4){ram_wr01}}), .raddr2(ram_raddr01), .waddr2(ram_waddr01), .din2(ram_wdata01), .dout2(ram_rdata01));
 
-logic load_mem10 = (exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM);
-logic ram_wr10_0 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b00);
+wire load_mem10 = (exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM);
+wire ram_wr10_0 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b00);
 logic [WIDTH_NBITS-1:0] ram_rdata10_0;
-logic ram_wr10_1 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b01);
+wire ram_wr10_1 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b01);
 logic [WIDTH_NBITS-1:0] ram_rdata10_1;
-logic ram_wr10_2 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b10);
+wire ram_wr10_2 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b10);
 logic [WIDTH_NBITS-1:0] ram_rdata10_2;
-logic ram_wr10_3 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b11);
+wire ram_wr10_3 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b11);
 logic [WIDTH_NBITS-1:0] ram_rdata10_3;
-logic [PD_DEPTH_NBITS-1:0] ram_waddr10 = exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_LSB_RANGE];
-logic [WIDTH_NBITS-1:0] ram_wdata10 = exec_cmd_d1.mem_wdata;
-logic [PD_DEPTH_NBITS-1:0] ram_raddr10 = ram_waddr10;
-logic [1:0] ram_raddr10_lsb = exec_cmd_d1.mem_addr[3:2];
-logic [3:0] ram_we10 = ram_we;
+wire [PD_DEPTH_NBITS-1:0] ram_waddr10 = exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_LSB_RANGE];
+wire [WIDTH_NBITS-1:0] ram_wdata10 = exec_cmd_d1.mem_wdata;
+wire [PD_DEPTH_NBITS-1:0] ram_raddr10 = ram_waddr10;
+wire [1:0] ram_raddr10_lsb = exec_cmd_d1.mem_addr[3:2];
+wire [3:0] ram_we10 = ram_we;
 
-logic ram_wr11 = en_pd_wr;
-logic [PD_DEPTH_NBITS:0] ram_waddr11 = {wr_pd_buf_sel, pd_wr_addr_lsb};
-logic [`DATA_PATH_NBITS-1:0] ram_wdata11 = piarb_pu_inst_data;
+wire ram_wr11 = en_pd_wr;
+wire [PD_DEPTH_NBITS:0] ram_waddr11 = {wr_pd_buf_sel, pd_wr_addr_lsb};
+wire [`DATA_PATH_NBITS-1:0] ram_wdata11 = piarb_pu_inst_data;
 logic [PD_DEPTH_NBITS:0] ram_raddr11;
 logic [`DATA_PATH_NBITS-1:0] ram_rdata11;
 
@@ -534,8 +534,8 @@ ram_dual_we_bram #(WIDTH_NBITS, PD_DEPTH_NBITS+1) u_ram_dual_we_bram_5(.clk1(clk
 ram_dual_we_bram #(WIDTH_NBITS, PD_DEPTH_NBITS+1) u_ram_dual_we_bram_6(.clk1(clk), .wr1(ram_wr10_2), .we1(ram_we10), .raddr1({exec_fifo_buf_sel, ram_raddr10}), .waddr1({exec_fifo_buf_sel, ram_waddr10}), .din1(ram_wdata10), .dout1(ram_rdata10_2), .clk2(clk), .wr2(ram_wr11), .we2({(4){ram_wr11}}), .raddr2(ram_raddr11), .waddr2(ram_waddr11), .din2(ram_wdata11[WIDTH_NBITS*3-1:WIDTH_NBITS*2]), .dout2(ram_rdata11[WIDTH_NBITS*3-1:WIDTH_NBITS*2]));
 ram_dual_we_bram #(WIDTH_NBITS, PD_DEPTH_NBITS+1) u_ram_dual_we_bram_7(.clk1(clk), .wr1(ram_wr10_3), .we1(ram_we10), .raddr1({exec_fifo_buf_sel, ram_raddr10}), .waddr1({exec_fifo_buf_sel, ram_waddr10}), .din1(ram_wdata10), .dout1(ram_rdata10_3), .clk2(clk), .wr2(ram_wr11), .we2({(4){ram_wr11}}), .raddr2(ram_raddr11), .waddr2(ram_waddr11), .din2(ram_wdata11[WIDTH_NBITS*4-1:WIDTH_NBITS*3]), .dout2(ram_rdata11[WIDTH_NBITS*4-1:WIDTH_NBITS*3]));
 
-logic mem_fifo_wr_en = ~stall_pipeline&~exec_fifo_empty;
-logic mem_fifo_wr = ~exec_fifo_end_program&mem_fifo_wr_en;
+wire mem_fifo_wr_en = ~stall_pipeline&~exec_fifo_empty;
+wire mem_fifo_wr = ~exec_fifo_end_program&mem_fifo_wr_en;
 assign exec_fifo_rd = mem_fifo_wr_en;
 
 logic [1:0] ram_raddr10_lsb_d1;
@@ -543,11 +543,11 @@ flop_en #(2) u_flop_en_141(.clk(clk), .en(mem_fifo_wr_en), .din({ram_raddr10_lsb
 logic [WIDTH_NBITS-1:0] ram_rdata10;
 always @(*) case(ram_raddr10_lsb_d1) 2'b00: ram_rdata10 = ram_rdata10_0; 2'b01: ram_rdata10 = ram_rdata10_1; 2'b10: ram_rdata10 = ram_rdata10_2; 2'b11: ram_rdata10 = ram_rdata10_3; endcase
 
-logic buf_sel_fifo_wr = exec_fifo_rd&exec_fifo_end_program;
+wire buf_sel_fifo_wr = exec_fifo_rd&exec_fifo_end_program;
 logic ras_fifo_empty;
 logic pending_ras_rd;
-logic set_ras_rd = (buf_sel_fifo_wr|pending_ras_rd)&~ras_fifo_empty;
-logic set_pending_ras_rd = buf_sel_fifo_wr&ras_fifo_empty;
+wire set_ras_rd = (buf_sel_fifo_wr|pending_ras_rd)&~ras_fifo_empty;
+wire set_pending_ras_rd = buf_sel_fifo_wr&ras_fifo_empty;
 
 assign io_req = mem_fifo_wr&exec_cmd_d1.mem_en&exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_NBITS-1];
 assign io_cmd.wr = exec_cmd_d1.mem_wr;
@@ -571,7 +571,7 @@ sfifo1f #(2) u_sfifo1f_5(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(mem_fifo_wr), .
 
 /* IO */
 
-logic [WIDTH_NBITS-1:0] ram_rdata = mem_fifo_load00?ram_rdata00:ram_rdata10;
+wire [WIDTH_NBITS-1:0] ram_rdata = mem_fifo_load00?ram_rdata00:ram_rdata10;
 
 // "IO" memories: no LB, LBU, LH, LHU support
 logic [WIDTH_NBITS-1:0] ram_rdata1;
@@ -601,7 +601,7 @@ assign io_wb_en = wb_cmd.wb_en;
 assign io_wb_data = wb_cmd.wb_data;
 assign io_wb_addr = wb_cmd.wb_addr;
 
-logic n_stall_pipeline = io_req?1'b1:io_ack?1'b0:stall_pipeline;
+wire n_stall_pipeline = io_req?1'b1:io_ack?1'b0:stall_pipeline;
 
 flop_rst #(1) u_flop_rst_15(.clk(clk), .`RESET_SIG(`RESET_SIG), .din(n_stall_pipeline), .dout(stall_pipeline));
 
@@ -609,7 +609,7 @@ logic io_rdata_fifo_empty;
 logic [WIDTH_NBITS-1:0] io_rdata;
 sfifo1f #(WIDTH_NBITS) u_sfifo1f_6(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(io_ack), .din(io_ack_data), .dout(io_rdata), .rd(), .full(), .empty(io_rdata_fifo_empty));
 
-logic io_fifo_wr = ~stall_pipeline&~mem_fifo_empty;
+wire io_fifo_wr = ~stall_pipeline&~mem_fifo_empty;
 assign mem_fifo_rd = io_fifo_wr;
 
 wb_type wb_cmd_d1;
@@ -629,9 +629,9 @@ assign io_fifo_rd = wb_en;
 
 /****************************************************************************/
 
-logic rd_pd_len_fifo_wr = last_en_pd_wr;
+wire rd_pd_len_fifo_wr = last_en_pd_wr;
 logic rd_pd_len_fifo_rd;
-logic [`PD_CHUNK_NBITS-1-4:0] rd_pd_len_fifo_din = nxt_pd_cnt;
+wire [`PD_CHUNK_NBITS-1-4:0] rd_pd_len_fifo_din = nxt_pd_cnt;
 logic [`PD_CHUNK_NBITS-1-4:0] rd_pd_len_fifo_dout;
 
 sfifo1f #(`PD_CHUNK_NBITS-4) u_sfifo1f_8(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(rd_pd_len_fifo_wr), .din(rd_pd_len_fifo_din), .dout(rd_pd_len_fifo_dout), .rd(rd_pd_len_fifo_rd), .full(), .empty());
@@ -654,30 +654,30 @@ assign pu_em_packet_data_out_p1 = pu_em_data_valid_in?pu_em_packet_data_in:pd_fi
 
 logic pu_done_fifo_empty;
 logic pu_gnt_fifo_empty;
-logic pu_done_fifo_rd = ~pu_fid_done_in&~pu_done_fifo_empty&~pu_gnt_fifo_empty;
-logic pu_gnt_fifo_rd = pu_done_fifo_rd;
+wire pu_done_fifo_rd = ~pu_fid_done_in&~pu_done_fifo_empty&~pu_gnt_fifo_empty;
+wire pu_gnt_fifo_rd = pu_done_fifo_rd;
 sfifo2f1 #(1) u_sfifo2f1_9(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(pu_gnt_d1), .din(1'b1), .dout(), .rd(pu_gnt_fifo_rd), .full(), .empty(pu_gnt_fifo_empty), .count(), .fullm1(), .emptyp2());
 
-logic pd_fifo_rd = ~pu_em_data_valid_in&~pd_fifo_empty&~pu_gnt_fifo_empty;
+wire pd_fifo_rd = ~pu_em_data_valid_in&~pd_fifo_empty&~pu_gnt_fifo_empty;
 
 sfifo2f_fo #(2+`DATA_PATH_NBITS, PD_DEPTH_NBITS+1) u_sfifo2f_fo_10(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(pd_fifo_wr), .din({pd_fifo_sop_in, pd_fifo_eop_in, pd_fifo_din}), .dout({pd_fifo_sop, pd_fifo_eop, pd_fifo_dout}), .rd(pd_fifo_rd), .full(), .empty(pd_fifo_empty), .ncount(), .count(), .fullm1(), .emptyp2());
 
-logic intf_pd_len_fifo_wr = rd_pd_len_fifo_rd;
+wire intf_pd_len_fifo_wr = rd_pd_len_fifo_rd;
 logic intf_pd_len_fifo_rd;
-logic [PD_DEPTH_NBITS-1:0] intf_pd_len_fifo_din = rd_pd_len_fifo_dout;
+wire [PD_DEPTH_NBITS-1:0] intf_pd_len_fifo_din = rd_pd_len_fifo_dout;
 logic [PD_DEPTH_NBITS-1:0] intf_pd_len_fifo_dout;
 
 sfifo2f1 #(PD_DEPTH_NBITS) u_sfifo2f1_11(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(intf_pd_len_fifo_wr), .din(intf_pd_len_fifo_din), .dout(intf_pd_len_fifo_dout), .rd(intf_pd_len_fifo_rd), .full(), .empty(), .count(), .fullm1(), .emptyp2());
 
 logic [2:0] ras_rd_cnt_d1;
-logic set_ras_fifo_rd_en = pu_asa_start_in&~pu_asa_valid_in&~pu_gnt_fifo_empty;
+wire set_ras_fifo_rd_en = pu_asa_start_in&~pu_asa_valid_in&~pu_gnt_fifo_empty;
 logic ras_fifo_rd_en;
-logic ras_fifo_rd_mode = set_ras_fifo_rd_en|ras_fifo_rd_en;
+wire ras_fifo_rd_mode = set_ras_fifo_rd_en|ras_fifo_rd_en;
 
 logic ras_fifo_eop;
-logic ras_fifo_rd = ras_fifo_rd_mode&~ras_fifo_empty&~pu_gnt_fifo_empty;
+wire ras_fifo_rd = ras_fifo_rd_mode&~ras_fifo_empty&~pu_gnt_fifo_empty;
 
-logic reset_ras_fifo_rd_en = ras_fifo_rd&ras_fifo_eop;
+wire reset_ras_fifo_rd_en = ras_fifo_rd&ras_fifo_eop;
 logic [WIDTH_NBITS-1:0] ras_fifo_din;
 logic [WIDTH_NBITS-1:0] ras_fifo_dout;
 
@@ -712,30 +712,30 @@ localparam IDLE = 0,
 logic [2:0] pu_rd_st;
 
 logic [RAS_RAM_DEPTH_NBITS-1:0] ras_rd_cnt;
-logic last_ras_rd_cnt = ras_rd_cnt==RAS_RAM_DEPTH-1;
+wire last_ras_rd_cnt = ras_rd_cnt==RAS_RAM_DEPTH-1;
 logic last_ras_rd_cnt_d1;
 
 logic [PD_RAM_DEPTH_NBITS-1:0] pd_rd_cnt;
 logic [PD_RAM_DEPTH_NBITS-1:0] pd_rd_cnt_d1;
-logic first_pd_rd_cnt = pd_rd_cnt==0;
-logic last_pd_rd_cnt = pd_rd_cnt==rd_pd_len_fifo_dout;
+wire first_pd_rd_cnt = pd_rd_cnt==0;
+wire last_pd_rd_cnt = pd_rd_cnt==rd_pd_len_fifo_dout;
 logic last_pd_rd_cnt_d1;
 
 logic ras_rd_st;
 logic ras_rd_st_d1;
-logic reset_ras_rd = ras_rd_st&last_ras_rd_cnt;
+wire reset_ras_rd = ras_rd_st&last_ras_rd_cnt;
 
-logic set_pd_rd = (pu_rd_st==RD_PD)&(pd_rd_cnt==0);
+wire set_pd_rd = (pu_rd_st==RD_PD)&(pd_rd_cnt==0);
 logic pd_rd_st;
 logic pd_rd_st_d1;
-logic reset_pd_rd = pd_rd_st&last_pd_rd_cnt;
+wire reset_pd_rd = pd_rd_st&last_pd_rd_cnt;
 logic rd_buf_sel;
 logic rd_fid_sel;
 
 assign pu_done_fifo_wr = ((pu_rd_st==RD_RAS)&reset_ras_rd)|((pu_rd_st==RD_PD)&reset_pd_rd)|((pu_rd_st==RD_RAS_PD)&reset_ras_rd&reset_pd_rd);
 assign pu_done_fifo_din = rd_fid_sel;
 
-logic buf_sel_fifo_rd = pu_done_fifo_wr;
+wire buf_sel_fifo_rd = pu_done_fifo_wr;
 sfifo2f1 #(2) u_sfifo2f1_14(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(buf_sel_fifo_wr), .din({exec_fifo_buf_sel, exec_fifo_fid_sel}), .dout({rd_buf_sel, rd_fid_sel}), .rd(buf_sel_fifo_rd), .full(), .empty(buf_sel_fifo_empty), .count(), .fullm1(), .emptyp2());
 
 assign ram_raddr01 = {rd_buf_sel, {(MEM_DEPTH_NBITS-RAS_RAM_DEPTH_NBITS-4){1'b0}}, 4'h1, ras_rd_cnt};
