@@ -22,14 +22,14 @@ parameter BPTR_NBITS = `FLOW_VALUE_DEPTH_NBITS
 
     // outputs
 
-    output reg inc_freeb_rd_count, 
+    output wire inc_freeb_rd_count, 
     output reg inc_freeb_wr_count,
 
     output reg freeb_init_done,    
 
-    output freeb_empty,    
+    output wire freeb_empty,    
 
-    output reg [BPTR_NBITS-1:0] free_buf_ptr    
+    output wire [BPTR_NBITS-1:0] free_buf_ptr
     
 );
 
