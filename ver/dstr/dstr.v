@@ -329,32 +329,32 @@ always @(`CLK_RST)
 		for (i = 0; i < `NUM_OF_PORTS; i = i+1)
 			dstr_ed_bp[i] <= nevent_fifo_depth[i]<XON_LEVEL?1'b0:nevent_fifo_depth[i]>XOFF_LEVEL?1'b1:dstr_ed_bp[i];
 
-		p_dstr_enc_data_valid0 <= set_en_rci[0]|~hold_fifo_empty[0];
-		p_dstr_enc_data_valid1 <= set_en_rci[1]|~hold_fifo_empty[1];
-		p_dstr_enc_data_valid2 <= |set_en_rci[3:2]|~hold_fifo_empty[2];
-		p_dstr_enc_data_valid3 <= |set_en_rci[6:4]|~hold_fifo_empty[3];
+		dstr_enc_data_valid0 <= set_en_rci[0]|~hold_fifo_empty[0];
+		dstr_enc_data_valid1 <= set_en_rci[1]|~hold_fifo_empty[1];
+		dstr_enc_data_valid2 <= |set_en_rci[3:2]|~hold_fifo_empty[2];
+		dstr_enc_data_valid3 <= |set_en_rci[6:4]|~hold_fifo_empty[3];
 	end
 /***************************** PROGRAM BODY **********************************/
 
 always @(posedge clk) begin
 
-		p_dstr_enc_packet_data0 <= transpose(rot_data[`DATA_PATH_RANGE]);
+		p_dstr_enc_packet_data0 <= transpose(rot_data[(`PORT_BUS_NBITS*4)-1:(`PORT_BUS_NBITS*3)]);
 		p_dstr_enc_sop0 <= rd_port_sop_d2[0];
 		p_dstr_enc_eop0 <= rd_port_eop_d2[0];
 		p_dstr_enc_valid_bytes0 <= dstr_enc_valid_bytes0_p1;
 
-		p_dstr_enc_packet_data1 <= transpose(rot_data[(`PORT_BUS_NBITS*2)-1:`PORT_BUS_NBITS]);
+		p_dstr_enc_packet_data1 <= transpose(rot_data[(`PORT_BUS_NBITS*3)-1:(`PORT_BUS_NBITS*2)]);
 		p_dstr_enc_sop1 <= rd_port_sop_d2[1];
 		p_dstr_enc_eop1 <= rd_port_eop_d2[1];
 		p_dstr_enc_valid_bytes1 <= dstr_enc_valid_bytes1_p1;
 
-		p_dstr_enc_packet_data2 <= transpose(rot_data[(`PORT_BUS_NBITS*3)-1:(`PORT_BUS_NBITS*2)]);
+		p_dstr_enc_packet_data2 <= transpose(rot_data[(`PORT_BUS_NBITS*2)-1:(`PORT_BUS_NBITS*1)]);
 		p_dstr_enc_sop2 <= rd_port_en_d2[2]?rd_port_sop_d2[2]:rd_port_sop_d2[3];
 		p_dstr_enc_eop2 <= rd_port_en_d2[2]?rd_port_eop_d2[2]:rd_port_eop_d2[3];
 		p_dstr_enc_valid_bytes2 <= rd_port_en_d2[2]?dstr_enc_valid_bytes2_p1:dstr_enc_valid_bytes3_p1;
 		p_dstr_enc_port_id2 <= ~rd_port_en_d2[2];
 
-		p_dstr_enc_packet_data3 <= transpose(rot_data[(`PORT_BUS_NBITS*4)-1:(`PORT_BUS_NBITS*3)]);
+		p_dstr_enc_packet_data3 <= transpose(rot_data[(`PORT_BUS_NBITS*1)-1:(`PORT_BUS_NBITS*0)]);
 		p_dstr_enc_sop3 <= rd_port_en_d2[4]?rd_port_sop_d2[4]:rd_port_en_d2[5]?rd_port_sop_d2[5]:rd_port_sop_d2[6];
 		p_dstr_enc_eop3 <= rd_port_en_d2[4]?rd_port_eop_d2[4]:rd_port_en_d2[5]?rd_port_eop_d2[5]:rd_port_eop_d2[6];
 		p_dstr_enc_valid_bytes3 <= rd_port_en_d2[4]?dstr_enc_valid_bytes4_p1:rd_port_en_d2[5]?dstr_enc_valid_bytes5_p1:dstr_enc_valid_bytes6_p1;
@@ -734,13 +734,13 @@ sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2
 		.dout({event_fifo_rci6, event_fifo_valid_bytes6, event_fifo_eop[6], event_fifo_sop[6]})       
 	);
 
-sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_70(
+sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_70(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
 		.din({event_fifo_rci0}),				
 		.rd(latency_fifo_rd[0]),
-		.wr(event_fifo_rd[0]),
+		.wr(event_fifo_rd[0]&event_fifo_sop[0]),
 
 		.count(),
 		.full(),
@@ -750,13 +750,13 @@ sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_70(
 		.dout({latency_fifo_rci0})       
 	);
 
-sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_71(
+sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_71(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
 		.din({event_fifo_rci1}),				
 		.rd(latency_fifo_rd[1]),
-		.wr(event_fifo_rd[1]),
+		.wr(event_fifo_rd[1]&event_fifo_sop[1]),
 
 		.count(),
 		.full(),
@@ -766,13 +766,13 @@ sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_71(
 		.dout({latency_fifo_rci1})       
 	);
 
-sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_72(
+sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_72(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
 		.din({event_fifo_rci2}),				
 		.rd(latency_fifo_rd[2]),
-		.wr(event_fifo_rd[2]),
+		.wr(event_fifo_rd[2]&event_fifo_sop[2]),
 
 		.count(),
 		.full(),
@@ -782,13 +782,13 @@ sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_72(
 		.dout({latency_fifo_rci2})       
 	);
 
-sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_73(
+sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_73(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
 		.din({event_fifo_rci3}),				
 		.rd(latency_fifo_rd[3]),
-		.wr(event_fifo_rd[3]),
+		.wr(event_fifo_rd[3]&event_fifo_sop[3]),
 
 		.count(),
 		.full(),
@@ -798,13 +798,13 @@ sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_73(
 		.dout({latency_fifo_rci3})       
 	);
 
-sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_74(
+sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_74(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
 		.din({event_fifo_rci4}),				
 		.rd(latency_fifo_rd[4]),
-		.wr(event_fifo_rd[4]),
+		.wr(event_fifo_rd[4]&event_fifo_sop[4]),
 
 		.count(),
 		.full(),
@@ -814,13 +814,13 @@ sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_74(
 		.dout({latency_fifo_rci4})       
 	);
 
-sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_75(
+sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_75(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
 		.din({event_fifo_rci5}),				
 		.rd(latency_fifo_rd[5]),
-		.wr(event_fifo_rd[5]),
+		.wr(event_fifo_rd[5]&event_fifo_sop[5]),
 
 		.count(),
 		.full(),
@@ -830,13 +830,13 @@ sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_75(
 		.dout({latency_fifo_rci5})       
 	);
 
-sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_76(
+sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_76(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
 		.din({event_fifo_rci6}),				
 		.rd(latency_fifo_rd[6]),
-		.wr(event_fifo_rd[6]),
+		.wr(event_fifo_rd[6]&event_fifo_sop[6]),
 
 		.count(),
 		.full(),
@@ -846,7 +846,7 @@ sfifo2f1 #(`RCI_NBITS) u_sfifo2f1_76(
 		.dout({latency_fifo_rci6})       
 	);
 
-sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2) u_sfifo2f1_0(
+sfifo2f_fo #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2, 2) u_sfifo2f_fo_00(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -854,6 +854,7 @@ sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2) u_sfifo2f1_0(
 		.rd(hold_fifo_rd[0]),
 		.wr(p_dstr_enc_data_valid0),
 
+		.ncount(),
 		.count(),
 		.full(),
 		.empty(hold_fifo_empty[0]),
@@ -862,7 +863,7 @@ sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2) u_sfifo2f1_0(
 		.dout({hold_fifo_packet_data0, hold_fifo_valid_bytes0, hold_fifo_eop[0], hold_fifo_sop[0]})       
 	);
 
-sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2) u_sfifo2f1_1(
+sfifo2f_fo #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2, 2) u_sfifo2f_fo_01(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -870,6 +871,7 @@ sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2) u_sfifo2f1_1(
 		.rd(hold_fifo_rd[1]),
 		.wr(p_dstr_enc_data_valid1),
 
+		.ncount(),
 		.count(),
 		.full(),
 		.empty(hold_fifo_empty[1]),
@@ -878,7 +880,7 @@ sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2) u_sfifo2f1_1(
 		.dout({hold_fifo_packet_data1, hold_fifo_valid_bytes1, hold_fifo_eop[1], hold_fifo_sop[1]})       
 	);
 
-sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2+1) u_sfifo2f1_2(
+sfifo2f_fo #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2+1, 2) u_sfifo2f_fo_02(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -886,6 +888,7 @@ sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2+1) u_sfifo2f1_2(
 		.rd(hold_fifo_rd[2]),
 		.wr(p_dstr_enc_data_valid2),
 
+		.ncount(),
 		.count(),
 		.full(),
 		.empty(hold_fifo_empty[2]),
@@ -894,7 +897,7 @@ sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2+1) u_sfifo2f1_2(
 		.dout({hold_fifo_packet_data2, hold_fifo_valid_bytes2, hold_fifo_eop[2], hold_fifo_sop[2], hold_fifo_port_id2})       
 	);
 
-sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2+2) u_sfifo2f1_3(
+sfifo2f_fo #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2+2, 2) u_sfifo2f_fo_03(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -902,6 +905,7 @@ sfifo2f1 #(`PORT_BUS_NBITS+`PORT_BUS_VB_NBITS+2+2) u_sfifo2f1_3(
 		.rd(hold_fifo_rd[3]),
 		.wr(p_dstr_enc_data_valid3),
 
+		.ncount(),
 		.count(),
 		.full(),
 		.empty(hold_fifo_empty[3]),
@@ -916,27 +920,27 @@ register_file #(`PORT_BUS_NBITS, `PORT_ID_NBITS+EVENT_FIFO_DEPTH_NBITS) u_regist
 		.wr(ed_dstr_data_valid_d1),
 		.raddr(hold_register_raddr0),
 		.waddr({ed_dstr_port_id_d1, wr_port_ctr}),
-		.din(ed_dstr_packet_data_d1[`PORT_BUS_RANGE]),
+		.din(ed_dstr_packet_data_d1[(`PORT_BUS_NBITS*1)-1:(`PORT_BUS_NBITS*0)]),
 
-		.dout(hold_register_rdata[`PORT_BUS_RANGE]));
+		.dout(hold_register_rdata[(`PORT_BUS_NBITS*1)-1:(`PORT_BUS_NBITS*0)]));
 
 register_file #(`PORT_BUS_NBITS, `PORT_ID_NBITS+EVENT_FIFO_DEPTH_NBITS) u_register_file_1(
 		.clk(clk),
 		.wr(ed_dstr_data_valid_d1),
 		.raddr(hold_register_raddr1),
 		.waddr({ed_dstr_port_id_d1, wr_port_ctr}),
-		.din(ed_dstr_packet_data_d1[(`PORT_BUS_NBITS<<1)-1:`PORT_BUS_NBITS]),
+		.din(ed_dstr_packet_data_d1[(`PORT_BUS_NBITS*2)-1:(`PORT_BUS_NBITS*1)]),
 
-		.dout(hold_register_rdata[(`PORT_BUS_NBITS<<1)-1:`PORT_BUS_NBITS]));
+		.dout(hold_register_rdata[(`PORT_BUS_NBITS*2)-1:(`PORT_BUS_NBITS*1)]));
 
 register_file #(`PORT_BUS_NBITS, `PORT_ID_NBITS+EVENT_FIFO_DEPTH_NBITS) u_register_file_2(
 		.clk(clk),
 		.wr(ed_dstr_data_valid_d1),
 		.raddr(hold_register_raddr2),
 		.waddr({ed_dstr_port_id_d1, wr_port_ctr}),
-		.din(ed_dstr_packet_data_d1[(`PORT_BUS_NBITS*3)-1:(`PORT_BUS_NBITS<<1)]),
+		.din(ed_dstr_packet_data_d1[(`PORT_BUS_NBITS*3)-1:(`PORT_BUS_NBITS*2)]),
 
-		.dout(hold_register_rdata[(`PORT_BUS_NBITS*3)-1:(`PORT_BUS_NBITS<<1)]));
+		.dout(hold_register_rdata[(`PORT_BUS_NBITS*3)-1:(`PORT_BUS_NBITS*2)]));
 
 register_file #(`PORT_BUS_NBITS, `PORT_ID_NBITS+EVENT_FIFO_DEPTH_NBITS) u_register_file_3(
 		.clk(clk),

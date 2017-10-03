@@ -26,7 +26,7 @@ parameter ID_NBITS = `PORT_ID_NBITS
     output reg init_read_count_valid,
     output reg [BPTR_NBITS-1:0] init_read_count_ptr,
 
-    output reg inc_freeb_rd_count, 
+    output inc_freeb_rd_count, 
     output reg inc_freeb_wr_count,
 
     output reg freeb_init_done,    

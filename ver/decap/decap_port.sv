@@ -106,7 +106,7 @@ logic rx_axis_tlast_d1;
 logic [PBUS_VB_NBITS-1:0] rx_axis_valid_bytes;
 
 logic in_fifo_empty;
-logic [3:0] in_fifo_count;
+logic [4:0] in_fifo_count;
 logic [PBUS_NBITS-1:0] in_fifo_data;
 logic [PBUS_VB_NBITS-1:0] in_fifo_valid_bytes;
 logic in_fifo_good;

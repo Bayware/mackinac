@@ -171,7 +171,8 @@ wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] fifo_freeq_head;
 wire fifo_empty5;
 wire fifo_rd5 = ~deq_active_d4&~fifo_empty5;
 
-sch_pkt_desc_type p_desc = pkt_desc_rdata.sch_pkt_desc;
+sch_pkt_desc_type p_desc;
+assign p_desc = pkt_desc_rdata.sch_pkt_desc;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

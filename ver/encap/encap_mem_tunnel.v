@@ -79,8 +79,10 @@ wire [`PIO_RANGE] tunnel_value4_mem_rdata;
 wire tunnel_value5_mem_ack;
 wire [`PIO_RANGE] tunnel_value5_mem_rdata;
 
-wire reg_ms_tunnel_hash_table0 = reg_ms_tunnel_hash_table&~reg_addr[DEPTH_NBITS];
-wire reg_ms_tunnel_hash_table1 = reg_ms_tunnel_hash_table&reg_addr[DEPTH_NBITS];
+wire [`PIO_ADDR_MSB-2:0] reg_addr_dw = reg_addr[`PIO_ADDR_MSB:2];
+
+wire reg_ms_tunnel_hash_table0 = reg_ms_tunnel_hash_table&~reg_addr_dw[DEPTH_NBITS];
+wire reg_ms_tunnel_hash_table1 = reg_ms_tunnel_hash_table&reg_addr_dw[DEPTH_NBITS];
 
 wire [`PIO_ADDR_MSB-3:0] reg_addr_qw = reg_addr[`PIO_ADDR_MSB:3];
 
@@ -96,8 +98,8 @@ wire [`PIO_RANGE] tunnel_value_reg_addr = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 always @(*) begin
-	tunnel_hash_table_mem_ack = ~reg_addr[DEPTH_NBITS]?tunnel_hash_table0_mem_ack:tunnel_hash_table1_mem_ack;
-	tunnel_hash_table_mem_rdata = ~reg_addr[DEPTH_NBITS]?tunnel_hash_table0_mem_rdata:tunnel_hash_table1_mem_rdata;
+	tunnel_hash_table_mem_ack = ~reg_addr_dw[DEPTH_NBITS]?tunnel_hash_table0_mem_ack:tunnel_hash_table1_mem_ack;
+	tunnel_hash_table_mem_rdata = ~reg_addr_dw[DEPTH_NBITS]?tunnel_hash_table0_mem_rdata:tunnel_hash_table1_mem_rdata;
 	case (reg_addr_qw[2:0])
 		3'h0: begin
 			tunnel_value_mem_ack = tunnel_value0_mem_ack;
@@ -182,7 +184,7 @@ pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem2(
 
 		.clk_div(clk_div),
 
-	        .reg_addr(reg_addr),
+	        .reg_addr(tunnel_value_reg_addr),
        	 	.reg_din(reg_din),
         	.reg_rd(reg_rd),
         	.reg_wr(reg_wr),
@@ -264,7 +266,7 @@ pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem5(
 		.app_mem_rdata(tunnel_value_rdata[WM_NBITS*4-1:WM_NBITS*3])
 );
 
-pio_wmem #(VALUE_NBITS-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem6(
+pio_wmem #(WM_NBITS*5-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem6(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -283,11 +285,11 @@ pio_wmem #(VALUE_NBITS-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem6(
         	.mem_rdata(tunnel_value4_mem_rdata),
 
 		.app_mem_ack(),
-		.app_mem_rdata(tunnel_value_rdata[VALUE_NBITS-1:WM_NBITS*4])
+		.app_mem_rdata(tunnel_value_rdata[WM_NBITS*5-1:WM_NBITS*4])
 );
 
 
-pio_wmem #(VALUE_NBITS-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem7(
+pio_wmem #(VALUE_NBITS-5*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem7(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -306,7 +308,7 @@ pio_wmem #(VALUE_NBITS-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem7(
         	.mem_rdata(tunnel_value5_mem_rdata),
 
 		.app_mem_ack(),
-		.app_mem_rdata(tunnel_value_rdata[VALUE_NBITS-1:WM_NBITS*4])
+		.app_mem_rdata(tunnel_value_rdata[VALUE_NBITS-1:WM_NBITS*5])
 );
 
 

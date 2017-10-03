@@ -161,11 +161,13 @@ logic [`EIR_NBITS+2-1:0] eir_tb_rdata_d1;
 
 logic [`CLA_IRL_META_LEN_RANGE] len_d1;
 logic [`CLA_IRL_META_LEN_RANGE] len_d2;
+logic [`CLA_IRL_META_LEN_RANGE] len_d3;
+logic [`CLA_IRL_META_LEN_RANGE] len_d4;
 wire [`CLA_IRL_META_LEN_RANGE] len = cla_irl_meta_data_d1.len;
 wire [`CLA_IRL_META_FID_RANGE] fid = cla_irl_meta_data_d1.fid;
 wire [`CLA_IRL_META_PORT_RANGE] src_port = cla_irl_meta_data_d1.port;
 wire type3 = cla_irl_meta_data_d1.type3;
-wire type1 = (cla_irl_hdr_data_d1[127:120]==8'h90)&~type3;
+wire type1 = cla_irl_meta_data_d1.type1;
 
 logic type1_d1;
 logic type1_d2;
@@ -234,7 +236,7 @@ always @(posedge clk) begin
 		limiting_profile_eir_wdata <= 0;
 
 		fill_tb_src_waddr <= init_count1;
-		fill_tb_src_wdata <= 0;
+		fill_tb_src_wdata <= 63;
 
 		token_bucket_waddr <= token_bucket_waddr_p1;
 		token_bucket_wdata <= token_bucket_wdata_p1;
@@ -324,8 +326,8 @@ wire positive_eir = ~negative_eir;
 assign token_bucket_wr_p1 = init_wr|(~lat_fifo_zero_rate&~lat_fifo_full_rate&~no_token&en_irl_d4&~cla_irl_discard_d4)|lat_fifo_rd5_d4;
 assign token_bucket_waddr_p1 = init_wr?init_count:token_bucket_raddr_d2;
 
-wire [`CIR_NBITS+2-1:0] new_cir = cir[`CIR_NBITS+2-1]?cir:(cir-len_d2);
-wire [`EIR_NBITS+2-1:0] new_eir = (~eir[`CIR_NBITS+2-1]&cir[`CIR_NBITS+2-1])?(eir-len_d2):eir;
+wire [`CIR_NBITS+2-1:0] new_cir = cir[`CIR_NBITS+2-1]?cir:(cir-len_d4);
+wire [`EIR_NBITS+2-1:0] new_eir = (~eir[`CIR_NBITS+2-1]&cir[`CIR_NBITS+2-1])?(eir-len_d4):eir;
 
 wire [`CIR_NBITS-1:0] cir_token = limiting_profile_cir_rdata_d1[`CIR_NBITS-1:0];
 wire [`CIR_NBITS-1:0] cir_burst = limiting_profile_cir_rdata_d1[(`CIR_NBITS*2)-1:`CIR_NBITS];
@@ -361,6 +363,12 @@ always @(posedge clk) begin
 	fill_tb_src_raddr_d1 <= fill_tb_src_raddr;
 	fill_tb_src_raddr_d2 <= fill_tb_src_raddr_d1;
 
+	fill_tb_src_rdata_d1 <= fill_tb_src_rdata;
+	limiting_profile_cir_rdata_d1 <= limiting_profile_cir_rdata;
+	limiting_profile_eir_rdata_d1 <= limiting_profile_eir_rdata;
+	token_bucket_rdata_d1 <= token_bucket_rdata;
+	eir_tb_rdata_d1 <= eir_tb_rdata;
+
 	token_bucket_raddr_d1 <= token_bucket_raddr;
 	token_bucket_raddr_d2 <= token_bucket_raddr_d1;
 
@@ -385,6 +393,8 @@ always @(posedge clk) begin
 
 	len_d1 <= len;
 	len_d2 <= len_d1;
+	len_d3 <= len_d2;
+	len_d4 <= len_d3;
 
 	type1_d1 <= type1;
 	type1_d2 <= type1_d1;
@@ -431,7 +441,7 @@ always @(`CLK_RST)
 		init_count <= init_wr?(init_count+1):init_count;
 		init_wr1 <= (nxt_init_st==INIT_COUNT);
 		init_count1 <= init_wr1?(init_count1+1):init_count1;
-		ctr <= fill_token_bucket?0:ctr+1;
+		ctr <= init_wr|fill_token_bucket?0:ctr+1;
 		fid_ctr <= ~fill_token_bucket?fid_ctr:fid_ctr+1;
 
 		fill_tb_src_ack_d1 <= fill_tb_src_ack;
@@ -443,7 +453,7 @@ always @(`CLK_RST)
 		token_bucket_wr_d1 <= token_bucket_wr;
 		eir_tb_wr_d1 <= eir_tb_wr;
 
-		in_fifo_rd_en <= ~lat_fifo_empty?1'b1:lat_fifo_rd?1'b0:in_fifo_rd_en;
+		in_fifo_rd_en <= lat_fifo_rd?1'b0:~lat_fifo_empty?1'b1:in_fifo_rd_en;
     end
  
 /***************************** NEXT STATE ASSIGNMENT **************************/

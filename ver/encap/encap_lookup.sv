@@ -117,11 +117,11 @@ logic [EEKEY_VALUE_NBITS-1:0] ekey_value_rdata_d1;
 logic [2:0] segment_count;
 logic [2:0] word_count;
 wire last_word_count = word_count==4;
+wire last_word_count_m1 = word_count==3;
 wire last_segment_count = segment_count==5;
 
 logic [4:0] in_frame_count;
 logic [2:0] in_segment_count;
-logic [2:0] in_segment_count_d1;
 logic [2:0] in_word_count;
 wire last_in_word_count = in_word_count==4;
 wire last_in_segment_count = in_segment_count==5;
@@ -136,7 +136,7 @@ logic in_fifo_tunnel_key_valid;
 
 logic ring_ready;
 
-wire in_fifo_wr = ring_ready&in_word_count==0;
+wire in_fifo_wr = ring_ready&in_word_count==0&encr_ring_in_valid_d2;
 logic [4:1] in_fifo_rd_d;
 wire in_fifo_rd = ~in_fifo_empty&~(|in_fifo_rd_d[4:1]);
 
@@ -154,11 +154,20 @@ logic ekey_latency_fifo_tunnel_lookup_valid;
 logic ekey_latency_fifo_tunnel_key_valid;
 logic [TUNNEL_VALUE_PAYLOAD_NBITS-1:0] ekey_latency_fifo_tunnel_lookup_result;
 
-wire tunnel_hash_compare = latency_fifo_tunnel_key==tunnel_value_rdata_d1[`TUNNEL_VALUE_KEY];
+logic [1:0] tunnel_value_ack_cnt;
+logic [1:0] ekey_value_ack_cnt;
+
+logic [3:0] tunnel_hash_valid;
+logic [3:0] ekey_hash_valid;
+
+wire tunnel_hash_compare = tunnel_hash_valid[tunnel_value_ack_cnt]&(latency_fifo_tunnel_key==tunnel_value_rdata_d1[`TUNNEL_VALUE_KEY]);
 
 wire [`SPI_NBITS-1:0] ekey_latency_fifo_ekey_key = ekey_latency_fifo_tunnel_lookup_result[`TUNNEL_VALUE_SPI];
 wire [`SPI_NBITS-1:0] ekey_value_key = ekey_value_rdata_d1[`EEKEY_VALUE_KEY];
-wire ekey_hash_compare = ekey_latency_fifo_ekey_key==ekey_value_key;
+wire ekey_hash_compare = ekey_hash_valid[ekey_value_ack_cnt]&(ekey_latency_fifo_ekey_key==ekey_value_key);
+
+logic tunnel_lookup_valid;
+logic ekey_lookup_valid;
 
 logic [TUNNEL_VALUE_PAYLOAD_NBITS-1:0] tunnel_lookup_result;
 logic [EEKEY_VALUE_PAYLOAD_NBITS-1:0] ekey_lookup_result;
@@ -171,24 +180,27 @@ logic pending_fifo_ekey_valid;
 logic [EEKEY_VALUE_PAYLOAD_NBITS-1:0] pending_fifo_ekey_result;
 
 logic latency_fifo_rd_d1;
-wire latency_fifo_rd = tunnel_value_ack_d2&~tunnel_value_ack_d1;
-wire ekey_latency_fifo_rd = ekey_value_ack_d2&~ekey_value_ack_d1;
+logic valid_fifo_empty;
+logic latency_fifo_empty;
+wire latency_fifo_rd = ~valid_fifo_empty&~latency_fifo_empty&tunnel_value_ack_d2&~tunnel_value_ack_d1;
+logic ekey_latency_fifo_empty;
+logic ekey_valid_fifo_empty;
+wire ekey_latency_fifo_rd = ~ekey_valid_fifo_empty&~ekey_latency_fifo_empty&ekey_value_ack_d2&~ekey_value_ack_d1;
 wire pending_fifo_wr = ekey_latency_fifo_rd;
 
-wire n_segment_count = !last_word_count?segment_count:last_segment_count?0:segment_count+1;
-wire set_enable_out = (pending_fifo_segment_count==n_segment_count)&last_word_count;
+logic pending_fifo_empty;
+
+wire [2:0] n_segment_count = !last_word_count?segment_count:last_segment_count?0:segment_count+1;
+wire en_out = ~pending_fifo_empty&(pending_fifo_segment_count==n_segment_count);
+wire set_enable_out = en_out&last_word_count;
 logic enable_out;
 
-wire pending_fifo_rd = enable_out&last_word_count;
-
-logic [3:0] tunnel_hash_valid;
+wire pending_fifo_rd = en_out&last_word_count_m1;
 
 assign tunnel_hash_valid[0] = tunnel_hash_table0_rdata_d1[TUNNEL_ENTRY_NBITS*1-1];
 assign tunnel_hash_valid[1] = tunnel_hash_table0_rdata_d1[TUNNEL_ENTRY_NBITS*2-1];
 assign tunnel_hash_valid[2] = tunnel_hash_table1_rdata_d1[TUNNEL_ENTRY_NBITS*1-1];
 assign tunnel_hash_valid[3] = tunnel_hash_table1_rdata_d1[TUNNEL_ENTRY_NBITS*2-1];
-
-logic [3:0] ekey_hash_valid;
 
 assign ekey_hash_valid[0] = ekey_hash_table0_rdata_d1[EEKEY_ENTRY_NBITS*1-1];
 assign ekey_hash_valid[1] = ekey_hash_table0_rdata_d1[EEKEY_ENTRY_NBITS*2-1];
@@ -199,12 +211,6 @@ wire valid_fifo_wr = tunnel_hash_table0_ack_d[2];
 logic [3:0] valid_fifo_tunnel_valid;
 wire ekey_valid_fifo_wr = ekey_hash_table0_ack_d[2];
 logic [3:0] ekey_valid_fifo_ekey_valid;
-
-logic [1:0] tunnel_value_ack_cnt;
-logic [1:0] ekey_value_ack_cnt;
-
-logic tunnel_lookup_valid;
-logic ekey_lookup_valid;
 
 wire valid_fifo_rd = latency_fifo_rd;
 wire ekey_valid_fifo_rd = ekey_latency_fifo_rd;
@@ -226,7 +232,8 @@ wire [EEKEY_VALUE_DEPTH_NBITS-1:0] n_ekey_value_raddr = ekey_hash_table0_ack_d[1
 			ekey_hash_table1_rdata_d1[EEKEY_ENTRY_NBITS*2-1-1:EEKEY_ENTRY_NBITS*1+EEKEY_HASH_NBITS];
 
 logic [EEKEY_VALUE_DEPTH_NBITS-1:0] raddr_fifo_data;
-wire raddr_fifo_rd = ekey_value_ack_d1;
+logic raddr_fifo_empty;
+wire raddr_fifo_rd = ~raddr_fifo_empty&ekey_value_ack_d1;
 
 wire [EEKEY_KEY_NBITS-1:0] ekey_key = tunnel_lookup_result[`TUNNEL_VALUE_SPI];
 
@@ -237,6 +244,20 @@ wire [EEKEY_KEY_NBITS-1:0] ekey_key = tunnel_lookup_result[`TUNNEL_VALUE_SPI];
 /***************************** REGISTERED OUTPUTS ****************************/
 
 always @(posedge clk) begin
+
+		if (~enable_out) 
+			encr_ring_out_data <= 0;
+		else
+			case (word_count)
+				3'd4: encr_ring_out_data <= pending_fifo_ekey_valid?pending_fifo_ekey_result[RING_NBITS*1-1:RING_NBITS*0]:128'b0;
+				3'd0: encr_ring_out_data <= pending_fifo_ekey_valid?pending_fifo_ekey_result[RING_NBITS*2-1:RING_NBITS]:128'b0;
+				3'd1: encr_ring_out_data <= pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_IP_SA]:128'b0;
+				3'd2: encr_ring_out_data <= pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_IP_DA]:128'b0;
+				default: encr_ring_out_data <= {(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_MAC]:48'b0), 
+								(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_VLAN]:16'b0), 
+								(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_SPI]:32'b0), 
+								(pending_fifo_ekey_valid?pending_fifo_ekey_result[`EEKEY_VALUE_SN]:32'b0)};
+			endcase
 
 		tunnel_hash_table0_raddr <= tunnel_hash0;
 		tunnel_hash_table1_raddr <= tunnel_hash1;
@@ -261,7 +282,6 @@ end
 
 always @(`CLK_RST) 
     	if (`ACTIVE_RESET) begin
-		encr_ring_out_data <= 0;
 		encr_ring_out_sof <= 0;
 		encr_ring_out_sos <= 0;
 		encr_ring_out_valid <= 0;
@@ -276,23 +296,10 @@ always @(`CLK_RST)
 		ekey_value_wr <= 1'b0;
 
 	end else begin
-		if (~enable_out) 
-			encr_ring_out_data <= 0;
-		else
-			case (word_count)
-				3'd0: encr_ring_out_data <= 0;
-				3'd1: encr_ring_out_data <= pending_fifo_ekey_valid?pending_fifo_ekey_result[RING_NBITS*2-1:RING_NBITS]:128'b0;
-				3'd2: encr_ring_out_data <= pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_IP_SA]:128'b0;
-				3'd3: encr_ring_out_data <= pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_IP_DA]:128'b0;
-				default: encr_ring_out_data <= {(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_MAC]:48'b0), 
-								(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_VLAN]:16'b0), 
-								(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_SPI]:32'b0), 
-								(pending_fifo_ekey_valid?pending_fifo_ekey_result[`EEKEY_VALUE_SN]:32'b0)};
-			endcase
 
 		encr_ring_out_sof <= last_segment_count&last_word_count;
 		encr_ring_out_sos <= last_word_count;
-		encr_ring_out_valid <= pending_fifo_tunnel_key_valid;
+		encr_ring_out_valid <= en_out&pending_fifo_tunnel_key_valid;
 
 		tunnel_hash_table0_rd <= in_fifo_rd_d[1];
 		tunnel_hash_table1_rd <= in_fifo_rd_d[1];
@@ -342,7 +349,6 @@ always @(`CLK_RST)
 		segment_count <= 0;
 		in_word_count <= 0;
 		in_segment_count <= 0;
-		in_segment_count_d1 <= 0;
 		in_frame_count <= 0;
 		ring_ready <= 0;
 		in_fifo_rd_d <= 0;
@@ -370,7 +376,6 @@ always @(`CLK_RST)
 		segment_count <= n_segment_count;
 		in_word_count <= encr_ring_in_sos_d1?0:last_in_word_count?0:in_word_count+1;
 		in_segment_count <= encr_ring_in_sof_d1?0:!last_in_word_count?in_segment_count:last_in_segment_count?0:in_segment_count+1;
-		in_segment_count_d1 <= last_in_word_count?in_segment_count:in_segment_count_d1;
 		in_frame_count <= in_frame_count[4]?in_frame_count:last_in_segment_count&last_in_word_count?in_frame_count+1:in_frame_count;
 		ring_ready <= in_frame_count[4];
 		in_fifo_rd_d <= {in_fifo_rd_d[3:1], in_fifo_rd};
@@ -432,7 +437,7 @@ sfifo2f_fo #(3+TUNNEL_KEY_NBITS+1, 3) u_sfifo2f_fo_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
-        .din({in_segment_count_d1, tunnel_key, tunnel_key_valid}),               
+        .din({in_segment_count, tunnel_key, tunnel_key_valid}),               
         .rd(in_fifo_rd),
         .wr(in_fifo_wr),
 
@@ -456,7 +461,7 @@ sfifo2f_fo #(3+TUNNEL_KEY_NBITS+1, 3) u_sfifo2f_fo_1(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(latency_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({latency_fifo_segment_count, latency_fifo_tunnel_key, latency_fifo_tunnel_key_valid})
@@ -473,7 +478,7 @@ sfifo2f_fo #(4, 2) u_sfifo2f_fo_2(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(valid_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({valid_fifo_tunnel_valid})
@@ -490,7 +495,7 @@ sfifo2f_fo #(EEKEY_VALUE_DEPTH_NBITS, 3) u_sfifo2f_fo_3(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(raddr_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({raddr_fifo_data})
@@ -507,7 +512,7 @@ sfifo2f_fo #(3+1+1+TUNNEL_VALUE_PAYLOAD_NBITS, 3) u_sfifo2f_fo_4(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(ekey_latency_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({ekey_latency_fifo_segment_count, ekey_latency_fifo_tunnel_key_valid, ekey_latency_fifo_tunnel_lookup_valid, ekey_latency_fifo_tunnel_lookup_result})
@@ -524,7 +529,7 @@ sfifo2f_fo #(4, 2) u_sfifo2f_fo_5(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(ekey_valid_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({ekey_valid_fifo_ekey_valid})
@@ -541,7 +546,7 @@ sfifo2f_fo #(3+1+1+TUNNEL_VALUE_PAYLOAD_NBITS+1+EEKEY_VALUE_PAYLOAD_NBITS, 3) u_
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(pending_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({pending_fifo_segment_count, pending_fifo_tunnel_key_valid, pending_fifo_tunnel_valid, pending_fifo_tunnel_result, pending_fifo_ekey_valid, pending_fifo_ekey_result})

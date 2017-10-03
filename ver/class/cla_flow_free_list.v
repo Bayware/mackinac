@@ -22,14 +22,14 @@ parameter BPTR_NBITS = `FLOW_VALUE_DEPTH_NBITS
 
     // outputs
 
-    output reg inc_freeb_rd_count, 
+    output inc_freeb_rd_count, 
     output reg inc_freeb_wr_count,
 
     output reg freeb_init_done,    
 
     output freeb_empty,    
 
-    output reg [BPTR_NBITS-1:0] free_buf_ptr    
+    output [BPTR_NBITS-1:0] free_buf_ptr    
     
 );
 
@@ -112,7 +112,7 @@ always @*  begin
     case (init_st)      
         INIT_IDLE: nxt_init_st = RESET_FREEB;
         RESET_FREEB: nxt_init_st = INIT_FREEB;
-        INIT_FREEB: if (&fifo_wptr) nxt_init_st = INIT_DONE;
+        INIT_FREEB: if (&fifo_wptr[BPTR_NBITS-1:1]) nxt_init_st = INIT_DONE;
         INIT_DONE: if (freeb_init) nxt_init_st = INIT_IDLE;
         default: nxt_init_st = INIT_IDLE;
     endcase

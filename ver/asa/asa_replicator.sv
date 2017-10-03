@@ -60,7 +60,7 @@ enq_pkt_desc_type asa_rep_enq_desc_d1;
 logic [`TID_NBITS - 1 : 0] asa_rep_enq_tid_d1;		
 
 wire [`SCI_NBITS:0] in_rep_count = bits_sum(asa_rep_enq_vec_d1);
-wire in_ucast = in_rep_count==1;
+wire in_ucast = asa_rep_enq_discard_d1|(in_rep_count==1);
 wire discard_en = asa_rep_enq_discard_d1|(in_rep_count==0);
 
 logic in_fifo_full;
@@ -102,8 +102,8 @@ logic [`SCI_VEC_NBITS-1:0] enq_vector;
 logic [`SCI_NBITS:0] last_rep_count;
 logic [`SCI_NBITS:0] rep_count;
 wire [`SCI_NBITS:0] pre_enq_conn = pri_enc(enq_vector);
-logic [`SCI_NBITS:0] shift_count;
-wire [`SCI_NBITS-1:0] enq_conn = pre_enq_conn+shift_count;
+logic [`SCI_NBITS-1:0] shift_count;
+wire [`SCI_NBITS-1:0] enq_conn = pre_enq_conn+shift_count-1;
 
 wire out_rep_enq_drop = 1'b0;	// FIXME
 wire out_rep_enq_ucast = last_rep_count==1;						
@@ -142,11 +142,12 @@ wire lat_fifo_rd = out_fifo_wr&out_fifo_last;
 
 wire p_in_fifo_rd = ~p_in_fifo_empty&(~lat_fifo_full|lat_fifo_rd);
 wire in_fifo_rd = p_in_fifo_empty&~in_fifo_empty&(~lat_fifo_full|lat_fifo_rd);
-wire lat_fifo_wr = (~p_in_fifo_empty|~in_fifo_empty)&(~lat_fifo_full|lat_fifo_rd);
+wire lat_fifo_wr = p_in_fifo_rd|in_fifo_rd;
 
 wire [`SCI_VEC_NBITS-1:0] lat_fifo_asa_rep_enq_vec_in = p_in_fifo_empty?in_fifo_asa_rep_enq_vec:p_in_fifo_asa_rep_enq_vec;
 wire [`PRI_NBITS-1:0] lat_fifo_asa_rep_enq_pri_in = p_in_fifo_empty?in_fifo_asa_rep_enq_pri:p_in_fifo_asa_rep_enq_pri;
-enq_pkt_desc_type lat_fifo_asa_rep_enq_desc_in = p_in_fifo_empty?in_fifo_asa_rep_enq_desc:p_in_fifo_asa_rep_enq_desc;		
+enq_pkt_desc_type lat_fifo_asa_rep_enq_desc_in;
+assign lat_fifo_asa_rep_enq_desc_in = p_in_fifo_empty?in_fifo_asa_rep_enq_desc:p_in_fifo_asa_rep_enq_desc;		
 wire [`TID_NBITS - 1 : 0] lat_fifo_asa_rep_enq_tid_in = p_in_fifo_empty?in_fifo_asa_rep_enq_tid:p_in_fifo_asa_rep_enq_tid;		
 
 logic tset_rd_d1;
@@ -157,7 +158,7 @@ logic [`SUB_EXP_TIME_NBITS-1:0] tset_rdata;
 logic tset_fifo_empty;
 logic [`SUB_EXP_TIME_NBITS-1:0] tset_fifo_data;	
 
-wire conn_expired = current_time[`SUB_EXP_TIME_NBITS-1:0]>tset_fifo_data;
+wire conn_expired = current_time[`SUB_EXP_TIME_NBITS-1:0]>16'hffff/*tset_fifo_datai*/;
 
 logic discard_fifo_full;
 logic tx_fifo_full;
@@ -217,7 +218,7 @@ always @(posedge clk) begin
 		asa_rep_enq_desc_d1 <= asa_rep_enq_desc;
 		asa_rep_enq_tid_d1 <= asa_rep_enq_tid;
 
-		enq_vector <= in_fifo_rd?lat_fifo_asa_rep_enq_vec:out_fifo_wr?lat_fifo_asa_rep_enq_vec>>(shift_count+1):enq_vector;
+		enq_vector <= lat_fifo_wr?lat_fifo_asa_rep_enq_vec_in:out_fifo_wr?lat_fifo_asa_rep_enq_vec>>pre_enq_conn:enq_vector;
 end
 
 always @(`CLK_RST) 
@@ -225,16 +226,16 @@ always @(`CLK_RST)
 		asa_rep_enq_req_d1 <= 0;
 		last_rep_count <= 0;
 		rep_count <= 0;
-		shift_count <= {(`SCI_NBITS+1){1'b1}};
+		shift_count <= {(`SCI_NBITS){1'b0}};
 		tset_rd_d1 <= 1'b0;
 		out_sop <= 1'b1;
 		out_drop <= 1'b0;
 		out_fifo_rd_last_d1 <= 1'b0;
 	end else begin
 		asa_rep_enq_req_d1 <= asa_rep_enq_req;
-		last_rep_count <= in_fifo_rd?in_fifo_rep_count:last_rep_count;
+		last_rep_count <= p_in_fifo_rd?1:in_fifo_rd?in_fifo_rep_count:last_rep_count;
 		rep_count <= in_fifo_rd?0:out_fifo_wr?rep_count+1:rep_count;
-		shift_count <= in_fifo_rd?{(`SCI_NBITS+1){1'b1}}:out_fifo_wr?shift_count+pre_enq_conn:shift_count;
+		shift_count <= lat_fifo_wr?{(`SCI_NBITS){1'b0}}:out_fifo_wr?shift_count+pre_enq_conn:shift_count;
 		tset_rd_d1 <= tset_rd;
 		out_sop <= ~out_fifo_rd?out_sop:out_rep_enq_last;
 		out_drop <= ~out_fifo_rd?out_drop:out_sop?conn_expired:~conn_expired?1'b0:out_drop;
@@ -310,7 +311,7 @@ sfifo2f_ram_pf #(`SCI_NBITS+1+`SCI_VEC_NBITS+`PRI_NBITS+`TID_NBITS, IN_FIFO_DEPT
 		.wr(asa_rep_enq_req_d1&~in_ucast),
 
 		.count(),
-		.full(),
+		.full(in_fifo_full),
 		.empty(in_fifo_empty),
 		.dout({in_fifo_rep_count, in_fifo_asa_rep_enq_vec, in_fifo_asa_rep_enq_pri, in_fifo_asa_rep_enq_tid}));				
 
@@ -335,7 +336,7 @@ sfifo1f #(`SCI_VEC_NBITS+`PRI_NBITS+`TID_NBITS) u_sfifo1f(
 		.rd(lat_fifo_rd),
 		.wr(lat_fifo_wr),
 
-		.full(),
+		.full(lat_fifo_full),
 		.empty(lat_fifo_empty),
 		.dout({lat_fifo_asa_rep_enq_vec, lat_fifo_asa_rep_enq_pri, lat_fifo_asa_rep_enq_tid}));				
 
@@ -395,8 +396,8 @@ sfifo2f_fo #(2+`PACKET_ID_NBITS+`FIRST_LVL_QUEUE_ID_NBITS+1, 2) u_sfifo2f_fo_2(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({p_rep_enq_ucast, out_rep_enq_last,
-			 p_rep_enq_packet_id, out_rep_enq_qid,
+		.din({p_rep_enq_ucast, p_rep_enq_last,
+			 p_rep_enq_packet_id, p_rep_enq_qid,
 			 p_rep_enq_drop}),				
 		.rd(tx_fifo_rd),
 		.wr(tx_fifo_wr),
@@ -415,7 +416,7 @@ sfifo_enq_pkt_desc #(2) u_sfifo_enq_pkt_desc_3(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din(out_rep_enq_desc),				
+		.din(p_rep_enq_desc),				
 		.rd(tx_fifo_rd),
 		.wr(tx_fifo_wr),
 
@@ -446,7 +447,7 @@ reg [`SCI_NBITS:0] pe2_0, pe2_1;
 begin
 	pe2_0 = pri_enc_2(din[`SCI_VEC_NBITS-1:`SCI_VEC_NBITS/2]);
 	pe2_1 = pri_enc_2(din[`SCI_VEC_NBITS/2-1:0]);
-	pri_enc = pe2_1!=0?pe2_1:pe2_0+(`SCI_VEC_NBITS/2);
+	pri_enc = pe2_1!=0?pe2_1:pe2_0!=0?pe2_0+(`SCI_VEC_NBITS/2):0;
 end
 endfunction
 
@@ -456,7 +457,7 @@ reg [`SCI_NBITS:0] pe2_0, pe2_1;
 begin
 	pe2_0 = pri_enc_4(din[`SCI_VEC_NBITS/2-1:`SCI_VEC_NBITS/4]);
 	pe2_1 = pri_enc_4(din[`SCI_VEC_NBITS/4-1:0]);
-	pri_enc_2 = pe2_1!=0?pe2_1:pe2_0+(`SCI_VEC_NBITS/4);
+	pri_enc_2 = pe2_1!=0?pe2_1:pe2_0!=0?pe2_0+(`SCI_VEC_NBITS/4):0;
 end
 endfunction
 
@@ -466,7 +467,7 @@ reg [`SCI_NBITS:0] pe2_0, pe2_1;
 begin
 	pe2_0 = pri_enc_8(din[`SCI_VEC_NBITS/4-1:`SCI_VEC_NBITS/8]);
 	pe2_1 = pri_enc_8(din[`SCI_VEC_NBITS/8-1:0]);
-	pri_enc_4 = pe2_1!=0?pe2_1:pe2_0+(`SCI_VEC_NBITS/8);
+	pri_enc_4 = pe2_1!=0?pe2_1:pe2_0!=0?pe2_0+(`SCI_VEC_NBITS/8):0;
 end
 endfunction
 
@@ -476,7 +477,7 @@ reg [`SCI_NBITS:0] pe2_0, pe2_1;
 begin
 	pe2_0 = pri_enc_16(din[`SCI_VEC_NBITS/8-1:`SCI_VEC_NBITS/16]);
 	pe2_1 = pri_enc_16(din[`SCI_VEC_NBITS/16-1:0]);
-	pri_enc_8 = pe2_1!=0?pe2_1:pe2_0+(`SCI_VEC_NBITS/16);
+	pri_enc_8 = pe2_1!=0?pe2_1:pe2_0!=0?pe2_0+(`SCI_VEC_NBITS/16):0;
 end
 endfunction
 
@@ -486,7 +487,7 @@ reg [`SCI_NBITS:0] pe2_0, pe2_1;
 begin
 	pe2_0 = pri_enc_32(din[`SCI_VEC_NBITS/16-1:`SCI_VEC_NBITS/32]);
 	pe2_1 = pri_enc_32(din[`SCI_VEC_NBITS/32-1:0]);
-	pri_enc_16 = pe2_1!=0?pe2_1:pe2_0+(`SCI_VEC_NBITS/32);
+	pri_enc_16 = pe2_1!=0?pe2_1:pe2_0!=0?pe2_0+(`SCI_VEC_NBITS/32):0;
 end
 endfunction
 
@@ -496,7 +497,7 @@ reg [`SCI_NBITS:0] pe2_0, pe2_1;
 begin
 	pe2_0 = din[`SCI_VEC_NBITS/32-1:`SCI_VEC_NBITS/64];
 	pe2_1 = din[`SCI_VEC_NBITS/64-1:0];
-	pri_enc_32 = pe2_1!=0?pe2_1:pe2_0+(`SCI_VEC_NBITS/64);
+	pri_enc_32 = pe2_1!=0?pe2_1:pe2_0!=0?pe2_0+(`SCI_VEC_NBITS/64):0;
 end
 endfunction
 

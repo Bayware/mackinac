@@ -10,6 +10,7 @@
 module piarb_shared_memory #(
 parameter ID_NBITS = `PU_ID_NBITS,
 parameter BPTR_NBITS = `PIARB_BUF_PTR_NBITS,
+parameter BPTR_LSB_NBITS = `PIARB_BUF_PTR_LSB_NBITS,
 parameter DATA_NBITS = `HOP_INFO_NBITS
 ) (
 
@@ -18,6 +19,7 @@ input `RESET_SIG,
 
 input write_data_valid,
 input [BPTR_NBITS-1:0] write_buf_ptr,
+input [BPTR_LSB_NBITS-1:0] write_buf_ptr_lsb,
 input [DATA_NBITS-1:0] write_data,
 
 input data_req,
@@ -26,6 +28,7 @@ input [ID_NBITS-1:0] data_req_dst_port_id,
 input data_req_sop,
 input data_req_eop,
 input [BPTR_NBITS-1:0] data_req_buf_ptr,
+input [BPTR_LSB_NBITS-1:0] data_req_buf_ptr_lsb,
 input data_req_inst,
 
 
@@ -52,6 +55,7 @@ reg [ID_NBITS-1:0] data_req_dst_port_id_d1;
 reg data_req_sop_d1;
 reg data_req_eop_d1;
 reg [BPTR_NBITS-1:0] data_req_buf_ptr_d1;
+reg [BPTR_LSB_NBITS-1:0] data_req_buf_ptr_lsb_d1;
 reg data_req_inst_d1;
 
 reg data_req_d2;
@@ -62,7 +66,7 @@ reg data_req_inst_d2;
 
 reg write_data_valid_d1;
 reg [BPTR_NBITS-1:0] write_buf_ptr_d1;
-reg write_buf_ptr_lsb_d1;
+reg [BPTR_LSB_NBITS-1:0] write_buf_ptr_lsb_d1;
 reg [DATA_NBITS-1:0] write_data_d1;
 
 
@@ -87,7 +91,7 @@ always @(`CLK_RST)
 		rel_buf_valid <= 0;
 		data_ack_valid <= 0;
 	end else begin
-		rel_buf_valid <= data_req_d1;
+		rel_buf_valid <= data_req_d1&(data_req_eop_d1|(&data_req_buf_ptr_lsb_d1));
 		data_ack_valid <= data_req_d2;
 	end
 
@@ -100,11 +104,13 @@ always @(posedge clk) begin
 		data_req_eop_d1 <= data_req_eop;
 		data_req_inst_d1 <= data_req_inst;
 		data_req_buf_ptr_d1 <= data_req_buf_ptr;
+		data_req_buf_ptr_lsb_d1 <= data_req_buf_ptr_lsb;
 		data_req_dst_port_id_d2 <= data_req_dst_port_id_d1;
 		data_req_sop_d2 <= data_req_sop_d1;
 		data_req_eop_d2 <= data_req_eop_d1;
 		data_req_inst_d2 <= data_req_inst_d1;
 		write_buf_ptr_d1 <= write_buf_ptr;
+		write_buf_ptr_lsb_d1 <= write_buf_ptr_lsb;
 		write_data_d1 <= write_data;
 end
 
@@ -122,11 +128,11 @@ always @(`CLK_RST)
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w #(DATA_NBITS, BPTR_NBITS) u_ram_1r1w(
+ram_1r1w #(DATA_NBITS, BPTR_NBITS+BPTR_LSB_NBITS) u_ram_1r1w(
         .clk(clk),
         .wr(write_data_valid_d1),
-        .raddr({data_req_buf_ptr_d1}),
-		.waddr({write_buf_ptr_d1}),
+        .raddr({data_req_buf_ptr_d1, data_req_buf_ptr_lsb_d1}),
+		.waddr({write_buf_ptr_d1, write_buf_ptr_lsb_d1}),
         .din(write_data_d1),
 
         .dout(sm_dout));

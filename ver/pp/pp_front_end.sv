@@ -23,6 +23,7 @@ module pp_front_end
 
    input pp_pu_hop_valid,
    input pp_pu_hop_eop,
+   input pp_pu_hop_type3,
 
    input pu_pp_buf_fifo_rd,
    input [`PIARB_INST_BUF_FIFO_DEPTH_NBITS:0] pu_pp_inst_buf_fifo_count,
@@ -45,6 +46,7 @@ module pp_front_end
    output logic [`DATA_PATH_RANGE] pp_pu_data,
    output logic [`DATA_PATH_VB_RANGE] pp_pu_valid_bytes,
    output logic [`CHUNK_LEN_NBITS-1:0] pp_pu_pd_loc,
+   output logic [`CHUNK_LEN_NBITS-1:0] pp_pu_pd_len,
    output logic pp_pu_inst_pd,
 
    input      clk,
@@ -87,7 +89,6 @@ logic [9:0] pd_data_cnt;
 logic [9:0] pp_chunk_last_byte_loc;
 logic [9:0] inst_chunk_first_byte_loc;
 logic [9:0] inst_chunk_last_byte_loc;
-logic [9:0] pp_chunk_last_byte_loc_d1;
 logic [9:0] inst_chunk_first_byte_loc_d1;
 logic [9:0] pd_chunk_first_byte_loc;
 logic [9:0] pd_chunk_last_byte_loc;
@@ -104,18 +105,18 @@ wire type3 = lh_pp_meta_fifo_data.type3;
 wire lh_discard = lh_pp_meta_fifo_data.discard;
 wire ecdsa_discard = ecdsa_pp_meta_data_d1.discard;
 
-wire lh_pp_fifo_rd = sel_lh&~lh_pp_fifo_empty&~type3;
-wire lh_pp_meta_fifo_rd_type3 = type3&sel_lh&~lh_pp_meta_fifo_empty;
-wire lh_pp_meta_fifo_rd = lh_pp_meta_fifo_rd_type3|(lh_pp_fifo_rd&lh_pp_fifo_eop);
+wire lh_pp_fifo_rd = sel_lh&~lh_pp_fifo_empty;
+wire lh_pp_meta_fifo_rd = lh_pp_fifo_rd&lh_pp_fifo_eop;
 
 wire toggle_sel_lh = sel_lh?(lh_pp_meta_fifo_rd|lh_pp_meta_fifo_empty)&ecdsa_pp_valid_d1:(~ecdsa_pp_valid_d1|ecdsa_pp_eop_d1)&~lh_pp_meta_fifo_empty;
 
-wire in_valid = sel_lh?~lh_pp_fifo_empty&~type3&~lh_discard:ecdsa_pp_valid_d1&pp_ecdsa_ready_d1&~ecdsa_discard;
+wire in_valid = sel_lh?~lh_pp_fifo_empty:ecdsa_pp_valid_d1&pp_ecdsa_ready_d1;
 wire in_sop = sel_lh?lh_pp_fifo_sop:ecdsa_pp_sop_d1;
 wire in_eop = sel_lh?lh_pp_fifo_eop:ecdsa_pp_eop_d1;
 wire [`DATA_PATH_RANGE] in_data = sel_lh?lh_pp_fifo_data:ecdsa_pp_data_d1;
 logic set_discard_st;
 pp_meta_type in_meta_data;
+pp_meta_type in_meta_data_d1;
 assign in_meta_data.domain_id = sel_lh?{(`DOMAIN_ID_NBITS){1'b0}}:ecdsa_pp_meta_data_d1.domain_id;
 assign in_meta_data.hdr_len = sel_lh?lh_pp_meta_fifo_data.hdr_len:ecdsa_pp_meta_data_d1.hdr_len;
 assign in_meta_data.buf_ptr = sel_lh?lh_pp_meta_fifo_data.buf_ptr:ecdsa_pp_meta_data_d1.buf_ptr;
@@ -127,30 +128,45 @@ assign in_meta_data.fid = sel_lh?lh_pp_meta_fifo_data.fid:ecdsa_pp_meta_data_d1.
 assign in_meta_data.tid = sel_lh?lh_pp_meta_fifo_data.tid:ecdsa_pp_meta_data_d1.tid;
 assign in_meta_data.type1 = sel_lh?lh_pp_meta_fifo_data.type1:ecdsa_pp_meta_data_d1.type1;
 assign in_discard = sel_lh?lh_pp_meta_fifo_data.discard:ecdsa_pp_meta_data_d1.discard;
-assign in_meta_data.type3 = (sel_lh?lh_pp_meta_fifo_data.type3:ecdsa_pp_meta_data_d1.type3)|set_discard_st|in_discard;
+wire in_type3 = (sel_lh?lh_pp_meta_fifo_data.type3:ecdsa_pp_meta_data_d1.type3)|in_discard;
+assign in_meta_data.type3 = in_type3|set_discard_st;
 assign in_meta_data.discard = in_discard|set_discard_st;
 
-wire [`CHUNK_LEN_NBITS-1:0] in_auth_len = sel_lh?0:ecdsa_pp_auth_len_d1;
+wire [`CHUNK_LEN_NBITS-1:0] in_auth_len = sel_lh?0:ecdsa_pp_auth_len_d1+2;
 logic [`CHUNK_LEN_NBITS-1:0] in_auth_len_d1;
-wire [`HEADER_LENGTH_NBITS-1:0] in_hdr_len = sel_lh?(lh_pp_meta_fifo_data.hdr_len<<4):(ecdsa_pp_meta_data_d1.hdr_len<<4)-ecdsa_pp_auth_len_d1;
+wire [`HEADER_LENGTH_NBITS-1:0] in_hdr_len = sel_lh?(lh_pp_meta_fifo_data.hdr_len<<4):(ecdsa_pp_meta_data_d1.hdr_len<<4)-(ecdsa_pp_auth_len_d1+2);
 
 logic [`CHUNK_LEN_NBITS-1:0] pp_len;
 logic [31:0] creation_time;
-wire [`HEADER_LENGTH_NBITS-1:0] pp_chunk_len = in_data[127-8:127-8-7]*2;
+wire [`HEADER_LENGTH_NBITS-1:0] pp_chunk_len = pp_chunk_last_byte_loc+1;
 logic [`HEADER_LENGTH_NBITS-1:0] len_fifo_data;
+
+wire in_valid_1st = in_valid&in_sop;
+wire in_valid_last = in_valid&in_eop;
+
+logic [`DATA_PATH_NBITS-1-6*8:0] in_data_sv;
+logic in_sop_d1;
+logic in_eop_d1;
+
+logic in_valid_d1;
+logic in_valid_d2;
+logic in_valid_d3;
+logic in_valid_d4;
 
 wire [9:0] inst_pd_chunk_len = in_hdr_len-pp_chunk_len;
 
-wire discard_en1 = pp_chunk_len>buf_fifo_count;
-wire discard_en2 = inst_pd_chunk_len>(INST_BUF_FIFO_FULL_COUNT-(pu_pp_inst_buf_fifo_count+6));
-assign set_discard_st = in_valid&(discard_en1|discard_en2);
+wire discard_en1 = (in_meta_data.type1|~in_type3)&(pp_chunk_len>buf_fifo_count);
+wire discard_en2 = (in_meta_data.type1|~in_type3)&(inst_pd_chunk_len>(INST_BUF_FIFO_FULL_COUNT-(pu_pp_inst_buf_fifo_count+6)));
+wire reset_discard_st = in_valid_d1&in_eop_d1;
+assign set_discard_st = in_valid_d1&in_sop_d1&(discard_en1|discard_en2);
 logic discard_st;
 wire discard_mode = set_discard_st|discard_st;
-logic discard_mode_d1;
 
-wire dec_buf_fifo_count0 = in_valid&~set_discard_st;
-wire dec_buf_fifo_count1 = pp_pu_hop_valid;
-wire inc_buf_fifo_count0 = pp_pu_hop_valid&pp_pu_hop_eop;
+logic in_discard_d1;
+
+wire dec_buf_fifo_count0 = in_valid_d1&in_sop_d1&~set_discard_st&~in_meta_data_d1.type3;
+wire dec_buf_fifo_count1 = ~pp_pu_hop_type3&pp_pu_hop_valid;
+wire inc_buf_fifo_count0 = ~pp_pu_hop_type3&pp_pu_hop_valid&pp_pu_hop_eop;
 wire inc_buf_fifo_count1 = pu_pp_buf_fifo_rd_d1;
 
 always @(*)
@@ -172,19 +188,6 @@ always @(*)
 		4'b1111: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len+len_fifo_data;
 	endcase	
 
-logic in_discard_d1;
-
-logic [`DATA_PATH_NBITS-1-6*8:0] in_data_sv;
-logic in_sop_d1;
-
-logic in_valid_d1;
-logic in_valid_d2;
-logic in_valid_d3;
-logic in_valid_d4;
-
-wire in_valid_1st = in_valid&in_sop;
-wire in_valid_last = in_valid&in_eop;
-
 wire pp_valid0_last = pp_valid0&pp_eop0;
 wire set_disable_pp_st = pp_valid0_last;
 logic disable_pp;
@@ -192,55 +195,60 @@ logic disable_pp;
 wire set_enable_inst = pp_valid0_last;
 logic enable_inst;
 
-logic [`CHUNK_LEN_NBITS-1:0] inst_len;
 wire inst_valid = in_valid_d2&enable_inst;
 logic inst_sop;
 wire inst_eop = inst_data_cnt==(inst_chunk_last_byte_loc>>4);
 wire inst_valid_1st = inst_valid&inst_sop;
 wire inst_valid_last = inst_valid&inst_eop;
-wire [`DATA_PATH_VB_RANGE] inst_valid_bytes = inst_eop?inst_chunk_last_byte_loc[3:0]+1:0;
+logic inst_valid_last_d1;
+logic [`DATA_PATH_RANGE] rot_in_data_sv;
+logic [9:0] inst_chunk_last_byte_loc_p1;
+assign inst_chunk_last_byte_loc_p1 = rot_in_data_sv[15-4:15-4-11];
+wire [`DATA_PATH_VB_RANGE] inst_valid_bytes = inst_eop?(inst_sop?inst_chunk_last_byte_loc_p1[3:0]:inst_chunk_last_byte_loc[3:0]+1):0;
 
 wire [2:0] rot_cnt = inst_chunk_first_byte_loc[3:1];
 wire [`DATA_PATH_RANGE] rot_in_data = rot(pp_data0, rot_cnt);
 wire [`DATA_PATH_RANGE] mask = mask_gen(rot_cnt);
 
 logic [`DATA_PATH_RANGE] mask_d1;
-logic [`DATA_PATH_RANGE] rot_in_data_sv;
 
 wire [`DATA_PATH_RANGE] inst_pp_pu_data_p1 = rot_in_data_sv&mask_d1|rot_in_data&~mask_d1;
 logic [`DATA_PATH_RANGE] inst_data;
 
-wire set_enable_pd = inst_valid_last;
+wire set_enable_pd = inst_valid_last_d1|~inst_valid_1st&inst_valid_last;
 logic enable_pd;
 
-logic [`CHUNK_LEN_NBITS-1:0] pd_len;
 wire pd_valid = in_valid_d4&enable_pd;
 logic pd_sop;
 wire pd_valid_1st = pd_valid&pd_sop;
 wire pd_eop = pd_data_cnt==(pd_chunk_last_byte_loc>>4);
 wire pd_valid_last = pd_valid&pd_eop;
-wire [`DATA_PATH_VB_RANGE] pd_valid_bytes = pd_eop?pd_chunk_last_byte_loc[3:0]+1:0;
+logic [9:0] pd_chunk_last_byte_loc_p1;
+logic [`DATA_PATH_RANGE] rot_inst_data_sv;
+assign pd_chunk_last_byte_loc_p1 = rot_inst_data_sv[15-4:15-4-11];
+wire [`DATA_PATH_VB_RANGE] pd_valid_bytes = pd_eop?(pd_sop?pd_chunk_last_byte_loc_p1[3:0]:pd_chunk_last_byte_loc[3:0]+1):0;
 
 wire [2:0] pd_rot_cnt = pd_chunk_first_byte_loc[3:1];
 wire [`DATA_PATH_RANGE] rot_inst_data = rot(inst_data, pd_rot_cnt);
 wire [`DATA_PATH_RANGE] pd_mask = mask_gen(pd_rot_cnt);
 
 logic [`DATA_PATH_RANGE] pd_mask_d1;
-logic [`DATA_PATH_RANGE] rot_inst_data_sv;
 
 wire [`DATA_PATH_RANGE] pd_pp_pu_data_p1 = rot_inst_data_sv&pd_mask_d1|rot_inst_data&~pd_mask_d1;
 
+wire [9:0] pd_chunk_first_byte_loc_p1 = rot_in_data_sv[15-4:15-4-11]+2;
+
 /***************************** NON REGISTERED OUTPUTS ************************/
 
-assign pp_valid0 = in_valid_d1&~disable_pp&~discard_mode_d1&~in_discard_d1;
+assign pp_valid0 = in_valid_d1&~disable_pp&~discard_mode&~in_discard_d1&~in_meta_data_d1.type3;
 assign pp_data0 = {in_data_sv, in_data[`DATA_PATH_NBITS-1:`DATA_PATH_NBITS-1-6*8+1]};
 assign pp_sop0 = in_sop_d1;
-assign pp_eop0 = pp_data_cnt==(pp_chunk_last_byte_loc_d1>>4);
-assign pp_meta_valid0 = in_valid&in_sop;
-assign pp_meta_rci0 = in_meta_data.rci;
-assign pp_meta_data = in_meta_data;
+assign pp_eop0 = pp_data_cnt==(pp_chunk_last_byte_loc>>4);
+assign pp_meta_valid0 = in_valid_d1&in_sop_d1;
+assign pp_meta_rci0 = in_meta_data_d1.rci;
+assign pp_meta_data = in_meta_data_d1;
 assign pp_creation_time = creation_time;
-assign pp_loc = 40+in_auth_len_d1+2+4;
+assign pp_loc = 40+2+in_auth_len_d1+2+4;
 
 assign pp_ecdsa_ready = ~sel_lh;
 
@@ -253,7 +261,8 @@ always @(posedge clk) begin
 	    pp_pu_valid_bytes <= inst_valid?inst_valid_bytes:pd_valid_bytes;
 
 	    pp_pu_inst_pd <= enable_inst;
-	    pp_pu_pd_loc <= 40+in_auth_len_d1+pp_len+2;
+	    pp_pu_pd_loc <= 40+in_auth_len_d1+pp_len+2+(inst_valid_1st?pd_chunk_first_byte_loc_p1+2:pd_chunk_first_byte_loc+2);
+	    pp_pu_pd_len <= pd_valid&~pd_sop?pd_chunk_last_byte_loc+1:pd_chunk_last_byte_loc_p1;
 
 end
 
@@ -264,8 +273,7 @@ always @(`CLK_RST)
 	    pp_pu_valid <= inst_valid|pd_valid;
     end
 
-/***************************** PROGRAM BODY **********************************/
-
+/***************************** PROGRAM BODY **********************************/ 
 always @(posedge clk) begin
 
     ecdsa_pp_valid_d1 <= ecdsa_pp_valid;
@@ -281,21 +289,15 @@ always @(posedge clk) begin
     lh_pp_hdr_data_d1 <= lh_pp_hdr_data;
     lh_pp_meta_data_d1 <= lh_pp_meta_data;
 
-    pp_chunk_last_byte_loc <= in_valid_1st?in_data[127-8:127-8-7]*2+2-1:pp_chunk_last_byte_loc;
-    inst_chunk_first_byte_loc <= in_valid_1st?in_data[127-8:127-8-7]*2+2:inst_chunk_first_byte_loc;
-    inst_chunk_last_byte_loc <= inst_valid_1st?in_data[127-8:127-8-7]*2+2-1:inst_chunk_last_byte_loc;
-    pd_chunk_first_byte_loc <= inst_valid_1st?in_data[127-8:127-8-7]*2+2:pd_chunk_first_byte_loc;
-    pd_chunk_last_byte_loc <= pd_valid_1st?inst_data[127-8:127-8-7]*2+2-1:pd_chunk_last_byte_loc;
+    in_meta_data_d1 <= in_meta_data;
 
     creation_time <= in_valid_1st?in_data[`DATA_PATH_NBITS-1-2*8:`DATA_PATH_NBITS-1-2*8-31]:creation_time;
-    pp_len <= in_valid_1st?in_data[`DATA_PATH_NBITS-1-6*8-`CHUNK_TYPE_NBITS:`DATA_PATH_NBITS-1-6*8-`CHUNK_TYPE_NBITS-`CHUNK_LEN_NBITS+1]*2+2:pp_len;
-    inst_len <= inst_valid_1st?inst_pp_pu_data_p1[`DATA_PATH_NBITS-1-6*8-`CHUNK_TYPE_NBITS:`DATA_PATH_NBITS-1-6*8-`CHUNK_TYPE_NBITS-`CHUNK_LEN_NBITS+1]*2+2:inst_len;
-    pd_len <= pd_valid_1st?pd_pp_pu_data_p1[`DATA_PATH_NBITS-1-6*8-`CHUNK_TYPE_NBITS:`DATA_PATH_NBITS-1-6*8-`CHUNK_TYPE_NBITS-`CHUNK_LEN_NBITS+1]*2+2:pd_len;
+    pp_len <= in_valid_1st?in_data[`DATA_PATH_NBITS-1-`CHUNK_TYPE_NBITS:`DATA_PATH_NBITS-1-`CHUNK_TYPE_NBITS-`CHUNK_LEN_NBITS+1]+2:pp_len;
     in_auth_len_d1 <= in_valid_1st?in_auth_len:in_auth_len_d1;
     in_data_sv <= in_valid?in_data[`DATA_PATH_NBITS-1-6*8:0]:in_data_sv;
     in_sop_d1 <= in_valid?in_sop:in_sop_d1;
+    in_eop_d1 <= in_valid?in_eop:in_eop_d1;
     in_discard_d1 <= in_valid?in_discard:in_discard_d1;
-    discard_mode_d1 <= in_valid?discard_mode:discard_mode_d1;
 
     rot_in_data_sv <= in_valid_d1?rot_in_data:rot_in_data_sv;
     mask_d1 <= mask;
@@ -307,6 +309,9 @@ always @(posedge clk) begin
 
     inst_sop <= set_enable_inst?1'b1:inst_valid?1'b0:inst_sop;
     pd_sop <= set_enable_pd?1'b1:pd_valid?1'b0:pd_sop;
+
+    inst_valid_last_d1 <= inst_valid_last;
+
 end
 
 always @(`CLK_RST) 
@@ -329,13 +334,20 @@ always @(`CLK_RST)
 	disable_pp <= 0;
 	enable_inst <= 0;
 	enable_pd <= 0;
+
+    	pp_chunk_last_byte_loc <= 0;
+    	inst_chunk_first_byte_loc <= 0;
+    	inst_chunk_last_byte_loc <= 0;
+    	pd_chunk_first_byte_loc <= 0;
+    	pd_chunk_last_byte_loc <= 0;
+
     end else begin
 	buf_fifo_count <= buf_fifo_count_p1;
 
 	pu_pp_buf_fifo_rd_d1 <= pu_pp_buf_fifo_rd;
 	pu_pp_inst_buf_fifo_count_d1 <= pu_pp_inst_buf_fifo_count;
 
-	discard_st <= in_valid&(discard_en1|discard_en2)?1'b1:in_valid_last?1'b0:discard_st;
+	discard_st <= reset_discard_st?1'b0:set_discard_st?1'b1:discard_st;
 	pp_ecdsa_ready_d1 <= pp_ecdsa_ready;
 	sel_lh <= toggle_sel_lh?~sel_lh:sel_lh;
 	in_valid_d1 <= in_valid;
@@ -343,11 +355,18 @@ always @(`CLK_RST)
 	in_valid_d3 <= in_valid_d2;
 	in_valid_d4 <= in_valid_d3;
 	pp_data_cnt <= pp_valid0_last?0:~pp_valid0?pp_data_cnt:pp_data_cnt+1;
-	inst_data_cnt <= in_valid_last?0:~inst_valid?inst_data_cnt:inst_data_cnt+1;
-	pd_data_cnt <= in_valid_last?0:~pd_valid?pd_data_cnt:pd_data_cnt+1;
-	disable_pp <= set_disable_pp_st?1'b1:in_valid_last?1'b0:disable_pp;
+	inst_data_cnt <= inst_valid_last?0:~inst_valid?inst_data_cnt:inst_data_cnt+1;
+	pd_data_cnt <= pd_valid_last?0:~pd_valid?pd_data_cnt:pd_data_cnt+1;
+	disable_pp <= set_disable_pp_st?1'b1:in_valid_d1&in_eop_d1?1'b0:disable_pp;
 	enable_inst <= set_enable_inst?1'b1:inst_valid_last?1'b0:enable_inst;
 	enable_pd <= set_enable_pd?1'b1:pd_valid_last?1'b0:enable_pd;
+
+    	pp_chunk_last_byte_loc <= in_valid_1st?in_data[127-4:127-4-11]+2-1:pp_chunk_last_byte_loc;
+    	inst_chunk_first_byte_loc <= in_valid_1st?in_data[127-4:127-4-11]+2-6+2:inst_chunk_first_byte_loc;
+    	inst_chunk_last_byte_loc <= inst_valid_1st?inst_chunk_last_byte_loc_p1-1:inst_chunk_last_byte_loc;
+    	pd_chunk_first_byte_loc <= inst_valid_1st?pd_chunk_first_byte_loc_p1:pd_chunk_first_byte_loc;
+    	pd_chunk_last_byte_loc <= pd_valid_1st?pd_chunk_last_byte_loc_p1-1:pd_chunk_last_byte_loc;
+
     end
 
 sfifo_lh_pp #(1) u_sfifo_lh_pp(
@@ -409,9 +428,9 @@ input[2:0] rot_cnt;
 reg[`DATA_PATH_NBITS-1:0] din0, din1;
 
 begin
-    din0 = rot_cnt[2]?{din[`DATA_PATH_NBITS-1-64:0], din[63:0]}:din;
-    din1 = rot_cnt[1]?{din0[`DATA_PATH_NBITS-1-32:0], din0[31:0]}:din0;
-    rot = rot_cnt[0]?{din1[`DATA_PATH_NBITS-1-16:0], din1[15:0]}:din1;
+    din0 = rot_cnt[2]?{din[`DATA_PATH_NBITS-1-64:0], din[`DATA_PATH_NBITS-1:`DATA_PATH_NBITS-1-63]}:din;
+    din1 = rot_cnt[1]?{din0[`DATA_PATH_NBITS-1-32:0], din0[`DATA_PATH_NBITS-1:`DATA_PATH_NBITS-1-31]}:din0;
+    rot = rot_cnt[0]?{din1[`DATA_PATH_NBITS-1-16:0], din1[`DATA_PATH_NBITS-1:`DATA_PATH_NBITS-1-15]}:din1;
 end
 endfunction
 

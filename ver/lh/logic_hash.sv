@@ -55,6 +55,9 @@ localparam SEL_TYPE3 = 0,
 
 localparam LH_FIFO_DEPTH_NBITS = 10-4;
 
+logic init_wr;
+logic [`FID_NBITS:0] init_addr;
+
 logic ecdsa_lh_wr_d1;
 logic [`FID_NBITS-1:0] ecdsa_lh_waddr_d1;
 logic [`LOGIC_HASH_NBITS-1:0] ecdsa_lh_wdata_d1;
@@ -68,9 +71,10 @@ logic irl_lh_sop_d1;
 logic irl_lh_eop_d1;
 
 wire in_type3 = irl_lh_meta_data_d1.type3;
+wire in_type1 = irl_lh_meta_data_d1.type1;
 wire set_type3 = irl_lh_valid_d1&irl_lh_sop_d1&in_type3;
-wire set_type1 = irl_lh_valid_d1&irl_lh_sop_d1&(irl_lh_hdr_data_d1[127:122]==6'h01)&~in_type3;
-wire set_type2 = irl_lh_valid_d1&irl_lh_sop_d1&(irl_lh_hdr_data_d1[127:120]!=6'h01)&~in_type3;
+wire set_type1 = irl_lh_valid_d1&irl_lh_sop_d1&in_type1&~in_type3;
+wire set_type2 = irl_lh_valid_d1&irl_lh_sop_d1&~in_type1&~in_type3;
 logic type1;
 logic type3;
 
@@ -113,15 +117,12 @@ logic lh_fifo_empty;
 
 logic in_fifo_type1;
 
-wire set_en_type12 = ~lh_gen_fifo_empty&~lh_fifo_empty;
-logic en_type12;
-
 logic sel_st;
 logic n_sel_st;
 
 wire sel_type12 = sel_st==SEL_TYPE12;
 
-wire logic_hash_compare = lh_gen_fifo_data==lh_fifo_data;
+wire logic_hash_compare = lh_gen_fifo_empty|lh_fifo_empty|(lh_gen_fifo_data==lh_fifo_data);
 
 logic [`DATA_PATH_NBITS-1:0] lat_fifo_data;
 logic lat_fifo_sop;
@@ -132,38 +133,53 @@ logic lat_fifo_empty;
 wire lat_fifo_rd = ~sel_type12&~lat_fifo_empty;
 wire lat_fifo_rd_last = lat_fifo_rd&lat_fifo_eop;
 
+logic in_fifo_empty;
 logic [`DATA_PATH_NBITS-1:0] in_fifo_data;
 logic in_fifo_sop;
 logic in_fifo_eop;
 irl_lh_meta_type  in_fifo_meta_data;
 
-logic sel_type1;
-logic in_fifo_empty;
-wire in_fifo_rd_type1 = sel_type1&~in_fifo_empty;
-wire in_fifo_rd_type12 = sel_type12&~in_fifo_empty;
-wire in_fifo_rd = (sel_type1|sel_type12)&~in_fifo_empty;
+wire set_type1_st = ~in_fifo_empty&in_fifo_sop&logic_hash_compare&in_fifo_type1&~sc_fifo_empty&~sc_fifo_data;
+logic type1_st;
+wire sel_type1 = set_type1_st|type1_st;
+
+wire set_type1to2_st = ~in_fifo_empty&in_fifo_sop&logic_hash_compare&in_fifo_type1&~sc_fifo_empty&sc_fifo_data;
+logic type1to2_st;
+
+wire sel_type1to2 = set_type1to2_st|type1to2_st;
+
+wire set_type2_st = ~in_fifo_empty&in_fifo_sop&logic_hash_compare&~in_fifo_type1;
+logic type2_st;
+wire sel_type2 = set_type2_st|type2_st;
+
+wire set_discard_st = ~in_fifo_empty&in_fifo_sop&~logic_hash_compare;
+logic discard_st;
+wire sel_discard = set_discard_st|discard_st;
+
+wire sel_pp = sel_type1to2|sel_type2|sel_discard;
+
+logic in_fifo_rd_en;
+wire in_fifo_rd_type1 = sel_type1&~in_fifo_empty&in_fifo_rd_en;
+wire in_fifo_rd_type12 = sel_type12&sel_type1&~sel_type1to2&~in_fifo_empty&in_fifo_rd_en;
+wire in_fifo_rd_type2 = sel_type12&sel_type2&~in_fifo_empty&in_fifo_rd_en;
+wire in_fifo_rd_discard = sel_type12&sel_discard&~in_fifo_empty&in_fifo_rd_en;
+wire in_fifo_rd = in_fifo_rd_type1|in_fifo_rd_type12|in_fifo_rd_type2|in_fifo_rd_discard;
 wire in_fifo_rd_1st = in_fifo_rd&in_fifo_sop;
 wire in_fifo_rd_last = in_fifo_rd&in_fifo_eop;
-wire in_fifo_rd_type12_1st = in_fifo_rd_type12&in_fifo_sop;
-wire in_fifo_rd_type12_last = in_fifo_rd_type12&in_fifo_eop;
 wire in_fifo_rd_type1_1st = in_fifo_rd_type1&in_fifo_sop;
 wire in_fifo_rd_type1_last = in_fifo_rd_type1&in_fifo_eop;
+wire in_fifo_rd_type12_1st = in_fifo_rd_type12&in_fifo_sop;
+wire in_fifo_rd_type12_last = in_fifo_rd_type12&in_fifo_eop;
+wire in_fifo_rd_type2_1st = in_fifo_rd_type2&in_fifo_sop;
+wire in_fifo_rd_type2_last = in_fifo_rd_type2&in_fifo_eop;
+wire in_fifo_rd_discard_1st = in_fifo_rd_discard&in_fifo_sop;
+wire in_fifo_rd_discard_last = in_fifo_rd_discard&in_fifo_eop;
+wire in_fifo_rd_pp = in_fifo_rd_type12|in_fifo_rd_type2|in_fifo_rd_discard;
+wire in_fifo_rd_pp_last = in_fifo_rd_type12_last|in_fifo_rd_type2_last|in_fifo_rd_discard_last;
 
 wire lh_gen_fifo_rd = in_fifo_rd_1st;
 wire lh_fifo_rd = lh_gen_fifo_rd;
-wire sc_fifo_rd = in_fifo_rd_type1_1st;
-
-wire set_type1to2_st = in_fifo_rd_type12_1st&logic_hash_compare&in_fifo_type1&sc_fifo_data;
-logic type1to2_st;
-
-wire type1to2 = set_type1to2_st|type1to2_st;
-
-wire set_discard_st = in_fifo_rd_type12_1st&~logic_hash_compare&(~in_fifo_type1|type1to2);
-logic discard_st;
-
-wire set_type1_st = in_fifo_rd_type1_1st&in_fifo_type1&~sc_fifo_data;
-logic type1_st;
-assign sel_type1 = set_type1_st|type1_st;
+wire sc_fifo_rd = in_fifo_rd_type1_1st|in_fifo_rd_type12_1st|in_fifo_rd_discard_1st&in_fifo_type1;
 
 irl_lh_meta_type  min_fifo_meta_data;
 assign min_fifo_meta_data.traffic_class = in_fifo_meta_data.traffic_class;
@@ -174,20 +190,23 @@ assign min_fifo_meta_data.port = in_fifo_meta_data.port;
 assign min_fifo_meta_data.rci = in_fifo_meta_data.rci;
 assign min_fifo_meta_data.fid = in_fifo_meta_data.fid;
 assign min_fifo_meta_data.tid = in_fifo_meta_data.tid;
-assign min_fifo_meta_data.type1 = in_fifo_meta_data.type1&~(set_type1to2_st|type1to2_st);
-assign min_fifo_meta_data.type3 = in_fifo_meta_data.type3;
-assign min_fifo_meta_data.discard = in_fifo_meta_data.discard|set_discard_st|discard_st;
+assign min_fifo_meta_data.type1 = in_fifo_meta_data.type1&~sel_type1to2;
+assign min_fifo_meta_data.type3 = in_fifo_meta_data.type3|sel_discard;
+assign min_fifo_meta_data.discard = in_fifo_meta_data.discard|sel_discard;
 
-logic [31:0] data_sv;
 logic [9:0] data_cnt;
 
-wire disable_out = data_cnt<6;
+wire disable_out = (sel_type1to2&data_cnt<6|sel_discard|sel_type2&in_fifo_sop)&~in_fifo_eop;
+
+logic [127-16:0] data_sv;
+logic in_fifo_sop_d1;
 logic in_fifo_eop_d1;
 
-wire min_fifo_rd = type1to2?in_fifo_rd_type12&~disable_out|in_fifo_eop_d1:in_fifo_rd_type12;
-wire min_fifo_sop = type1to2?data_cnt==6:in_fifo_sop;
-wire min_fifo_eop = type1to2?in_fifo_eop_d1:in_fifo_eop;
-wire [`DATA_PATH_RANGE] min_fifo_data = type1to2?{data_sv, in_fifo_data[`DATA_PATH_NBITS-1:32]}:in_fifo_data;
+wire sel_ntype2 = sel_type1|sel_type1to2|sel_discard;
+wire min_fifo_rd = ~disable_out&in_fifo_rd_pp|in_fifo_eop_d1;
+wire min_fifo_sop = sel_type1to2?data_cnt==6:sel_discard?in_fifo_eop:sel_type2?in_fifo_sop_d1:in_fifo_sop&~in_fifo_eop_d1;
+wire min_fifo_eop = sel_ntype2?in_fifo_eop:in_fifo_eop_d1;
+wire [`DATA_PATH_RANGE] min_fifo_data = sel_ntype2?in_fifo_data:{data_sv, in_fifo_data[127:127-15]};
 
 wire logic_hash_wr = ecdsa_lh_wr_d1;
 wire [`FID_NBITS-1:0] logic_hash_waddr = ecdsa_lh_waddr_d1;
@@ -204,7 +223,7 @@ always @(posedge clk) begin
 
 	lh_ecdsa_hash_data <= lh_gen_fifo_data;
 
-	lh_pp_hdr_data <= lat_fifo_rd?lat_fifo_data:in_fifo_data;
+	lh_pp_hdr_data <= lat_fifo_rd?lat_fifo_data:min_fifo_data;
 	lh_pp_meta_data.hdr_len <= lat_fifo_rd?lat_fifo_meta_data.hdr_len:min_fifo_meta_data.hdr_len;
 	lh_pp_meta_data.buf_ptr <= lat_fifo_rd?lat_fifo_meta_data.buf_ptr:min_fifo_meta_data.buf_ptr;
 	lh_pp_meta_data.len <= lat_fifo_rd?lat_fifo_meta_data.len:min_fifo_meta_data.len;
@@ -215,8 +234,8 @@ always @(posedge clk) begin
 	lh_pp_meta_data.type1 <= lat_fifo_rd?lat_fifo_meta_data.type1:min_fifo_meta_data.type1;
 	lh_pp_meta_data.type3 <= lat_fifo_rd?lat_fifo_meta_data.type3:min_fifo_meta_data.type3;
 	lh_pp_meta_data.discard <= lat_fifo_rd?lat_fifo_meta_data.discard:min_fifo_meta_data.discard;
-	lh_pp_sop <= lat_fifo_rd?lat_fifo_sop:in_fifo_sop;
-	lh_pp_eop <= lat_fifo_rd?lat_fifo_eop:in_fifo_eop;
+	lh_pp_sop <= lat_fifo_rd?lat_fifo_sop:min_fifo_sop;
+	lh_pp_eop <= lat_fifo_rd?lat_fifo_eop:min_fifo_eop;
 
 	lh_ecdsa_hdr_data <= in_fifo_data;
 	lh_ecdsa_meta_data.traffic_class <= in_fifo_meta_data.traffic_class;
@@ -242,9 +261,9 @@ always @(`CLK_RST)
 		lh_pp_valid <= 1'b0;
     end else begin
 
-		lh_ecdsa_hash_valid <= set_type1_st;
+		lh_ecdsa_hash_valid <= lh_gen_fifo_rd;
 		lh_ecdsa_valid <= in_fifo_rd_type1;
-		lh_pp_valid <= in_fifo_rd_type12|lat_fifo_rd;
+		lh_pp_valid <= min_fifo_rd|lat_fifo_rd;
     end
 
 /***************************** PROGRAM BODY **********************************/
@@ -253,11 +272,11 @@ always @(*) begin
 	n_sel_st = sel_st;
 	case (sel_st)
 		SEL_TYPE3:
-			if (lat_fifo_empty&en_type12) n_sel_st = SEL_TYPE12;
-			else if (lat_fifo_rd_last&en_type12) n_sel_st = SEL_TYPE12;
+			if (lat_fifo_empty&sel_pp) n_sel_st = SEL_TYPE12;
+			else if (lat_fifo_rd_last&sel_pp) n_sel_st = SEL_TYPE12;
 		SEL_TYPE12:
 			if (in_fifo_empty) n_sel_st = SEL_TYPE3;
-			else if (in_fifo_rd_type12_last&~lat_fifo_empty) n_sel_st = SEL_TYPE3;
+			else if (in_fifo_rd_pp_last&~lat_fifo_empty) n_sel_st = SEL_TYPE3;
 	endcase
 end
 
@@ -279,13 +298,16 @@ always @(posedge clk) begin
 		pkt_serial_num_d1 <= pkt_serial_num;
 		pkt_serial_num_d2 <= pkt_serial_num_d1;
 
-		data_sv <= in_fifo_data[31:0];
-		in_fifo_eop_d1 <= in_fifo_rd_type12&in_fifo_eop;
+		data_sv <= in_fifo_rd?in_fifo_data[127-16:0]:data_sv;
+		in_fifo_sop_d1 <= in_fifo_rd?in_fifo_sop:in_fifo_sop_d1;
 
 end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
+
+		init_wr <= 1'b1;
+		init_addr <= 0;
 
 		ecdsa_lh_wr_d1 <= 1'b0;
 
@@ -294,19 +316,27 @@ always @(`CLK_RST)
 		serial_num_ack <= 1'b0;
 		serial_num_ack_d1 <= 1'b0;
 
+		in_fifo_rd_en <= 1'b0;
+
 		type1 <= 1'b0;
 		type3 <= 1'b0;
-		en_type12 <= 1'b0;
 		logic_hash_ack <= 1'b0;
 
 		discard_st <= 1'b0;
 		type1to2_st <= 1'b0;
+		type1_st <= 1'b0;
+		type2_st <= 1'b0;
 
 		data_cnt <= 0;
 
 		sel_st <= SEL_TYPE12;
 
+		in_fifo_eop_d1 <= 1'b0;
+
     end else begin
+
+		init_wr <= ~init_addr[`FID_NBITS];
+		init_addr <= ~init_addr[`FID_NBITS]?init_addr+1:(1<<`FID_NBITS);
 
 		ecdsa_lh_wr_d1 <= ecdsa_lh_wr;
 
@@ -315,37 +345,41 @@ always @(`CLK_RST)
 		serial_num_ack <= serial_num_rd;
 		serial_num_ack_d1 <= serial_num_ack;
 
-		type1 <= set_type1?1'b1:irl_lh_valid_d1&irl_lh_eop_d1?1'b0:type1; 
-		type3 <= set_type3?1'b1:irl_lh_valid_d1&irl_lh_eop_d1?1'b0:type3; 
-		en_type12 <= set_en_type12?1'b1:in_fifo_rd&in_fifo_eop?1'b0:en_type12; 
+		in_fifo_rd_en <= in_fifo_rd_last?1'b0:lh_valid?1'b1:in_fifo_rd_en;
+
+		type1 <= irl_lh_valid_d1&irl_lh_eop_d1?1'b0:set_type1?1'b1:type1; 
+		type3 <= irl_lh_valid_d1&irl_lh_eop_d1?1'b0:set_type3?1'b1:type3; 
 		logic_hash_ack <= logic_hash_rd;
 
 		discard_st <= set_discard_st?1'b1:in_fifo_rd_type12_last?1'b0:discard_st;
 		type1to2_st <= set_type1to2_st?1'b1:in_fifo_rd_type12_last?1'b0:type1to2_st;
 		type1_st <= set_type1_st?1'b1:in_fifo_rd_type1_last?1'b0:type1_st;
+		type2_st <= set_type2_st?1'b1:in_fifo_rd_type2_last?1'b0:type2_st;
 
 		data_cnt <= in_fifo_rd_last?0:~in_fifo_rd?data_cnt:data_cnt+1;
 
 		sel_st <= n_sel_st;
+
+		in_fifo_eop_d1 <= sel_type2&in_fifo_rd&in_fifo_eop;
     end
 
 
 ram_1r1w #(`LOGIC_HASH_NBITS, `FID_NBITS) u_ram_1r1w_0(
 		.clk(clk),
-		.wr(logic_hash_wr),
+		.wr(logic_hash_wr|init_wr),
 		.raddr(logic_hash_raddr),
-		.waddr(logic_hash_waddr),
-		.din(logic_hash_wdata),
+		.waddr(init_wr?init_addr[`FID_NBITS-1:0]:logic_hash_waddr),
+		.din(init_wr?{(`LOGIC_HASH_NBITS){1'b0}}:logic_hash_wdata),
 
 		.dout(logic_hash_rdata)
 );
 
 ram_1r1w #(`PPL_NBITS+`SERIAL_NUM_NBITS, `FID_NBITS) u_ram_1r1w_1(
 		.clk(clk),
-		.wr(ecdsa_lh_wr_d1),
+		.wr(ecdsa_lh_wr_d1|init_wr),
 		.raddr(serial_num_raddr),
-		.waddr(ecdsa_lh_waddr_d1),
-		.din({ecdsa_lh_ppl_wdata_d1, ecdsa_lh_sn_wdata_d1}),
+		.waddr(init_wr?init_addr[`FID_NBITS-1:0]:ecdsa_lh_waddr_d1),
+		.din(init_wr?{(`PPL_NBITS+`SERIAL_NUM_NBITS){1'b0}}:{ecdsa_lh_ppl_wdata_d1, ecdsa_lh_sn_wdata_d1}),
 
 		.dout({ppl_rdata, serial_num_rdata})
 );

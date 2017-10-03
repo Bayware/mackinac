@@ -9,6 +9,7 @@
 
 module edit_mem_shared_memory #(
 parameter BPTR_NBITS = `EM_BUF_PTR_NBITS,
+parameter BPTR_LSB_NBITS = `EM_BUF_PTR_LSB_NBITS,
 parameter DATA_NBITS = `DATA_PATH_NBITS,
 parameter ID_NBITS = `PORT_ID_NBITS
 ) (
@@ -18,6 +19,7 @@ input `RESET_SIG,
 
 input pu_data_valid,
 input [BPTR_NBITS-1:0] pu_data_buf_ptr,
+input [BPTR_LSB_NBITS-1:0] pu_data_buf_ptr_lsb,
 input [DATA_NBITS-1:0] pu_data,
 
 input data_req,
@@ -25,6 +27,7 @@ input [ID_NBITS-1:0] data_req_dst_port_id,
 input data_req_sop,
 input data_req_eop,
 input [BPTR_NBITS-1:0] data_req_buf_ptr,
+input [BPTR_LSB_NBITS-1:0] data_req_buf_ptr_lsb,
 
 
 	// outputs
@@ -44,6 +47,7 @@ reg [ID_NBITS-1:0] data_req_dst_port_id_d1;
 reg data_req_sop_d1;
 reg data_req_eop_d1;
 reg [BPTR_NBITS-1:0] data_req_buf_ptr_d1;
+reg [BPTR_LSB_NBITS-1:0] data_req_buf_ptr_lsb_d1;
 
 reg data_req_d2;
 reg [ID_NBITS-1:0] data_req_dst_port_id_d2;
@@ -52,6 +56,7 @@ reg data_req_eop_d2;
 
 reg pu_data_valid_d1;
 reg [BPTR_NBITS-1:0] pu_data_buf_ptr_d1;
+reg [BPTR_LSB_NBITS-1:0] pu_data_buf_ptr_lsb_d1;
 reg [DATA_NBITS-1:0] pu_data_d1;
 
 
@@ -71,7 +76,7 @@ always @(`CLK_RST)
 		em_rel_buf_valid <= 0;
 		edit_mem_ack <= 0;
 	end else begin
-		em_rel_buf_valid <= data_req_d1;
+		em_rel_buf_valid <= data_req_d1&(&data_req_buf_ptr_lsb_d1|data_req_eop_d1);
 		edit_mem_ack <= data_req_d2;
 	end
 
@@ -82,10 +87,12 @@ always @(posedge clk) begin
 		data_req_sop_d1 <= data_req_sop;
 		data_req_eop_d1 <= data_req_eop;
 		data_req_buf_ptr_d1 <= data_req_buf_ptr;
+		data_req_buf_ptr_lsb_d1 <= data_req_buf_ptr_lsb;
 		data_req_dst_port_id_d2 <= data_req_dst_port_id_d1;
 		data_req_sop_d2 <= data_req_sop_d1;
 		data_req_eop_d2 <= data_req_eop_d1;
 		pu_data_buf_ptr_d1 <= pu_data_buf_ptr;
+		pu_data_buf_ptr_lsb_d1 <= pu_data_buf_ptr_lsb;
 		pu_data_d1 <= pu_data;
 end
 
@@ -103,11 +110,11 @@ always @(`CLK_RST)
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w #(DATA_NBITS, BPTR_NBITS) u_ram_1r1w(
+ram_1r1w #(DATA_NBITS, BPTR_NBITS+BPTR_LSB_NBITS) u_ram_1r1w(
         .clk(clk),
         .wr(pu_data_valid_d1),
-        .raddr({data_req_buf_ptr_d1}),
-	.waddr({pu_data_buf_ptr_d1}),
+        .raddr({data_req_buf_ptr_d1, data_req_buf_ptr_lsb_d1}),
+	.waddr({pu_data_buf_ptr_d1, pu_data_buf_ptr_lsb_d1}),
         .din(pu_data_d1),
 
         .dout(pb_dout));

@@ -21,7 +21,7 @@ input [`FID_NBITS-1:0] fid_lookup_fid,
 
 input wr_fid_req,
 input [`FID_NBITS-1:0] wr_fid,
-input [QUEUE_DEPTH-1:0] wr_fid_sel_id,
+input [ID_NBITS-1:0] wr_fid_sel_id,
 input wr_fid_sel,
 
 input enq_req, 
@@ -74,8 +74,8 @@ wire pu_wr1 = ~wr1&~lat_fifo_empty&lat_fifo_pu_fid_sel;
 
 wire fid0_wr = wr0|pu_wr0;
 wire fid1_wr = wr1|pu_wr1;
-wire [ID_NBITS-1:0] fid_waddr0 = wr0?enq_fid_sel:lat_fifo_pu_id;
-wire [ID_NBITS-1:0] fid_waddr1 = wr1?enq_fid_sel:lat_fifo_pu_id;
+wire [ID_NBITS-1:0] fid_waddr0 = wr0?enq_qid:lat_fifo_pu_id;
+wire [ID_NBITS-1:0] fid_waddr1 = wr1?enq_qid:lat_fifo_pu_id;
 wire [`FID_NBITS-1:0] fid_wdata0 = wr0?tcam[fid_waddr0].fid0_cnt+1:tcam[fid_waddr0].fid0_cnt-1;
 wire [`FID_NBITS-1:0] fid_wdata1 = wr0?tcam[fid_waddr1].fid1_cnt+1:tcam[fid_waddr1].fid1_cnt-1;
 
@@ -88,8 +88,6 @@ wire lat_fifo_rd = pu_wr0|pu_wr1;
 
 always @(posedge clk) begin
 	for(i=0; i<QUEUE_DEPTH; i++) begin
-		tcam[i].fid0_cnt <= fid0_wr&(fid_waddr0==i)?fid_wdata0:tcam[i].fid0_cnt;
-		tcam[i].fid1_cnt <= fid1_wr&(fid_waddr1==i)?fid_wdata1:tcam[i].fid1_cnt;
 		tcam[i].fid0 <= wr_fid_req&~wr_fid_sel&(wr_fid_sel_id==i)?wr_fid:tcam[i].fid0;
 		tcam[i].fid1 <= wr_fid_req&wr_fid_sel&(wr_fid_sel_id==i)?wr_fid:tcam[i].fid1;
 	end
@@ -100,6 +98,8 @@ always @(`CLK_RST)
 
 		fid_lookup_ack <= 0;
 		for(i=0; i<QUEUE_DEPTH; i++) begin
+			tcam[i].fid0_cnt <= 0;
+			tcam[i].fid1_cnt <= 0;
 			fid_lookup_fid_valid[i] <= 0;
 			fid_lookup_fid_hit[i] <= 0;
 		end
@@ -108,6 +108,8 @@ always @(`CLK_RST)
 
 		fid_lookup_ack <= fid_lookup_req;
 		for(i=0; i<QUEUE_DEPTH; i++) begin
+			tcam[i].fid0_cnt <= fid0_wr&(fid_waddr0==i)?fid_wdata0:tcam[i].fid0_cnt;
+			tcam[i].fid1_cnt <= fid1_wr&(fid_waddr1==i)?fid_wdata1:tcam[i].fid1_cnt;
 			fid_lookup_fid_valid[i] <= n_fid_lookup_fid_valid[i]|wr_fid_valid[i];
 			fid_lookup_fid_hit[i] <= n_fid_lookup_fid_hit[i]|wr_fid_hit[i];
 		end

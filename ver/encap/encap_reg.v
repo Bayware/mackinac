@@ -164,7 +164,7 @@ always @(*) begin
 	endcase
 end
 
-/***************************** REGISTERED OUTPUTS ****************************/
+/*****************************16'h65516'h6558 OUTPUTS ****************************/
 
 assign in_mac_da = {in_mac_da_msb, in_mac_da_lsb};
 assign in_mac_sa = {in_mac_sa_msb, in_mac_sa_lsb};
@@ -177,7 +177,7 @@ always @(`CLK_RST) begin
 		pio_rvalid <= 1'b0;
 
 		in_vlan <= 0;
-		gre_header <= 0;
+		gre_header <= 16'h6558;
 		flow_label <= 0;
 		{identification, ttl, dscp_ecn} <= 0;
 	end else begin

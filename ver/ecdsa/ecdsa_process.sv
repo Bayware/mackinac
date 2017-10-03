@@ -165,22 +165,15 @@ assign data_fifo_rd = ~data_fifo_empty&data_fifo_rd_en&~out_data_fifo_full&(~dat
 wire data_fifo_rd_last = data_fifo_rd&data_fifo_eop;
 
 lh_ecdsa_meta_type mpmeta_fifo_data;
-assign mpmeta_fifo_data.traffic_class = pmeta_fifo_data.traffic_class;
-assign mpmeta_fifo_data.hdr_len = pmeta_fifo_data.hdr_len;
-assign mpmeta_fifo_data.buf_ptr = pmeta_fifo_data.buf_ptr;
-assign mpmeta_fifo_data.len = pmeta_fifo_data.len;
-assign mpmeta_fifo_data.port = pmeta_fifo_data.port;
-assign mpmeta_fifo_data.rci = pmeta_fifo_data.rci;
-assign mpmeta_fifo_data.fid = pmeta_fifo_data.fid;
-assign mpmeta_fifo_data.tid = pmeta_fifo_data.tid;
-assign mpmeta_fifo_data.type1 = pmeta_fifo_data.type1;
-assign mpmeta_fifo_data.type3 = pmeta_fifo_data.type3;
-assign mpmeta_fifo_data.discard = pmeta_fifo_data.discard|~signature_fifo_data;
+always @* begin
+	mpmeta_fifo_data = pmeta_fifo_data;
+	mpmeta_fifo_data.discard = pmeta_fifo_data.discard|~signature_fifo_data;
+end
 
-wire out_data_fifo_wr = signature_fifo_data?(data_fifo_rd&(data_cnt>5))|(data_fifo_rd_d1&data_fifo_eop_d1):data_fifo_rd_last;
-wire out_data_fifo_sop_in = (data_cnt==6);
-wire [`DATA_PATH_RANGE] out_data_fifo_data_in = {data_sv, data_fifo_data[`DATA_PATH_NBITS-1:32]};
-wire out_data_fifo_eop_in = ~signature_fifo_data|data_fifo_eop_d1;
+wire out_data_fifo_wr = ~signature_fifo_empty&signature_fifo_data?(data_fifo_rd&(data_cnt>3))|(data_fifo_rd_d1&data_fifo_eop_d1):data_fifo_rd_last;
+wire out_data_fifo_sop_in = ~signature_fifo_empty&signature_fifo_data?(data_cnt==4):1'b1;
+wire [`DATA_PATH_RANGE] out_data_fifo_data_in = data_fifo_data;
+wire out_data_fifo_eop_in = data_fifo_eop;
 
 wire meta_fifo_rd = data_fifo_rd_last;
 wire out_meta_fifo_wr = meta_fifo_rd;
@@ -240,7 +233,7 @@ assign topic_policy_rd = pdata_fifo_rd_1st;
 
 /***************************** REGISTERED OUTPUTS ****************************/
 
-assign topic_policy_raddr = tid;
+assign topic_policy_raddr = pmeta_fifo_data.tid;
 
 assign ecdsa_pp_sop = out_data_fifo_sop;
 assign ecdsa_pp_eop = out_data_fifo_eop;
@@ -267,8 +260,8 @@ always @(posedge clk) begin
 		ecdsa_lh_sn_wdata <= serial_num;
 		ecdsa_lh_ppl_wdata <= ppl;
 
-		ecdsa_irl_fill_tb_src_waddr <= meta_fifo_data.port;
-		ecdsa_irl_fill_tb_src_wdata <= {fid, ba};
+		ecdsa_irl_fill_tb_src_waddr <= fid;
+		ecdsa_irl_fill_tb_src_wdata <= {meta_fifo_data.port, ba};
 
 		ecdsa_classifier_fid <= fid;
 		ecdsa_classifier_flow_etime <= target_exp_time[`REAL_TIME_NBITS-1:`REAL_TIME_NBITS-`NOTAFTER_NBITS];
@@ -361,7 +354,7 @@ always @(`CLK_RST)
 		pdata_fifo_rd_en <= set_pdata_fifo_rd_en?1'b1:reset_pdata_fifo_rd_en?1'b0:pdata_fifo_rd_en;
 		ecdsa_ip_ready <= pdata_fifo_rd_1st?1'b0:signature_valid?1'b1:ecdsa_ip_ready;
 
-		data_cnt <= pdata_fifo_rd_last?0:~pdata_fifo_rd?data_cnt:data_cnt+1;
+		data_cnt <= data_fifo_rd_last?0:~data_fifo_rd?data_cnt:data_cnt+1;
 
 		data_fifo_rd_en <= set_data_fifo_rd_en?1'b1:reset_data_fifo_rd_en?1'b0:data_fifo_rd_en;
 		data_fifo_rd_d1 <= data_fifo_rd;
@@ -398,7 +391,7 @@ sfifo2f_ram_pf #(`CHUNK_LEN_NBITS, PMETA_FIFO_DEPTH_NBITS) u_sfifo2f_ram_pf_2(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({lh_ecdsa_hdr_data_d1[127-`CHUNK_TYPE_NBITS:127-`CHUNK_TYPE_NBITS-`CHUNK_LEN_NBITS+1]}),				
+		.din({lh_ecdsa_hdr_data_d1[127-16-`CHUNK_TYPE_NBITS:127-16-`CHUNK_TYPE_NBITS-`CHUNK_LEN_NBITS+1]}),				
 		.rd(pmeta_fifo_rd),
 		.wr(lh_ecdsa_valid_d1&lh_ecdsa_sop_d1),
 
@@ -445,7 +438,7 @@ sfifo2f1 #(`CHUNK_LEN_NBITS) u_sfifo2f1_0(
 		.wr(meta_fifo_wr),
 
 		.count(),
-		.full(),
+		.full(meta_fifo_full),
 		.empty(meta_fifo_empty),
 		.fullm1(),
 		.emptyp2(),
@@ -491,7 +484,7 @@ sfifo2f_ram_pf #(`DATA_PATH_NBITS+2, OUT_DATA_FIFO_DEPTH_NBITS) u_sfifo2f_ram_pf
 		.wr(out_data_fifo_wr),
 
 		.count(),
-		.full(),
+		.full(out_data_fifo_full),
 		.empty(out_data_fifo_empty),
 		.dout({out_data_fifo_data, out_data_fifo_sop, out_data_fifo_eop}));				
 

@@ -76,9 +76,11 @@ logic pp_pu_pkt_fifo_empty;
 
 wire hop_fifo_rd0 = hop_fifo_rd&~rptr;
 logic hop_fifo_empty0;
+logic [FIFO_DEPTH_NBITS:0] hop_fifo_count0;
 logic [`HOP_INFO_RANGE] hop_fifo_rdata0;
 wire hop_fifo_rd1 = hop_fifo_rd&rptr;
 logic hop_fifo_empty1;
+logic [FIFO_DEPTH_NBITS:0] hop_fifo_count1;
 logic [`HOP_INFO_RANGE] hop_fifo_rdata1;
 
 wire hop_fifo_empty = rptr?hop_fifo_empty1:hop_fifo_empty0;
@@ -111,6 +113,7 @@ always @(`CLK_RST)
 /**************************************************************************/
 always @(*) begin
   n_st = c_st;
+  inc_rptr = 1'b0;
   reset_process_lev = 1'b0;
   inc_process_lev = 1'b0;
   dec_process_lev = 1'b0;
@@ -153,21 +156,22 @@ always @(*) begin
         endcase
       end
     CUR_START: 
-      if(hop_fifo_empty|dummy_hop)
-        hop_fifo_rd = dummy_hop;
-      else 
-        case (hop_fifo_type)
-          START_PROCESS, START_PROCESS_THREAD: begin
-            n_st = FIND_RCI_MATCH;
-            reset_process_lev = 1'b1;
-          end
-          default: begin
-            hop_fifo_rd = 1'b1;
-            pp_pu_fifo_wr = 1'b1;
-            pp_pu_fifo_sop = 1'b1;
-            n_st = NXT_START;
-          end
-        endcase
+      if(~hop_fifo_empty)
+	if (dummy_hop)
+          hop_fifo_rd = 1'b1;
+        else
+          case (hop_fifo_type)
+            START_PROCESS, START_PROCESS_THREAD: begin
+              n_st = FIND_RCI_MATCH;
+              reset_process_lev = 1'b1;
+            end
+            default: begin
+              hop_fifo_rd = 1'b1;
+              pp_pu_fifo_wr = 1'b1;
+              pp_pu_fifo_sop = 1'b1;
+              n_st = NXT_START;
+            end
+          endcase
     FIND_RCI_MATCH: 
       if(~hop_fifo_empty) begin
         hop_fifo_rd = 1'b1;
@@ -194,29 +198,30 @@ always @(*) begin
           endcase
       end
     NXT_START: 
-      if(hop_fifo_empty|dummy_hop)
-        hop_fifo_rd = dummy_hop;
-      else begin
-        hop_fifo_rd = 1'b1;
-        pp_pu_fifo_wr = 1'b1;
-        case (hop_fifo_type)
-          START_PROCESS: begin
-            n_st = FIND_LIST;
-            reset_process_lev = 1'b1;
-            reset_thread_lev = 1'b1;
-          end
-          START_PROCESS_THREAD: begin
-            n_st = FIND_LIST;
-            reset_process_lev = 1'b1;
-            set_thread_lev = 1'b1;
-          end
-          default: begin
-            n_st = PREV_START;
-            inc_rptr = 1'b1;
-            pp_pu_fifo_eop = 1'b1;
-          end
-        endcase
-      end
+      if(~hop_fifo_empty)
+        if(dummy_hop)
+          hop_fifo_rd = 1'b1;
+        else begin
+          hop_fifo_rd = 1'b1;
+          pp_pu_fifo_wr = 1'b1;
+          case (hop_fifo_type)
+            START_PROCESS: begin
+              n_st = FIND_LIST;
+              reset_process_lev = 1'b1;
+              reset_thread_lev = 1'b1;
+            end
+            START_PROCESS_THREAD: begin
+              n_st = FIND_LIST;
+              reset_process_lev = 1'b1;
+              set_thread_lev = 1'b1;
+            end
+            default: begin
+              n_st = PREV_START;
+              inc_rptr = 1'b1;
+              pp_pu_fifo_eop = 1'b1;
+            end
+          endcase
+        end
     FIND_LIST: 
       if(~hop_fifo_empty) begin
         hop_fifo_rd = 1'b1;
@@ -255,8 +260,11 @@ always @(*) begin
               // synopsys translate_off
               $display("%t START_THREAD dummy_hop not supported", $time);
               // synopsys translate_on
-            end else if(process_lev=={(`PROC_LEV_NBITS){1'b0}}) 
+            end else if(process_lev=={(`PROC_LEV_NBITS){1'b0}}) begin
               set_thread_lev = 1'b1;
+              pp_pu_fifo_wr = 1'b1;
+              pp_pu_fifo_valid = 1'b1;
+	    end
         endcase
       end
   endcase
@@ -286,7 +294,7 @@ sfifo2f_fo #(`HOP_INFO_NBITS, FIFO_DEPTH_NBITS) u_sfifo2f_fo0(
         .wr(hop_fifo_wr0),
 
         .ncount(),
-        .count(),
+        .count(hop_fifo_count0),
         .full(hop_fifo_full0),
         .empty(hop_fifo_empty0),
         .fullm1(hop_fifo_fullm10),
@@ -303,7 +311,7 @@ sfifo2f_fo #(`HOP_INFO_NBITS, FIFO_DEPTH_NBITS) u_sfifo2f_fo1(
         .wr(hop_fifo_wr1),
 
         .ncount(),
-        .count(),
+        .count(hop_fifo_count1),
         .full(hop_fifo_full1),
         .empty(hop_fifo_empty1),
         .fullm1(hop_fifo_fullm11),

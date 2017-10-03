@@ -246,7 +246,7 @@ always @(posedge clk) begin
 		asa_em_buf_ptr <= discard_req_d1?discard_em_buf_ptr_d1:lat_fifo_em_buf_ptr;
 
 		asa_bm_read_count <= discard_req_d1?0:lat_fifo_final_read_count;
-		asa_bm_packet_length <= discard_req_d1?discard_packet_length:lat_fifo_packet_length;
+		asa_bm_packet_length <= discard_req_d1?discard_packet_length_d1:lat_fifo_packet_length;
 		asa_bm_rc_port_id <= discard_req_d1?discard_src_port_d1:lat_fifo_src_port_id;
 		asa_bm_buf_ptr <= discard_req_d1?discard_buf_ptr_d1:lat_fifo_buf_ptr;
 
@@ -312,7 +312,7 @@ logic [`READ_COUNT_NBITS-1:0] save_fifo_final_read_count0;
 logic save_fifo_empty0;
 logic [`PACKET_ID_NBITS-1:0] save_fifo_packet_id0;
 
-wire save_fifo_wr1 = lat_fifo_rd3&(lat_fifo_final_read_count!=0)&~lat_fifo_ucast;
+wire save_fifo_wr1 = lat_fifo_rd0_d2&~lat_fifo_rep_enq_ucast_d2;
 logic [`READ_COUNT_NBITS-1:0] save_fifo_final_read_count1;
 logic save_fifo_empty1;
 logic [`PACKET_ID_NBITS-1:0] save_fifo_packet_id1;
@@ -321,19 +321,19 @@ logic buf_fifo_empty0;
 logic buf_fifo_empty1;
 
 wire same_packet_id0 = (save_fifo_packet_id0==buf_rep_enq_packet_id0);
-wire en_rd0 = ~buf_fifo_empty0&~save_fifo_empty0&same_packet_id0;
-wire buf_fifo_rd0 = en_rd0;
+wire buf_fifo_rd0 = ~buf_fifo_empty0&~save_fifo_empty0&same_packet_id0;
 
 wire same_packet_id1 = (save_fifo_packet_id1==buf_rep_enq_packet_id1);
-wire buf_fifo_rd1 = ~en_rd0&~buf_fifo_empty1&~save_fifo_empty1&same_packet_id1;
+wire buf_fifo_rd1 = ~buf_fifo_rd0&~buf_fifo_empty1&~save_fifo_empty1&same_packet_id1;
 
 wire final_enq0 = enq_read_count0==save_fifo_final_read_count0;
 wire save_fifo_rd0 = buf_fifo_rd0&final_enq0;
 
 wire final_enq1 = enq_read_count1==save_fifo_final_read_count1;
-wire save_fifo_rd1 = buf_fifo_rd1&final_enq1;
+wire save_fifo_rd1 = buf_fifo_rd1;
 
 always @(posedge clk) begin
+		discard_packet_length_d1 <= discard_packet_length;
 		discard_buf_ptr_d1 <= discard_buf_ptr;
 		discard_src_port_d1 <= discard_src_port;
 
@@ -391,6 +391,8 @@ always @(posedge clk) begin
 		packet_length_d2 <= packet_length_d1;
 		em_len_d1 <= em_len;
 		em_len_d2 <= em_len_d1;
+		em_buf_ptr_d1 <= em_buf_ptr;
+		em_buf_ptr_d2 <= em_buf_ptr_d1;
 
 		lat_fifo_rep_enq_qid_d1 <= lat_fifo_rep_enq_qid;			
 		lat_fifo_rep_enq_qid_d2 <= lat_fifo_rep_enq_qid_d1;			
@@ -668,7 +670,7 @@ sfifo2f_fo #(`READ_COUNT_NBITS+`PACKET_ID_NBITS, 5) u_sfifo2f_fo_21(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({lat_fifo_final_read_count, lat_fifo_packet_id}),				
+		.din({final_read_count, lat_fifo_rep_enq_packet_id_d2}),				
 		.rd(save_fifo_rd1),
 		.wr(save_fifo_wr1),
 

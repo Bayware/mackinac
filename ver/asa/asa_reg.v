@@ -83,7 +83,7 @@ always @(`CLK_RST) begin
 		pio_ack <= 1'b0;
 		pio_rvalid <= 1'b0;
 
-		default_sub_exp_time <= 15'b0;
+		default_sub_exp_time <= 16'b11;
 		supervisor_sci <= {(`SCI_NBITS){1'b0}};
 		class2pri <= 15'b0;
 	end else begin

@@ -10,7 +10,9 @@ module piarb #(
 parameter INST_DATA_NBITS = `DATA_PATH_NBITS,
 parameter DATA_NBITS = `HOP_INFO_NBITS,
 parameter INST_BPTR_NBITS = `PIARB_INST_BUF_PTR_NBITS,
+parameter INST_BPTR_LSB_NBITS = `PIARB_INST_BUF_PTR_LSB_NBITS,
 parameter BPTR_NBITS = `PIARB_BUF_PTR_NBITS,
+parameter BPTR_LSB_NBITS = `PIARB_BUF_PTR_LSB_NBITS,
 parameter ID_NBITS = `PU_ID_NBITS,
 parameter QUEUE_ID_NBITS = `PU_ID_NBITS,
 parameter QUEUE_DEPTH = `NUM_OF_PU,
@@ -48,6 +50,7 @@ parameter QUEUE_PAYLOAD_NBITS = `PU_QUEUE_PAYLOAD_NBITS
    input  [`DATA_PATH_RANGE] pp_pu_data,
    input  [`DATA_PATH_VB_RANGE] pp_pu_valid_bytes,
    input [`CHUNK_LEN_NBITS-1:0] pp_pu_pd_loc,
+   input [`CHUNK_LEN_NBITS-1:0] pp_pu_pd_len,
    input  pp_pu_inst_pd,
 
    input pu_fid_done, 
@@ -104,7 +107,7 @@ wire [`FID_NBITS-1:0] fid_lookup_fid;
 
 wire wr_fid_req;
 wire [`FID_NBITS-1:0] wr_fid;
-wire [QUEUE_DEPTH-1:0] wr_fid_sel_id;
+wire [ID_NBITS-1:0] wr_fid_sel_id;
 wire wr_fid_sel;
 
 wire enq_req; 
@@ -115,12 +118,14 @@ wire enq_fid_sel;
 wire inst_write_data_valid;
 wire [INST_DATA_NBITS-1:0] inst_write_data;
 wire [INST_BPTR_NBITS-1:0] inst_write_buf_ptr;    
+wire [INST_BPTR_LSB_NBITS-1:0] inst_write_buf_ptr_lsb;    
 wire [ID_NBITS-1:0] inst_write_port_id;
 wire inst_write_sop;
 
 wire write_data_valid;
 wire [DATA_NBITS-1:0] write_data;
 wire [BPTR_NBITS-1:0] write_buf_ptr;    
+wire [BPTR_LSB_NBITS-1:0] write_buf_ptr_lsb;    
 wire [ID_NBITS-1:0] write_port_id;
 wire write_sop;
 
@@ -226,7 +231,7 @@ piarb_enq u_piarb_enq(
 	.pp_pu_hop_sop(pp_pu_hop_sop),
 	.pp_pu_hop_eop(pp_pu_hop_eop),
 	.pp_pu_meta_data(pp_pu_meta_data),    
-    	.pp_pu_pp_loc(pp_pu_pd_loc),
+    	.pp_pu_pp_loc(pp_pu_pp_loc),
 
 	.pp_pu_valid(pp_pu_valid),
         .pp_pu_sop(pp_pu_sop),
@@ -234,6 +239,7 @@ piarb_enq u_piarb_enq(
         .pp_pu_data(pp_pu_data),
         .pp_pu_valid_bytes(pp_pu_valid_bytes),
     	.pp_pu_pd_loc(pp_pu_pd_loc),
+    	.pp_pu_pd_len(pp_pu_pd_len),
         .pp_pu_inst_pd(pp_pu_inst_pd),
 
 	.inst_free_buf_valid(inst_free_buf_valid),        
@@ -275,12 +281,14 @@ piarb_enq u_piarb_enq(
 	.inst_write_data_valid(inst_write_data_valid),
 	.inst_write_data(inst_write_data),
 	.inst_write_buf_ptr(inst_write_buf_ptr),    
+	.inst_write_buf_ptr_lsb(inst_write_buf_ptr_lsb),    
 	.inst_write_port_id(inst_write_port_id),
 	.inst_write_sop(inst_write_sop),
 
 	.write_data_valid(write_data_valid),
 	.write_data(write_data),
 	.write_buf_ptr(write_buf_ptr),    
+	.write_buf_ptr_lsb(write_buf_ptr_lsb),    
 	.write_port_id(write_port_id),
 	.write_sop(write_sop)
 );
@@ -311,7 +319,7 @@ piarb_tcam u_piarb_tcam(
 
 );
 
-piarb_bm #(`PIARB_BUF_PTR_NBITS, `HOP_INFO_NBITS, `PU_ID_NBITS, `PU_QUEUE_PAYLOAD_NBITS, `PATH_CHUNK_NBITS, 1, 0) u_piarb_bm_0(
+piarb_bm #(`PIARB_BUF_PTR_NBITS, `PIARB_BUF_PTR_LSB_NBITS, `HOP_INFO_NBITS, `PU_ID_NBITS, `PU_QUEUE_PAYLOAD_NBITS, `PATH_CHUNK_NBITS, 1, 2, 0) u_piarb_bm_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -322,6 +330,7 @@ piarb_bm #(`PIARB_BUF_PTR_NBITS, `HOP_INFO_NBITS, `PU_ID_NBITS, `PU_QUEUE_PAYLOA
 	.write_data_valid(write_data_valid),
 	.write_data(write_data),
 	.write_buf_ptr(write_buf_ptr),    
+	.write_buf_ptr_lsb(write_buf_ptr_lsb),    
 	.write_port_id(write_port_id),
 	.write_sop(write_sop),
 
@@ -341,7 +350,7 @@ piarb_bm #(`PIARB_BUF_PTR_NBITS, `HOP_INFO_NBITS, `PU_ID_NBITS, `PU_QUEUE_PAYLOA
 
 );
 
-piarb_bm #(`PIARB_INST_BUF_PTR_NBITS, `DATA_PATH_NBITS, `PU_ID_NBITS, `PU_QUEUE_PAYLOAD_NBITS, `INST_CHUNK_NBITS, `DATA_PATH_NBYTES, 1) u_piarb_bm_1(
+piarb_bm #(`PIARB_INST_BUF_PTR_NBITS, `PIARB_INST_BUF_PTR_LSB_NBITS, `DATA_PATH_NBITS, `PU_ID_NBITS, `PU_QUEUE_PAYLOAD_NBITS, `INST_CHUNK_NBITS, 1, 2, 1) u_piarb_bm_1(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -352,6 +361,7 @@ piarb_bm #(`PIARB_INST_BUF_PTR_NBITS, `DATA_PATH_NBITS, `PU_ID_NBITS, `PU_QUEUE_
 	.write_data_valid(inst_write_data_valid),
 	.write_data(inst_write_data),
 	.write_buf_ptr(inst_write_buf_ptr),    
+	.write_buf_ptr_lsb(inst_write_buf_ptr_lsb),    
 	.write_port_id(inst_write_port_id),
 	.write_sop(inst_write_sop),
 

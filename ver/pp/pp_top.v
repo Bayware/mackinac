@@ -93,7 +93,7 @@ always @(`CLK_RST)
 	ram_waddr <= {(`PATH_CHUNK_DEPTH_NBITS){1'b0}};
 	path_parser_ready0_d1 <= 1'b0;
 	path_parser_ready1_d1 <= 1'b0;
-	pp_ready <= 1'b0;
+	pp_ready <= 1'b1;
     end else begin
 	wr_ptr <= wr_ptr+inc_wr_ptr;
 	rd_ptr <= rd_ptr+inc_rd_ptr;
@@ -113,7 +113,7 @@ ram_1r1w #(`DATA_PATH_NBITS, `PATH_CHUNK_DEPTH_NBITS+1) u_ram_1r1w(
         .din(pp_data),
         .dout(ram_rdata));
 
-pp_rd_ctrl #(0, 0) u_pp_rd_ctrl0(
+pp_rd_ctrl #(PP_ID, 0) u_pp_rd_ctrl0(
     pp_valid,
     pp_eop,
     pp_id,
@@ -138,7 +138,7 @@ pp_rd_ctrl #(0, 0) u_pp_rd_ctrl0(
     `RESET_SIG
    );
 
-pp_rd_ctrl #(0, 1) u_pp_rd_ctrl1(
+pp_rd_ctrl #(PP_ID, 1) u_pp_rd_ctrl1(
     pp_valid,
     pp_eop,
     pp_id,
@@ -182,8 +182,8 @@ pp_sm u_pp_sm(
     hop_fifo_fullm10,
     hop_fifo_full1,
     hop_fifo_fullm11,
-    parse_done0,
-    parse_done1,
+    parser_done0,
+    parser_done1,
 
     pp_pu_hop_valid,
     pp_pu_hop_data,

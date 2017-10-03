@@ -176,6 +176,7 @@ typedef struct {
 
 	logic [`HEADER_LENGTH_NBITS-1:0] ptr_loc;
 	logic [`HEADER_LENGTH_NBITS-1:0] pd_loc;
+	logic [`HEADER_LENGTH_NBITS-1:0] pd_len;
 	logic [`DOMAIN_ID_NBITS-1:0] domain_id;
 	logic [`HEADER_LENGTH_NBITS-1:0] hdr_len;
 	logic [`BUF_PTR_NBITS-1:0] buf_ptr;
@@ -208,6 +209,8 @@ typedef struct {
 
 	logic [`RCI_NBITS-1:0] rci;
 	logic [3-1:0] rci_type;
+	logic [8-1:0] pc;
+	logic [8-1:0] flags;
 	logic [16-1:0] byte_ptr;
 
 } hop_info_type; 
@@ -245,7 +248,7 @@ typedef struct {
 
 typedef struct { 
 
-	logic [8-1:0] traffic_class;
+	logic [`TRAFFIC_CLASS_NBITS-1:0] traffic_class;
 	logic [`HEADER_LENGTH_NBITS-1:0] hdr_len;
 	logic [`BUF_PTR_NBITS-1:0] buf_ptr;
 	logic [`PACKET_LENGTH_NBITS-1:0] len;
@@ -261,7 +264,7 @@ typedef struct {
 
 typedef struct { 
 
-	logic [8-1:0] traffic_class;
+	logic [`TRAFFIC_CLASS_NBITS-1:0] traffic_class;
 	logic [`HEADER_LENGTH_NBITS-1:0] hdr_len;
 	logic [`BUF_PTR_NBITS-1:0] buf_ptr;
 	logic [`PACKET_LENGTH_NBITS-1:0] len;
@@ -277,7 +280,7 @@ typedef struct {
 
 typedef struct { 
 
-	logic [8-1:0] traffic_class;
+	logic [`TRAFFIC_CLASS_NBITS-1:0] traffic_class;
 	logic [`HEADER_LENGTH_NBITS-1:0] hdr_len;
 	logic [`BUF_PTR_NBITS-1:0] buf_ptr;
 	logic [`PACKET_LENGTH_NBITS-1:0] len;

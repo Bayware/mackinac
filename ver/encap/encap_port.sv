@@ -63,11 +63,11 @@ output logic tx_axis_tlast
 
 /***************************** LOCAL VARIABLES *******************************/
 
-localparam IN_FIFO_DEPTH_NBITS = 5;
-localparam XON_LEVEL = 5;
+localparam IN_FIFO_DEPTH_NBITS = 6;
+localparam XON_LEVEL = 16;
 localparam XOFF_LEVEL = ((1<<IN_FIFO_DEPTH_NBITS)-XON_LEVEL);
 localparam REQ_FIFO_DEPTH_NBITS = 2;
-localparam OUT_FIFO_DEPTH_NBITS = 4;
+localparam OUT_FIFO_DEPTH_NBITS = 8;
 localparam VLAN_TYPE = 16'h8100;
 localparam IPV4_TYPE = 16'h0800;
 localparam IPV6_TYPE = 16'h86dd;
@@ -100,7 +100,7 @@ logic encr_ring_in_valid_d2;
 logic [ID_NBITS-1:0] segment_cnt;
 logic [2:0] word_cnt;
 
-logic [IN_FIFO_DEPTH_NBITS:0] in_fifo_ncount;
+logic [IN_FIFO_DEPTH_NBITS:0] in_fifo_count;
 logic in_fifo_empty;
 logic [PBUS_NBITS-1:0] in_fifo_data;
 logic [PBUS_VB_NBITS-1:0] in_fifo_valid_bytes;
@@ -197,10 +197,11 @@ wire reset_en_pkt_len = p_tx_fifo_wr&p_tx_fifo_in_eop;
 wire result_fifo_rd = reset_en_pkt_len;
 
 logic out_fifo_eop_d1;
-logic [PBUS_VB_NBITS-1:0] out_fifo_valid_bytes_d1;    
+logic [PBUS_VB_NBITS-1:0] mout_fifo_valid_bytes_d1;    
 
 logic out_fifo_rd;
-wire one_more_tx = out_fifo_rd&out_fifo_eop&out_fifo_valid_bytes>2;
+wire [2:0] mout_fifo_valid_bytes = {~|out_fifo_valid_bytes, out_fifo_valid_bytes};
+wire one_more_tx = out_fifo_rd&out_fifo_eop&mout_fifo_valid_bytes>2;
 
 wire p_tx_fifo_rd = ~p_tx_fifo_empty&~tx_fifo_full;
 wire p_tx_fifo_nav = p_tx_fifo_full&~p_tx_fifo_rd;
@@ -223,7 +224,7 @@ always @(posedge clk) begin
 		encr_ring_out_data <= en_req?req_fifo_rdata[CI_NBITS-1:0]:encr_ring_in_data_d2;
 		encr_ring_out_sof <= encr_ring_in_sof_d2;
 		encr_ring_out_sos <= encr_ring_in_sos_d2;
-		encr_ring_out_valid <= req_fifo_rd;
+		encr_ring_out_valid <= en_req?req_fifo_rd:encr_ring_in_valid_d2;
 
 end
 
@@ -232,7 +233,7 @@ always @(`CLK_RST)
     if (`ACTIVE_RESET) begin
 		port_dstr_bp <= 1'b0;
 	end else begin
-		port_dstr_bp <= in_fifo_ncount<XON_LEVEL?1'b0:in_fifo_ncount>XOFF_LEVEL?1'b1:port_dstr_bp;
+		port_dstr_bp <= in_fifo_count<XON_LEVEL?1'b0:in_fifo_count>XOFF_LEVEL?1'b1:port_dstr_bp;
 
 	end
 
@@ -266,7 +267,7 @@ always @(*) begin
 	p_tx_fifo_in_valid_bytes = 0;
 	p_tx_fifo_in_sop = 1'b0;
 	p_tx_fifo_in_eop = 1'b0;      
-	p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+	p_tx_fifo_wr = en_pkt_len&~out_fifo_empty&~p_tx_fifo_nav;
 	case ({/*result_fifo_ipsec*/ 1'b0, in_vlan_tagged, l2_gre, ~(~result_fifo_empty&result_fifo_ipv4), (~result_fifo_empty&result_fifo_vlan_tagged)}) 
 		5'h00: 
 			case (pkt_len[LEN_NBITS-1:2])
@@ -306,8 +307,8 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
@@ -348,8 +349,8 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
@@ -407,8 +408,8 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
@@ -469,8 +470,8 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
@@ -517,13 +518,12 @@ always @(*) begin
 					p_tx_fifo_in_data = {in_mac_sa[47:32]};
 				end
 				12: begin
-					p_tx_fifo_in_data = {in_mac_sa[15:0], out_fifo_data[31:16]};
-					out_fifo_rd = p_tx_fifo_wr;
+					p_tx_fifo_in_data = {in_mac_sa[15:0], IPV6_TYPE};
 				end
 				default: begin
-					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_data = {out_fifo_data[31:0]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
@@ -573,13 +573,12 @@ always @(*) begin
 					p_tx_fifo_in_data = {in_mac_sa[47:32]};
 				end
 				13: begin
-					p_tx_fifo_in_data = {in_mac_sa[15:0], out_fifo_data[31:16]};
-					out_fifo_rd = p_tx_fifo_wr;
+					p_tx_fifo_in_data = {in_mac_sa[15:0], IPV6_TYPE};
 				end
 				default: begin
-					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_data = {out_fifo_data};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
@@ -641,13 +640,12 @@ always @(*) begin
 					p_tx_fifo_in_data = {in_mac_sa[47:32]};
 				end
 				17: begin
-					p_tx_fifo_in_data = {in_mac_sa[15:0], out_fifo_data[31:16]};
-					out_fifo_rd = p_tx_fifo_wr;
+					p_tx_fifo_in_data = {in_mac_sa[15:0], IPV6_TYPE};
 				end
 				default: begin
-					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_data = {out_fifo_data[31:0]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
@@ -712,18 +710,229 @@ always @(*) begin
 					p_tx_fifo_in_data = {in_mac_sa[47:32]};
 				end
 				18: begin
-					p_tx_fifo_in_data = {in_mac_sa[15:0], out_fifo_data[31:16]};
-					out_fifo_rd = p_tx_fifo_wr;
+					p_tx_fifo_in_data = {in_mac_sa[15:0], IPV6_TYPE};
 				end
 				default: begin
-					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_data = {out_fifo_data[31:0]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
 			endcase
-		5'h08, 5'h0c: 
+		5'h08: 
+			case (pkt_len[LEN_NBITS-1:2])
+				0: begin
+					p_tx_fifo_in_data = mac_da[47:16];
+					p_tx_fifo_in_sop = 1'b1;
+				end
+				1: begin
+					p_tx_fifo_in_data = {mac_da[15:0], mac_sa[47:32]};
+				end
+				2: begin
+					p_tx_fifo_in_data = mac_sa[31:0];
+				end
+				3: begin
+					p_tx_fifo_in_data = {IPV4_TYPE, ipv4_1st_word};
+				end
+				4: begin
+					p_tx_fifo_in_data = {total_length, identification};
+				end
+				5: begin
+					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
+				end
+				6: begin
+					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+				end
+				7: begin
+					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
+					ip_sa_fifo_rd = 1'b1;
+				end
+				8: begin
+					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
+					ip_da_fifo_rd = 1'b1;
+				end
+				9: begin
+					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
+					out_fifo_rd = p_tx_fifo_wr;
+				end
+				default: begin
+					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
+					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+				end
+			endcase
+		5'h09: 
+			case (pkt_len[LEN_NBITS-1:2])
+				0: begin
+					p_tx_fifo_in_data = mac_da[47:16];
+					p_tx_fifo_in_sop = 1'b1;
+				end
+				1: begin
+					p_tx_fifo_in_data = {mac_da[15:0], mac_sa[47:32]};
+				end
+				2: begin
+					p_tx_fifo_in_data = mac_sa[31:0];
+				end
+				3: begin
+					p_tx_fifo_in_data = {VLAN_TYPE, result_fifo_vlan};
+				end
+				4: begin
+					p_tx_fifo_in_data = {IPV4_TYPE, ipv4_1st_word};
+				end
+				5: begin
+					p_tx_fifo_in_data = {total_length, identification};
+				end
+				6: begin
+					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
+				end
+				7: begin
+					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+				end
+				8: begin
+					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
+					ip_sa_fifo_rd = 1'b1;
+				end
+				9: begin
+					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
+					ip_da_fifo_rd = 1'b1;
+				end
+				10: begin
+					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
+					out_fifo_rd = p_tx_fifo_wr;
+				end
+				default: begin
+					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
+					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+				end
+			endcase
+		5'h0a: 
+			case (pkt_len[LEN_NBITS-1:2])
+				0: begin
+					p_tx_fifo_in_data = mac_da[47:16];
+					p_tx_fifo_in_sop = 1'b1;
+				end
+				1: begin
+					p_tx_fifo_in_data = {mac_da[15:0], mac_sa[47:32]};
+				end
+				2: begin
+					p_tx_fifo_in_data = mac_sa[31:0];
+				end
+				3: begin
+					p_tx_fifo_in_data = {IPV6_TYPE, ipv6_1st_word};
+				end
+				4: begin
+					p_tx_fifo_in_data = {flow_label[15:0], payload_length};
+				end
+				5: begin
+					p_tx_fifo_in_data = {GRE_PROTOCOL_NUM, ttl, ip_sa[127:112]};
+				end
+				6: begin
+					p_tx_fifo_in_data = {ip_sa[111:80]};
+				end
+				7: begin
+					p_tx_fifo_in_data = {ip_sa[79:48]};
+				end
+				8: begin
+					p_tx_fifo_in_data = {ip_sa[47:16]};
+				end
+				9: begin
+					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
+					ip_sa_fifo_rd = 1'b1;
+				end
+				10: begin
+					p_tx_fifo_in_data = {ip_da[111:80]};
+				end
+				11: begin
+					p_tx_fifo_in_data = {ip_da[79:48]};
+				end
+				12: begin
+					p_tx_fifo_in_data = {ip_da[47:16]};
+				end
+				13: begin
+					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
+					ip_da_fifo_rd = 1'b1;
+				end
+				14: begin
+					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
+					out_fifo_rd = p_tx_fifo_wr;
+				end
+				default: begin
+					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
+					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+				end
+			endcase
+		5'h0b: 
+			case (pkt_len[LEN_NBITS-1:2])
+				0: begin
+					p_tx_fifo_in_data = mac_da[47:16];
+					p_tx_fifo_in_sop = 1'b1;
+				end
+				1: begin
+					p_tx_fifo_in_data = {mac_da[15:0], mac_sa[47:32]};
+				end
+				2: begin
+					p_tx_fifo_in_data = mac_sa[31:0];
+				end
+				3: begin
+					p_tx_fifo_in_data = {VLAN_TYPE, result_fifo_vlan};
+				end
+				4: begin
+					p_tx_fifo_in_data = {IPV6_TYPE, ipv6_1st_word};
+				end
+				5: begin
+					p_tx_fifo_in_data = {flow_label[15:0], payload_length};
+				end
+				6: begin
+					p_tx_fifo_in_data = {GRE_PROTOCOL_NUM, ttl, ip_sa[127:112]};
+				end
+				7: begin
+					p_tx_fifo_in_data = {ip_sa[111:80]};
+				end
+				8: begin
+					p_tx_fifo_in_data = {ip_sa[79:48]};
+				end
+				9: begin
+					p_tx_fifo_in_data = {ip_sa[47:16]};
+				end
+				10: begin
+					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
+					ip_sa_fifo_rd = 1'b1;
+				end
+				11: begin
+					p_tx_fifo_in_data = {ip_da[111:80]};
+				end
+				12: begin
+					p_tx_fifo_in_data = {ip_da[79:48]};
+				end
+				13: begin
+					p_tx_fifo_in_data = {ip_da[47:16]};
+				end
+				14: begin
+					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
+					ip_da_fifo_rd = 1'b1;
+				end
+				15: begin
+					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
+					out_fifo_rd = p_tx_fifo_wr;
+				end
+				default: begin
+					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
+					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+				end
+			endcase
+		5'h0c: 
 			case (pkt_len[LEN_NBITS-1:2])
 				0: begin
 					p_tx_fifo_in_data = mac_da[47:16];
@@ -768,18 +977,17 @@ always @(*) begin
 					p_tx_fifo_in_data = {in_mac_sa[15:0], VLAN_TYPE};
 				end
 				13: begin
-					p_tx_fifo_in_data = {in_vlan[15:0], out_fifo_data[31:16]};
-					out_fifo_rd = p_tx_fifo_wr;
+					p_tx_fifo_in_data = {in_vlan[15:0], IPV6_TYPE};
 				end
 				default: begin
-					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_data = {out_fifo_data[31:0]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
 			endcase
-		5'h09, 5'h0d: 
+		5'h0d: 
 			case (pkt_len[LEN_NBITS-1:2])
 				0: begin
 					p_tx_fifo_in_data = mac_da[47:16];
@@ -827,18 +1035,17 @@ always @(*) begin
 					p_tx_fifo_in_data = {in_mac_sa[15:0], VLAN_TYPE};
 				end
 				14: begin
-					p_tx_fifo_in_data = {in_vlan[15:0], out_fifo_data[31:16]};
-					out_fifo_rd = p_tx_fifo_wr;
+					p_tx_fifo_in_data = {in_vlan[15:0], IPV6_TYPE};
 				end
 				default: begin
-					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_data = {out_fifo_data[31:0]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
 			endcase
-		5'h0a, 5'h0e: 
+		5'h0e: 
 			case (pkt_len[LEN_NBITS-1:2])
 				0: begin
 					p_tx_fifo_in_data = mac_da[47:16];
@@ -898,18 +1105,17 @@ always @(*) begin
 					p_tx_fifo_in_data = {in_mac_sa[15:0], VLAN_TYPE};
 				end
 				18: begin
-					p_tx_fifo_in_data = {in_vlan[15:0], out_fifo_data[31:16]};
-					out_fifo_rd = p_tx_fifo_wr;
+					p_tx_fifo_in_data = {in_vlan[15:0], IPV6_TYPE};
 				end
 				default: begin
-					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_data = {out_fifo_data[31:0]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
 			endcase
-		5'h0b, 5'h0f: 
+		5'h0f: 
 			case (pkt_len[LEN_NBITS-1:2])
 				0: begin
 					p_tx_fifo_in_data = mac_da[47:16];
@@ -972,13 +1178,12 @@ always @(*) begin
 					p_tx_fifo_in_data = {in_mac_sa[15:0], VLAN_TYPE};
 				end
 				19: begin
-					p_tx_fifo_in_data = {in_vlan[15:0], out_fifo_data[31:16]};
-					out_fifo_rd = p_tx_fifo_wr;
+					p_tx_fifo_in_data = {in_vlan[15:0], IPV6_TYPE};
 				end
 				default: begin
-					p_tx_fifo_in_data = {out_fifo_data_lsb_sv, out_fifo_data[31:16]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?out_fifo_valid_bytes_d1:~out_fifo_eop?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:out_fifo_valid_bytes<3;      
+					p_tx_fifo_in_data = {out_fifo_data[31:0]};
+					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
+					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
 					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
 					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
 				end
@@ -1017,7 +1222,7 @@ always @(posedge clk) begin
 
 		out_fifo_data_lsb_sv <= out_fifo_rd?out_fifo_data[15:0]:out_fifo_data_lsb_sv;
 
-		out_fifo_valid_bytes_d1 <= one_more_tx?out_fifo_valid_bytes-2:0;
+		mout_fifo_valid_bytes_d1 <= one_more_tx?mout_fifo_valid_bytes-2:0;
 end
 
 
@@ -1065,7 +1270,7 @@ encap_ip u_encap_ip (
 );
 
 
-sfifo2f_fo #(PBUS_NBITS+PBUS_VB_NBITS+2, IN_FIFO_DEPTH_NBITS) u_sfifo2f_fo_0(
+sfifo2f_ram_pf #(PBUS_NBITS+PBUS_VB_NBITS+2, IN_FIFO_DEPTH_NBITS) u_sfifo2f_ram_pf_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1073,12 +1278,9 @@ sfifo2f_fo #(PBUS_NBITS+PBUS_VB_NBITS+2, IN_FIFO_DEPTH_NBITS) u_sfifo2f_fo_0(
         .rd(in_fifo_rd),
         .wr(dstr_enc_data_valid_d1),
 
-        .ncount(in_fifo_ncount),
-        .count(),
+        .count(in_fifo_count),
         .full(),
         .empty(in_fifo_empty),
-        .fullm1(),
-        .emptyp2(),
         .dout({in_fifo_data, in_fifo_valid_bytes, in_fifo_sop, in_fifo_eop})       
     );
 
@@ -1100,7 +1302,7 @@ sfifo2f_fo #(LEN_NBITS+CI_NBITS, REQ_FIFO_DEPTH_NBITS) u_sfifo2f_fo_1(
         .dout(req_fifo_rdata)       
     );
 
-sfifo2f1 #(LEN_NBITS) u_sfifo2f1_2(
+sfifo2f_fo #(LEN_NBITS, 2) u_sfifo2f_fo_2(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1108,6 +1310,7 @@ sfifo2f1 #(LEN_NBITS) u_sfifo2f1_2(
         .rd(req_pending_fifo_rd),
         .wr(req_pending_fifo_wr),
 
+        .ncount(),
         .count(),
         .full(),
         .empty(req_pending_fifo_empty),
@@ -1179,10 +1382,10 @@ sfifo2f_fo #(LEN_NBITS+3+RING_NBITS) u_sfifo2f_fo_6(
         .empty(result_fifo_empty),
         .fullm1(),
         .emptyp2(),
-        .dout({result_fifo_pkt_len, result_fifo_ipv4, result_fifo_ipsec, result_fifo_vlan_tagged, result_fifo_sn, result_fifo_spi, result_fifo_vlan, result_fifo_mac_da})       
+        .dout({result_fifo_pkt_len, result_fifo_ipv4, result_fifo_ipsec, result_fifo_vlan_tagged, result_fifo_mac_da, result_fifo_vlan, result_fifo_spi, result_fifo_sn})       
     );
 
-sfifo2f_fo #(PBUS_NBITS+PBUS_VB_NBITS+2, OUT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_7(
+sfifo2f_ram_pf #(PBUS_NBITS+PBUS_VB_NBITS+2, OUT_FIFO_DEPTH_NBITS) u_sfifo2f_ram_pf_7(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1190,12 +1393,9 @@ sfifo2f_fo #(PBUS_NBITS+PBUS_VB_NBITS+2, OUT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_7(
         .rd(out_fifo_rd),
         .wr(out_fifo_wr),
 
-        .ncount(),
         .count(),
         .full(),
         .empty(out_fifo_empty),
-        .fullm1(),
-        .emptyp2(),
         .dout({out_fifo_data, out_fifo_valid_bytes, out_fifo_sop, out_fifo_eop})       
     );
 

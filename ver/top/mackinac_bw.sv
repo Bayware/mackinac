@@ -394,6 +394,7 @@ localparam ADDR_NBITS = `ENQ_ED_CMD_PD_BP_NBITS+`PD_CHUNK_DEPTH_NBITS-`DATA_PATH
 logic edit_mem_req;
 logic [ADDR_NBITS-1:0] edit_mem_raddr;
 logic [`PORT_ID_NBITS-1:0] edit_mem_port_id;
+logic edit_mem_sop;
 logic edit_mem_eop;
 
 logic edit_mem_ack;
@@ -488,7 +489,16 @@ pio_bus u_pio_bus(
     .clk_div(clk_div),
     .pio_ack(pio_ack),
     .pio_rvalid(pio_rvalid),
-    .pio_rdata(pio_rdata),
+    .pio_rdata0(pio_rdata[0]),
+    .pio_rdata1(pio_rdata[1]),
+    .pio_rdata2(pio_rdata[2]),
+    .pio_rdata3(pio_rdata[3]),
+    .pio_rdata4(pio_rdata[4]),
+    .pio_rdata5(pio_rdata[5]),
+    .pio_rdata6(pio_rdata[6]),
+    .pio_rdata7(pio_rdata[7]),
+    .pio_rdata8(pio_rdata[8]),
+    .pio_rdata9(pio_rdata[9]),
 
     .pio_start(pio_start),
     .pio_rw(pio_rw),
@@ -911,6 +921,7 @@ pp u_pp(
     .pp_pu_data(pp_pu_data),
     .pp_pu_valid_bytes(pp_pu_valid_bytes),
     .pp_pu_pd_loc(pp_pu_pd_loc),
+    .pp_pu_pd_len(pp_pu_pd_len),
     .pp_pu_inst_pd(pp_pu_inst_pd)
 
 );
@@ -946,6 +957,7 @@ piarb u_piarb(
     .pp_pu_data(pp_pu_data),
     .pp_pu_valid_bytes(pp_pu_valid_bytes),
     .pp_pu_pd_loc(pp_pu_pd_loc),
+    .pp_pu_pd_len(pp_pu_pd_len),
     .pp_pu_inst_pd(pp_pu_inst_pd),
 
     .pu_fid_done(pu_fid_done),
@@ -1226,6 +1238,7 @@ edit_mem u_edit_mem(
     .edit_mem_req(edit_mem_req),
     .edit_mem_raddr(edit_mem_raddr),
     .edit_mem_port_id(edit_mem_port_id),
+    .edit_mem_sop(edit_mem_sop),
     .edit_mem_eop(edit_mem_eop),
     
     .em_asa_valid(em_asa_valid),
@@ -1259,6 +1272,7 @@ editor u_editor(
     .edit_mem_req(edit_mem_req),
     .edit_mem_raddr(edit_mem_raddr),
     .edit_mem_port_id(edit_mem_port_id),
+    .edit_mem_sop(edit_mem_sop),
     .edit_mem_eop(edit_mem_eop),
     
     .ed_dstr_data_valid(ed_dstr_data_valid),

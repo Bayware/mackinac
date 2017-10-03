@@ -9,7 +9,8 @@
 
 module piarb_freeb_ctrl #(
 parameter ID_NBITS = `PU_ID_NBITS,
-parameter BPTR_NBITS = `PIARB_BUF_PTR_NBITS
+parameter BPTR_NBITS = `PIARB_BUF_PTR_NBITS,
+parameter BPTR_LSB_NBITS = `PIARB_BUF_PTR_LSB_NBITS
 ) (
     input clk,
     input `RESET_SIG,
@@ -23,12 +24,13 @@ parameter BPTR_NBITS = `PIARB_BUF_PTR_NBITS
 
     input write_data_valid,    
     input [BPTR_NBITS-1:0] write_buf_ptr,        
+    input [BPTR_LSB_NBITS-1:0] write_buf_ptr_lsb,    
     input write_sop,            
     input [ID_NBITS-1:0] write_port_id,        
 
     // outputs
 
-    output reg inc_freeb_rd_count, 
+    output inc_freeb_rd_count, 
     output reg inc_freeb_wr_count,
 
     output reg freeb_init_done,    
@@ -53,7 +55,7 @@ localparam [1:0]  INIT_IDLE = 0,
 
 reg [1:0] init_st, nxt_init_st;
 
-reg [BPTR_NBITS-1:0] free_buf_ptr_saved[`NUM_OF_PORTS-1:0];
+reg [BPTR_NBITS-1:0] free_buf_ptr_saved[`NUM_OF_PU-1:0];
 
 reg free_buf_req_d1;
 reg free_buf_req_d2;
@@ -61,6 +63,7 @@ reg free_buf_req_d2;
 
 reg write_data_valid_d1;
 reg [BPTR_NBITS-1:0] write_buf_ptr_d1;
+reg [BPTR_LSB_NBITS-1:0] write_buf_ptr_lsb_d1;    
 
 reg write_sop_d1;
 reg [ID_NBITS-1:0] write_port_id_d1;
@@ -90,7 +93,7 @@ wire enable_rd = free_buf_req_d1;
 
 wire prefetch_fifo_rd_p1 = freeb_init_done&enable_rd&(prefetch_fifo_rd?(prefetch_fifo_count>1):~prefetch_fifo_empty);
 
-wire save_buf_ptr = write_data_valid_d1;
+wire save_buf_ptr = write_data_valid_d1&~|write_buf_ptr_lsb_d1;
 
 wire fifo_wr = freeb_init_wr|rel_buf_valid_d1;
 
@@ -130,10 +133,11 @@ always @(posedge clk) begin
         
         rel_buf_ptr_d1 <= rel_buf_ptr;
         write_buf_ptr_d1 <= write_buf_ptr;
+        write_buf_ptr_lsb_d1 <= write_buf_ptr_lsb;
         write_port_id_d1 <= write_port_id;
         write_sop_d1 <= write_sop;
 
-        for (i = 0; i < `NUM_OF_PORTS; i = i + 1) 
+        for (i = 0; i < `NUM_OF_PU; i = i + 1) 
             free_buf_ptr_saved[i] <= save_buf_ptr&(write_port_id_d1==i)?write_buf_ptr_d1:free_buf_ptr_saved[i];
 end
 

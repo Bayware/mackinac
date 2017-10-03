@@ -78,7 +78,6 @@ logic [`BUF_PTR_NBITS-1:0] pre_buf_fifo_buf_ptr[`NUM_OF_PORTS-1:0];
 enq_ed_cmd_type pre_buf_fifo_ed_cmd[`NUM_OF_PORTS-1:0];
 
 logic [`BUF_FIFO_DEPTH_NBITS:0] pre_buf_fifo_count[`NUM_OF_PORTS-1:0];
-logic [`PACKET_LENGTH_NBITS-1:0] pre_buf_fifo_packet_length[`NUM_OF_PORTS-1:0];
 logic [`ENQ_ED_CMD_NBITS-1:0] pre_buf_fifo_edit_command[`NUM_OF_PORTS-1:0];
 
 logic [`PACKET_LENGTH_NBITS-1:0] buf_fifo_pkt_len[`NUM_OF_PORTS-1:0];
@@ -122,6 +121,7 @@ logic [`NUM_OF_PORTS-1:0] tran_fifo_wr;
 logic [`NUM_OF_PORTS-1:0] pre_buf_fifo_rd;
 logic [`NUM_OF_PORTS-1:0] buf_fifo_wr;
 logic [`NUM_OF_PORTS-1:0] edit_fifo_wr;
+logic [`NUM_OF_PORTS-1:0] edit_fifo_rd;
 logic [`NUM_OF_PORTS-1:0] first_ptr_fifo_wr;
 
 logic [`NUM_OF_PORTS-1:0] pb_req_fifo_empty;
@@ -224,7 +224,7 @@ always @(`CLK_RST)
 			packet_length_ctr[i] <= 0;
 			packet_req_lsb[i] <= 0;
 		end
-		first_buf <= 1;
+		first_buf <= {(`NUM_OF_PORTS){1'b1}};
 
 	end else begin
 
@@ -237,7 +237,7 @@ always @(`CLK_RST)
 		for (i=0; i<`NUM_OF_PORTS; i++) begin
 			port_packet_req_sop[i] <= req_fifo_wr[i]?(port_packet_req_eop[i]?1:0):port_packet_req_sop[i];
 			tran_sop[i] <= tran_fifo_wr[i]?(tran_eop[i]?1:0):tran_sop[i];
-			tran_packet_length_ctr[i] <= tran_fifo_wr[i]?(tran_eop[i]?0:tran_sop[i]?pre_buf_fifo_packet_length[i]-`BUF_SIZE:tran_packet_length_ctr[i]-`BUF_SIZE):tran_packet_length_ctr[i];
+			tran_packet_length_ctr[i] <= tran_fifo_wr[i]?(tran_sop[i]?pre_buf_fifo_pkt_desc[i].ed_cmd.len-`BUF_SIZE:tran_eop[i]?0:tran_packet_length_ctr[i]-`BUF_SIZE):tran_packet_length_ctr[i];
 			packet_length_ctr[i] <= req_fifo_wr[i]?(port_packet_req_eop[i]?0:port_packet_req_sop[i]?buf_fifo_pkt_len[i]-`DATA_PATH_NBYTES:packet_length_ctr[i]-`DATA_PATH_NBYTES):packet_length_ctr[i];
 			packet_req_lsb[i] <= req_fifo_wr[i]?(port_packet_req_eop[i]?0:&packet_req_lsb[i]?0:packet_req_lsb[i]+1):packet_req_lsb[i];
 			first_buf[i] <= req_fifo_wr[i]&port_packet_req_eop[i]?1:req_fifo_wr[i]&(&packet_req_lsb[i])?0:first_buf[i];
@@ -289,7 +289,8 @@ genvar gi;
 generate
 for (gi=0; gi<`NUM_OF_PORTS; gi++) begin
 
-assign tran_eop[gi] = tran_sop[gi]?~(pre_buf_fifo_packet_length[gi]>`BUF_SIZE):~(tran_packet_length_ctr[gi]>`BUF_SIZE);
+assign edit_fifo_rd[gi] = packet_ack_data_valid_d1&(packet_ack_port_id_d1==gi)&packet_ack_sop_d1;
+assign tran_eop[gi] = tran_sop[gi]?~(pre_buf_fifo_pkt_desc[gi].ed_cmd.len>`BUF_SIZE):~(tran_packet_length_ctr[gi]>`BUF_SIZE);
 assign tran_fifo_wr[gi] = (tran_sop[gi]?~pre_buf_fifo_empty[gi]&~buf_fifo_full[gi]&~edit_fifo_full[gi]&~first_ptr_fifo_full[gi]:1)&~tran_fifo_full[gi];
 assign pre_buf_fifo_rd[gi] = tran_fifo_wr[gi]&tran_sop[gi];
 assign buf_fifo_wr[gi] = pre_buf_fifo_rd[gi];
@@ -383,12 +384,12 @@ sfifo_enq_ed_cmd #(1) u_sfifo_enq_ed_cmd_3(
 		.`RESET_SIG(`RESET_SIG),
 
 		.din(pre_buf_fifo_ed_cmd[gi]),       
-		.rd(buf_fifo_rd[gi]),
-		.wr(buf_fifo_wr[gi]),
+		.rd(edit_fifo_rd[gi]),
+		.wr(edit_fifo_wr[gi]),
 
 		.ncount(),
 		.count(),
-		.full(),
+		.full(edit_fifo_full[gi]),
 		.empty(),
 		.fullm1(),
 		.emptyp2(),
@@ -449,7 +450,7 @@ sfifo2f1 #(`BUF_PTR_NBITS) u_sfifo2f1_7(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din(ptr_fifo_rd[gi]?first_ptr_fifo_buf_ptr[gi]:pb_fifo_buf_ptr[gi]),				
+		.din(~pb_fifo_rd[gi]?first_ptr_fifo_buf_ptr[gi]:pb_fifo_buf_ptr[gi]),				
 		.rd(pb_req_fifo_rd[gi]),
 		.wr(pb_req_fifo_wr[gi]),
 

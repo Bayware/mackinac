@@ -27,10 +27,10 @@ output logic gnt
 //
 reg [INPUT_NBITS-1:0] arb;		 
 
-wire [INPUT_NBITS-1:0] n_arb;
+reg [INPUT_NBITS:0] n_arb;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
-assign sel = n_arb;
+assign sel = arb;
 
 /***************************** REGISTERED OUTPUTS ****************************/
 
@@ -38,7 +38,10 @@ assign sel = n_arb;
 
 wire [NUM_OF_INPUT-1:0] rot_req = rot(req, arb); 
 wire [INPUT_NBITS-1:0] pri_result = pri(rot_req);
-assign n_arb = arb+pri_result;
+always @* begin
+	n_arb = arb+pri_result;
+	n_arb = n_arb>NUM_OF_INPUT?n_arb-NUM_OF_INPUT:n_arb;
+end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin

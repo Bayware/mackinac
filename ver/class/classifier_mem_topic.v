@@ -124,7 +124,7 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
-	        init_wr <= 1'b0;
+	        init_wr <= 1'b1;
 	        init_addr <= 0;
 	        topic_key_wr_d1 <= 1'b0;
 	        topic_etime_wr <= 1'b0;
@@ -192,8 +192,8 @@ ram_1r1w #(`TOPIC_KEY_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_0(
 		.clk(clk),
 		.wr(init_wr|topic_key_wr_d1),
 		.raddr(topic_key_raddr),
-		.waddr(init_wr?init_addr:topic_key_waddr_d1),
-		.din(init_wr?0:topic_key_wdata_d1),
+		.waddr(init_wr?init_addr[VALUE_DEPTH_NBITS-1:0]:topic_key_waddr_d1),
+		.din(init_wr?{(`TOPIC_KEY_NBITS){1'b0}}:topic_key_wdata_d1),
 
 		.dout(topic_key_rdata)
 );
@@ -202,8 +202,8 @@ ram_1r1w #(`EXP_TIME_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_2(
 		.clk(clk),
 		.wr(init_wr|topic_etime_wr),
 		.raddr(topic_etime_raddr),
-		.waddr(init_wr?init_addr:topic_etime_waddr),
-		.din(init_wr?0:topic_etime_wdata),
+		.waddr(init_wr?init_addr[VALUE_DEPTH_NBITS-1:0]:topic_etime_waddr),
+		.din(init_wr?{(`EXP_TIME_NBITS){1'b0}}:topic_etime_wdata),
 
 		.dout(topic_etime_rdata)
 );

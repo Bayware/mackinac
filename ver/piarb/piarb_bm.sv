@@ -11,10 +11,12 @@ import meta_package::*;
 
 module piarb_bm #(
 parameter BPTR_NBITS = `PIARB_INST_BUF_PTR_NBITS,
+parameter BPTR_LSB_NBITS = `PIARB_INST_BUF_PTR_LSB_NBITS,
 parameter DATA_NBITS = `DATA_PATH_NBITS,
 parameter ID_NBITS = `PU_ID_NBITS,
 parameter DESC_NBITS = `PU_QUEUE_PAYLOAD_NBITS,
 parameter LEN_NBITS = `INST_CHUNK_NBITS,
+parameter DATA_SIZE = 1,
 parameter BUF_SIZE = `DATA_PATH_NBYTES,
 parameter TYPE = 1
 ) (
@@ -28,6 +30,7 @@ input pu_queue_payload_type deq_ack_desc,
 
 input write_data_valid,
 input [BPTR_NBITS-1:0] write_buf_ptr,
+input [BPTR_LSB_NBITS-1:0] write_buf_ptr_lsb,
 input [DATA_NBITS-1:0] write_data,
 input write_sop,
 input [ID_NBITS-1:0] write_port_id,
@@ -58,6 +61,7 @@ wire [ID_NBITS-1:0] data_req_dst_port_id;
 wire data_req_sop;
 wire data_req_eop;
 wire [BPTR_NBITS-1:0] data_req_buf_ptr;
+wire [BPTR_LSB_NBITS-1:0] data_req_buf_ptr_lsb;
 wire data_req_inst;
 
 wire buf_req;
@@ -89,7 +93,7 @@ wire          inc_ll_wr_count;
 
 /***************************** PROGRAM BODY **********************************/
 
-piarb_read_data #(BPTR_NBITS, ID_NBITS, LEN_NBITS, DESC_NBITS, DATA_NBITS, BUF_SIZE, TYPE) u_piarb_read_data(
+piarb_read_data #(BPTR_NBITS, BPTR_LSB_NBITS, ID_NBITS, LEN_NBITS, DESC_NBITS, DATA_NBITS, DATA_SIZE, BUF_SIZE, TYPE) u_piarb_read_data(
 
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
@@ -99,6 +103,7 @@ piarb_read_data #(BPTR_NBITS, ID_NBITS, LEN_NBITS, DESC_NBITS, DATA_NBITS, BUF_S
         .deq_ack_desc(deq_ack_desc), 
 
         .data_ack_valid(data_ack_valid), 
+        .data_ack_qid(data_ack_port_id), 
         .data_ack_sop(data_ack_sop), 
 
         .buf_ack_valid(buf_ack_valid), 
@@ -113,12 +118,13 @@ piarb_read_data #(BPTR_NBITS, ID_NBITS, LEN_NBITS, DESC_NBITS, DATA_NBITS, BUF_S
         .data_req_sop(data_req_sop), 
         .data_req_eop(data_req_eop), 
         .data_req_buf_ptr(data_req_buf_ptr), 
+        .data_req_buf_ptr_lsb(data_req_buf_ptr_lsb), 
         .data_req_inst(data_req_inst), 
 
         .data_ack_meta(data_ack_meta) 
 );
 
-piarb_freeb_ctrl #(ID_NBITS, BPTR_NBITS) u_piarb_freeb_ctrl(
+piarb_freeb_ctrl #(ID_NBITS, BPTR_NBITS, BPTR_LSB_NBITS) u_piarb_freeb_ctrl(
 
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
@@ -132,6 +138,7 @@ piarb_freeb_ctrl #(ID_NBITS, BPTR_NBITS) u_piarb_freeb_ctrl(
 
 		.write_data_valid(write_data_valid),
 		.write_buf_ptr(write_buf_ptr),
+		.write_buf_ptr_lsb(write_buf_ptr_lsb),
 		.write_sop(write_sop),
 		.write_port_id(write_port_id),		
 
@@ -175,12 +182,13 @@ piarb_linked_list #(BPTR_NBITS) u_piarb_linked_list(
 );
 
 
-piarb_shared_memory #(ID_NBITS, BPTR_NBITS, DATA_NBITS) u_piarb_shared_memory(
+piarb_shared_memory #(ID_NBITS, BPTR_NBITS, BPTR_LSB_NBITS, DATA_NBITS) u_piarb_shared_memory(
 	.clk(clk),
 	.`RESET_SIG(`RESET_SIG),
 
 	.write_data_valid(write_data_valid),
 	.write_buf_ptr(write_buf_ptr),
+	.write_buf_ptr_lsb(write_buf_ptr_lsb),
 	.write_data(write_data),
 
 	.data_req(data_req),
@@ -189,6 +197,7 @@ piarb_shared_memory #(ID_NBITS, BPTR_NBITS, DATA_NBITS) u_piarb_shared_memory(
 	.data_req_sop(data_req_sop),
 	.data_req_eop(data_req_eop),
 	.data_req_buf_ptr(data_req_buf_ptr),
+	.data_req_buf_ptr_lsb(data_req_buf_ptr_lsb),
         .data_req_inst(data_req_inst), 
 
 	// outputs

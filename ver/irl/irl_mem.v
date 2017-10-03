@@ -70,10 +70,10 @@ input token_bucket_wr,
 input [DEPTH_NBITS-1:0] token_bucket_waddr,
 input [BUCKET_NBITS-1:0] token_bucket_wdata,
 
-output reg limiting_profile_cir_ack, 
+output limiting_profile_cir_ack, 
 output [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_cir_rdata  /* synthesis keep = 1 */,
 
-output reg limiting_profile_eir_ack, 
+output limiting_profile_eir_ack, 
 output [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_eir_rdata  /* synthesis keep = 1 */,
 
 output reg fill_tb_src_ack, 

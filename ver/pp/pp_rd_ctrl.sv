@@ -136,7 +136,7 @@ always @(*) begin
       if(prev_hop_ptr==`INITIAL_HOP) begin
         n_st = WAIT_4_RAM2;
         n_hop_fifo_wr = 1'b1;
-        n_hop_fifo_wdata = {prev_hop_ptr, hop_data[`DATA_PATH_NBITS-1:`DATA_PATH_NBITS-1-31]};
+        n_hop_fifo_wdata = {prev_hop_ptr, exec, 16'h0};
         set_initial_flag = 1'b1;
       end else if(prev_hop_ptr>hop_ptr) begin
         n_ram_rd = 1'b1;
@@ -147,10 +147,25 @@ always @(*) begin
         set_prev_flag = 1'b1;
       end
     WAIT_4_RAM1: 
+      if(parser_done) begin
+        n_st = IDLE;
+        set_path_parser_ready = 1'b1;
+        n_hop_fifo_reset = 1'b1;
+      end else 
         n_st = WAIT_4_RAM2;
-    WAIT_4_RAM2: 
+    WAIT_4_RAM2:
+      if(parser_done) begin
+        n_st = IDLE;
+        set_path_parser_ready = 1'b1;
+        n_hop_fifo_reset = 1'b1;
+      end else 
         n_st = WAIT_4_RAM3;
     WAIT_4_RAM3: begin 
+      if(parser_done) begin
+        n_st = IDLE;
+        set_path_parser_ready = 1'b1;
+        n_hop_fifo_reset = 1'b1;
+      end else begin
         n_st = GET_HOP;
         if (initial_flag) begin
           n_hop_ptr = 4;
@@ -164,13 +179,14 @@ always @(*) begin
           shift_2byte = 1'b1;
           reset_shift_2byte_more <= 1'b1;
         end
+      end
     end
     GET_HOP: 
       if(parser_done) begin
         n_st = IDLE;
         set_path_parser_ready = 1'b1;
         n_hop_fifo_reset = 1'b1;
-      end else if (~hop_fifo_full&(hop_fifo_wr&~hop_fifo_fullm1)) begin
+      end else if (~hop_fifo_full&(~hop_fifo_wr|~hop_fifo_fullm1)) begin
         n_hop_fifo_wr = 1'b1;
         if (ins_type) begin
           n_hop_fifo_wdata = {hop_ptr, hop_data[`DATA_PATH_NBITS-1:`DATA_PATH_NBITS-1-31]};
@@ -198,15 +214,15 @@ end
 
 always @(posedge clk) begin
   ram_rd_d1 <= ram_rd;
-  {prev_hop_ptr, exec} <= get_prev?ram_rdata:{prev_hop_ptr, exec};
+  {prev_hop_ptr, exec} <= get_prev?ram_rdata[127:127-31]:{prev_hop_ptr, exec};
   hop_ptr <= n_hop_ptr;
   hop_data <= ram_rd_d1?ram_rdata:shift(hop_data, {shift_8byte, shift_4byte, shift_2byte, shift_1byte});
 end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
-      initial_flag <= 1'b1;
-      prev_flag <= 1'b1;
+      initial_flag <= 1'b0;
+      prev_flag <= 1'b0;
       shift_2byte_more <= 1'b0;
       c_st <= IDLE;
     end else begin
@@ -218,7 +234,7 @@ always @(`CLK_RST)
 
 /**************************************************************************/
    
-function shift;
+function [`DATA_PATH_RANGE] shift;
 input [`DATA_PATH_RANGE] data_in;
 input [3:0] s_cnt;
 reg [`DATA_PATH_RANGE] data3, data2, data1;

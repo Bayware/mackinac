@@ -30,7 +30,6 @@ input asa_proc_valid,
 input asa_proc_type3,
 input asa_proc_meta_type asa_proc_meta,
 input [RAS_WIDTH-1:0] asa_proc_ras,
-input asa_proc_discard,
 
 output logic asa_classifier_valid,
 output logic [`FID_NBITS-1:0] asa_classifier_fid,
@@ -59,13 +58,11 @@ logic asa_proc_valid_d1;
 logic asa_proc_type3_d1;
 asa_proc_meta_type asa_proc_meta_d1;
 logic [RAS_WIDTH-1:0] asa_proc_ras_d1;
-logic asa_proc_discard_d1;
 
 logic asa_proc_valid_d2;
 logic asa_proc_type3_d2;
 asa_proc_meta_type asa_proc_meta_d2;
 logic [RAS_WIDTH-1:0] asa_proc_ras_d2;
-logic asa_proc_discard_d2;
 
 logic ecdsa_asa_fp_wr_d1;
 logic [`FID_NBITS-1:0] ecdsa_asa_fp_waddr_d1;				
@@ -118,18 +115,18 @@ logic [`SCI_VEC_NBITS-1:0] flow_bit_vec;
 
 logic [7:0] flow_vec_valid_p1;
 
-assign flow_vec_valid_p1[0] = asa_proc_ras_d1[(1+`SCI_NBITS)*1+`RAS_FLAG_NBITS-1];
-assign flow_vec_valid_p1[1] = asa_proc_ras_d1[(1+`SCI_NBITS)*2+`RAS_FLAG_NBITS-1];
-assign flow_vec_valid_p1[2] = asa_proc_ras_d1[(1+`SCI_NBITS)*3+`RAS_FLAG_NBITS-1];
-assign flow_vec_valid_p1[3] = asa_proc_ras_d1[(1+`SCI_NBITS)*4+`RAS_FLAG_NBITS-1];
-assign flow_vec_valid_p1[4] = asa_proc_ras_d1[(1+`SCI_NBITS)*5+`RAS_FLAG_NBITS-1];
-assign flow_vec_valid_p1[5] = asa_proc_ras_d1[(1+`SCI_NBITS)*6+`RAS_FLAG_NBITS-1];
-assign flow_vec_valid_p1[6] = asa_proc_ras_d1[(1+`SCI_NBITS)*7+`RAS_FLAG_NBITS-1];
-assign flow_vec_valid_p1[7] = asa_proc_ras_d1[(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS-1];
+assign flow_vec_valid_p1[0] = ~asa_proc_ras_d1[(1+`SCI_NBITS)*1+`RAS_FLAG_NBITS-1];
+assign flow_vec_valid_p1[1] = ~asa_proc_ras_d1[(1+`SCI_NBITS)*2+`RAS_FLAG_NBITS-1];
+assign flow_vec_valid_p1[2] = ~asa_proc_ras_d1[(1+`SCI_NBITS)*3+`RAS_FLAG_NBITS-1];
+assign flow_vec_valid_p1[3] = ~asa_proc_ras_d1[(1+`SCI_NBITS)*4+`RAS_FLAG_NBITS-1];
+assign flow_vec_valid_p1[4] = ~asa_proc_ras_d1[(1+`SCI_NBITS)*5+`RAS_FLAG_NBITS-1];
+assign flow_vec_valid_p1[5] = ~asa_proc_ras_d1[(1+`SCI_NBITS)*6+`RAS_FLAG_NBITS-1];
+assign flow_vec_valid_p1[6] = ~asa_proc_ras_d1[(1+`SCI_NBITS)*7+`RAS_FLAG_NBITS-1];
+assign flow_vec_valid_p1[7] = ~asa_proc_ras_d1[(1+`SCI_NBITS)*8+`RAS_FLAG_NBITS-1];
 
 logic [7:0] flow_vec_valid;
 
-wire topic_vec_valid_p1 = asa_proc_ras_d1[(1+`SCI_NBITS)*9+`RAS_FLAG_NBITS-1];
+wire topic_vec_valid_p1 = ~asa_proc_ras_d1[(1+`SCI_NBITS)*9+`RAS_FLAG_NBITS-1];
 logic topic_vec_valid;
 
 wire [`RAS_FLAG_NBITS-1:0] ras_flag = asa_proc_ras_d2[`RAS_FLAG_NBITS-1:0];
@@ -155,20 +152,20 @@ wire [`FLOW_POLICY2_MASKON_RANGE] flow_maskon = fp_rdata_d1[`FLOW_POLICY2_MASKON
 wire domain_discard = asa_proc_meta_d2.type1&(asa_proc_meta_d2.domain_id!=fp_rdata_d1[`FLOW_POLICY2_DOMAIN_ID]);
 wire in_discard = asa_proc_meta_d2.discard;
 
-wire fmo_allow_update_ppd = flow_maskon[2];
-wire fmo_allow_update_fas = flow_maskon[3];
-wire fmo_allow_update_tas = flow_maskon[4];
-wire fmo_allow_execute_forward = flow_maskon[5];
-wire fmo_allow_fsas_forward = flow_maskon[6];
-wire fmo_allow_tsas_forward = flow_maskon[7];
-wire fmo_allow_multicast = flow_maskon[8];
-wire fmo_allow_forward_supervisor = flow_maskon[9];
+wire fmo_allow_update_ppd = flow_maskon[2-2];
+wire fmo_allow_update_fas = flow_maskon[3-2];
+wire fmo_allow_update_tas = flow_maskon[4-2];
+wire fmo_allow_execute_forward = flow_maskon[5-2];
+wire fmo_allow_fsas_forward = flow_maskon[6-2];
+wire fmo_allow_tsas_forward = flow_maskon[7-2];
+wire fmo_allow_multicast = flow_maskon[8-2];
+wire fmo_allow_forward_supervisor = flow_maskon[9-2];
 
 wire fa_vec_wr = ~in_discard&~domain_discard&~terminate_flow&execute_flow&allow_update&(|flow_vec_valid)&fmo_allow_update_fas&asa_proc_valid_d2&~asa_proc_type3_d2;
 wire fa_default_type_wr = ~in_discard&~domain_discard&~terminate_flow&ras_ufdast[2]&fmo_allow_update_fas&asa_proc_valid_d2&~asa_proc_type3_d2;
 wire fa_wr = fa_vec_wr|fa_default_type_wr;
 wire [`ACTION_SET_TYPE_NBITS-1:0] fa_default_type_rd = fa_rdata_d1[`FLOW_ACTION_NBITS-1:`SCI_VEC_NBITS];
-wire [`ACTION_SET_TYPE_NBITS-1:0] fa_default_type = ~fa_default_type_wr?fa_default_type_rd:ras_ufdast[1:0];				
+wire [`ACTION_SET_TYPE_NBITS-1:0] fa_default_type = /*~fa_default_type_wr?fa_default_type_rd:*/ras_ufdast[1:0];				
 wire [`SCI_VEC_NBITS-1:0] fa_action_set_rd = fa_rdata_d1[`SCI_VEC_NBITS-1:0];
 wire [`SCI_VEC_NBITS-1:0] fa_action_set = ~fa_vec_wr?fa_action_set_rd:flow_bit_vec;
 wire [`FLOW_ACTION_NBITS-1:0] fa_wdata = {fa_default_type, fa_action_set};				
@@ -202,7 +199,7 @@ wire [`SCI_VEC_NBITS-1:0] type_eflow_forward_enable = type_use_eflow?flow_bit_ve
 
 wire [`FLOW_POLICY2_TCLASS_RANGE] traffic_class = fp_rdata_d1[`FLOW_POLICY2_TCLASS];
 
-wire asa_rep_enq_discard_p1 = in_discard|domain_discard|(asa_proc_type3_d2?type3_discard:discard_packet)|asa_proc_discard_d2;
+wire asa_rep_enq_discard_p1 = in_discard|domain_discard|(asa_proc_type3_d2?type3_discard:discard_packet);
 wire asa_rep_enq_req_p1 = asa_proc_valid_d2;
 
 wire [`SCI_VEC_NBITS-1:0] asa_rep_enq_vec_p1 = asa_proc_type3_d2?in_rci_mask&supervisor_mask&(type3_topic_forward_enable|type3_flow_forward_enable):in_rci_mask&supervisor_mask&(type_stopic_forward_enable|type_sflow_forward_enable|type_etopic_forward_enable|type_eflow_forward_enable);
@@ -215,14 +212,15 @@ assign asa_rep_enq_desc_p1.src_port = asa_proc_meta_d2.src_port;
 assign asa_rep_enq_desc_p1.dst_port = asa_proc_meta_d2.dst_port;
 assign asa_rep_enq_desc_p1.buf_ptr = asa_proc_meta_d2.buf_ptr;
 
-assign asa_rep_enq_desc_p1.ed_cmd.ptr_update = ras_uppp;
+assign asa_rep_enq_desc_p1.ed_cmd.ptr_update = ~asa_proc_type3_d2&ras_uppp;
 assign asa_rep_enq_desc_p1.ed_cmd.cur_ptr = asa_proc_meta_d2.ed_cmd.cur_ptr;
 assign asa_rep_enq_desc_p1.ed_cmd.ptr_loc = asa_proc_meta_d2.ed_cmd.ptr_loc;
-assign asa_rep_enq_desc_p1.ed_cmd.pd_update = fmo_allow_update_ppd&ras_uppd;
+assign asa_rep_enq_desc_p1.ed_cmd.pd_update = ~asa_proc_type3_d2&fmo_allow_update_ppd&ras_uppd;
 assign asa_rep_enq_desc_p1.ed_cmd.pd_len = asa_proc_meta_d2.ed_cmd.pd_len;
 assign asa_rep_enq_desc_p1.ed_cmd.pd_loc = asa_proc_meta_d2.ed_cmd.pd_loc;
 assign asa_rep_enq_desc_p1.ed_cmd.pd_buf_ptr = asa_proc_meta_d2.ed_cmd.pd_buf_ptr;
 assign asa_rep_enq_desc_p1.ed_cmd.len = asa_proc_meta_d2.ed_cmd.len;
+assign asa_rep_enq_desc_p1.ed_cmd.out_rci = asa_proc_meta_d2.ed_cmd.out_rci;
 
 wire [`TID_NBITS - 1 : 0] asa_rep_enq_tid_p1 = asa_proc_meta_d2.tid;
 
@@ -268,11 +266,9 @@ always @(posedge clk) begin
 		asa_proc_type3_d1 <= asa_proc_type3;
 		asa_proc_meta_d1 <= asa_proc_meta;
 		asa_proc_ras_d1 <= asa_proc_ras;
-		asa_proc_discard_d1 <= asa_proc_discard;
 		asa_proc_type3_d2 <= asa_proc_type3_d1;
 		asa_proc_meta_d2 <= asa_proc_meta_d1;
 		asa_proc_ras_d2 <= asa_proc_ras_d1;
-		asa_proc_discard_d2 <= asa_proc_discard_d1;
 		fp_rdata_d1 <= fp_rdata;
 		fa_rdata_d1 <= fa_rdata;
 		ta_rdata_d1 <= ta_rdata;

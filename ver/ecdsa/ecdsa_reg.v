@@ -64,7 +64,7 @@ always @(`CLK_RST) begin
 		pio_ack <= 1'b0;
 		pio_rvalid <= 1'b0;
 
-		default_exp_time <= {(`REAL_TIME_NBITS){1'b0}};
+		default_exp_time <= {(`EXP_TIME_NBITS){1'b1}};
 	end else begin
 		pio_ack <= clk_div?n_pio_ack&~rd_en:pio_ack;
 		pio_rvalid <= clk_div?n_pio_rvalid&reg_bs&rd_en&n_pio_ack:pio_rvalid;

@@ -9,6 +9,7 @@
 
 module edit_mem #(
 parameter BPTR_NBITS = `EM_BUF_PTR_NBITS,
+parameter BPTR_LSB_NBITS = `EM_BUF_PTR_LSB_NBITS,
 parameter DATA_NBITS = `DATA_PATH_NBITS,
 parameter ID_NBITS = `PORT_ID_NBITS,
 parameter LEN_NBITS = `PD_CHUNK_DEPTH_NBITS,
@@ -34,6 +35,7 @@ input [LEN_NBITS-1:0] asa_em_pd_length,
 input edit_mem_req,
 input [ADDR_NBITS-1:0] edit_mem_raddr,
 input [`PORT_ID_NBITS-1:0] edit_mem_port_id,
+input edit_mem_sop,
 input edit_mem_eop,
 
 output em_asa_valid,
@@ -56,6 +58,7 @@ wire pu_buf_available;
 
 wire pu_data_valid; 
 wire [BPTR_NBITS-1:0] pu_data_buf_ptr;    
+wire [BPTR_LSB_NBITS-1:0] pu_data_buf_ptr_lsb;    
 wire [`DATA_PATH_NBITS-1:0] pu_data;   
 
 wire data_req;
@@ -63,6 +66,7 @@ wire [ID_NBITS-1:0] data_req_dst_port_id;
 wire data_req_sop;
 wire data_req_eop;
 wire [BPTR_NBITS-1:0] data_req_buf_ptr;
+wire [BPTR_LSB_NBITS-1:0] data_req_buf_ptr_lsb;
 
 wire buf_req;
 wire [BPTR_NBITS-1:0] buf_req_ptr;
@@ -111,6 +115,7 @@ edit_mem_read_data u_edit_mem_read_data(
         .edit_mem_req(edit_mem_req), 
         .edit_mem_raddr(edit_mem_raddr), 
         .edit_mem_port_id(edit_mem_port_id), 
+        .edit_mem_sop(edit_mem_sop), 
         .edit_mem_eop(edit_mem_eop), 
 
         .buf_ack_valid(buf_ack_valid), 
@@ -123,6 +128,7 @@ edit_mem_read_data u_edit_mem_read_data(
         .data_req_dst_port_id(data_req_dst_port_id), 
         .data_req_sop(data_req_sop), 
         .data_req_eop(data_req_eop), 
+        .data_req_buf_ptr_lsb(data_req_buf_ptr_lsb),
         .data_req_buf_ptr(data_req_buf_ptr) 
 
 );
@@ -158,6 +164,7 @@ edit_mem_write_data u_edit_mem_write_data(
 
 	.pu_data_valid(pu_data_valid),
 	.pu_data_buf_ptr(pu_data_buf_ptr),
+	.pu_data_buf_ptr_lsb(pu_data_buf_ptr_lsb),
 	.pu_data(pu_data)
 
 );
@@ -251,6 +258,7 @@ edit_mem_shared_memory u_edit_mem_shared_memory(
 
 	.pu_data_valid(pu_data_valid),
 	.pu_data_buf_ptr(pu_data_buf_ptr),
+	.pu_data_buf_ptr_lsb(pu_data_buf_ptr_lsb),
 	.pu_data(pu_data),
 
 	.data_req(data_req),
@@ -258,6 +266,7 @@ edit_mem_shared_memory u_edit_mem_shared_memory(
 	.data_req_sop(data_req_sop),
 	.data_req_eop(data_req_eop),
 	.data_req_buf_ptr(data_req_buf_ptr),
+	.data_req_buf_ptr_lsb(data_req_buf_ptr_lsb),
 
 	// outputs
 

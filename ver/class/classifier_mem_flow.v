@@ -148,7 +148,7 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
-	    	init_wr <= 1'b0;
+	    	init_wr <= 1'b1;
 	    	init_addr <= 0;
 	        asa_classifier_valid_d1 <= 1'b1;
 		ecdsa_classifier_flow_valid_d1 <= 1'b0;
@@ -219,8 +219,8 @@ ram_1r1w #(`FLOW_KEY_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_0(
 		.clk(clk),
 		.wr(init_wr|flow_key_wr_d1),
 		.raddr(flow_key_raddr),
-		.waddr(init_wr?init_addr:flow_key_waddr_d1),
-		.din(init_wr?0:flow_key_wdata_d1),
+		.waddr(init_wr?init_addr[VALUE_DEPTH_NBITS-1:0]:flow_key_waddr_d1),
+		.din(init_wr?{(`FLOW_KEY_NBITS){1'b0}}:flow_key_wdata_d1),
 
 		.dout(flow_key_rdata)
 );
@@ -229,8 +229,8 @@ ram_1r1w #(`EXP_TIME_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_2(
 		.clk(clk),
 		.wr(init_wr|flow_etime_wr),
 		.raddr(flow_etime_raddr),
-		.waddr(init_wr?init_addr:flow_etime_waddr),
-		.din(init_wr?0:flow_etime_wdata),
+		.waddr(init_wr?init_addr[VALUE_DEPTH_NBITS-1:0]:flow_etime_waddr),
+		.din(init_wr?{(`EXP_TIME_NBITS){1'b0}}:flow_etime_wdata),
 
 		.dout(flow_etime_rdata)
 );

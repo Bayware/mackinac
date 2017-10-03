@@ -38,7 +38,16 @@ input m_axil_rready,
 input [`NUM_OF_PIO-1:0] clk_div, 
 input [`NUM_OF_PIO-1:0] pio_ack, 
 input [`NUM_OF_PIO-1:0] pio_rvalid, 
-input [`PIO_RANGE] pio_rdata[`NUM_OF_PIO-1:0],
+input [`PIO_RANGE] pio_rdata0,
+input [`PIO_RANGE] pio_rdata1,
+input [`PIO_RANGE] pio_rdata2,
+input [`PIO_RANGE] pio_rdata3,
+input [`PIO_RANGE] pio_rdata4,
+input [`PIO_RANGE] pio_rdata5,
+input [`PIO_RANGE] pio_rdata6,
+input [`PIO_RANGE] pio_rdata7,
+input [`PIO_RANGE] pio_rdata8,
+input [`PIO_RANGE] pio_rdata9,
 
 output logic         pio_start,
 output logic         pio_rw,
@@ -63,6 +72,17 @@ logic [`PIO_RANGE] pio_wdata_axi;
 logic [3:0] sel_ack[`NUM_OF_PIO:0]; 
 logic [3:0] sel_id[`NUM_OF_PIO:0]; 
 
+logic [`PIO_RANGE] pio_rdata[`NUM_OF_PIO-1:0];
+assign pio_rdata[0] = pio_rdata0;
+assign pio_rdata[1] = pio_rdata1;
+assign pio_rdata[2] = pio_rdata1;
+assign pio_rdata[3] = pio_rdata3;
+assign pio_rdata[4] = pio_rdata4;
+assign pio_rdata[5] = pio_rdata5;
+assign pio_rdata[6] = pio_rdata6;
+assign pio_rdata[7] = pio_rdata7;
+assign pio_rdata[8] = pio_rdata8;
+assign pio_rdata[9] = pio_rdata9;
 logic [`PIO_RANGE] lat_pio_rdata[`NUM_OF_PIO-1:0];
 logic [`NUM_OF_PIO-1:0] lat_pio_ack;
 logic [`NUM_OF_PIO-1:0] lat_pio_rvalid; 

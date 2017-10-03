@@ -49,7 +49,7 @@ always @(`CLK_RST)
 
     end else begin
 
-		lh_valid <= irl_lh_valid&irl_lh_eop;
+		lh_valid <= irl_lh_valid&irl_lh_eop&~irl_lh_meta_data.type3;
     end
 
 /***************************** PROGRAM BODY **********************************/

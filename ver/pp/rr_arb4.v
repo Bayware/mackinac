@@ -35,7 +35,7 @@ reg [1:0] arb;
 wire [1:0] n_arb;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
-assign sel = n_arb;
+assign sel = arb;
 
 /***************************** REGISTERED OUTPUTS ****************************/
 

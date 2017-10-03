@@ -203,7 +203,8 @@ assign piarb_pu_inst_eop_out[`NUM_OF_PU] = piarb_pu_inst_eop;
 assign piarb_pu_inst_data_out[`NUM_OF_PU] = piarb_pu_inst_data;
 assign piarb_pu_inst_pd_out[`NUM_OF_PU] = piarb_pu_inst_pd;
 
-assign pu_asa_start_out[`NUM_OF_PU] = 1'b0;
+logic start;
+assign pu_asa_start_out[`NUM_OF_PU] = start;
 assign pu_asa_valid_out[`NUM_OF_PU] = 1'b0;
 assign pu_asa_data_out[`NUM_OF_PU] = 0;
 assign pu_asa_eop_out[`NUM_OF_PU] = 1'b0;
@@ -240,6 +241,7 @@ pu_arb u_pu_arb(
 		.`RESET_SIG(`RESET_SIG),
 
 		.pu_req(pu_req),
+		.start(start),
 		.pu_gnt(pu_gnt)
 );
 
@@ -248,12 +250,12 @@ genvar i;
 generate
 for(i = 0; i<`NUM_OF_PU; i = i + 1)
 
-	pu_core u_pu_core (
+	pu_core #(.PU_ID(i)) u_pu_core (
 
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.pu_gnt(),
+		.pu_gnt(pu_gnt[i]),
 
 		.piarb_pu_valid_in(piarb_pu_valid_out[i+1]),
 		.piarb_pu_pid_in(piarb_pu_pid_out[i+1]),

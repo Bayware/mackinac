@@ -42,6 +42,7 @@ module pp
    output  [`DATA_PATH_RANGE] pp_pu_data,
    output  [`DATA_PATH_VB_RANGE] pp_pu_valid_bytes,
    output [`CHUNK_LEN_NBITS-1:0] pp_pu_pd_loc,
+   output [`CHUNK_LEN_NBITS-1:0] pp_pu_pd_len,
    output  pp_pu_inst_pd
 
    );
@@ -52,6 +53,7 @@ localparam INST_BUF_FIFO_DEPTH_NBITS   = `PIARB_INST_BUF_FIFO_DEPTH_NBITS;
 
 reg [BUF_FIFO_DEPTH_NBITS:0] buf_fifo_count;
 reg [INST_BUF_FIFO_DEPTH_NBITS:0] inst_buf_fifo_count;
+
 
 reg [1:0] pp_id1;
 reg      pp_valid1;
@@ -77,6 +79,8 @@ reg [`PP_META_RCI_RANGE] pp_meta_rci3;
 
 reg pp_meta_fifo_rd;
 
+reg pp_meta_valid;
+
 reg pp_valid0;
 reg [`DATA_PATH_RANGE] pp_data0;
 reg pp_eop0;
@@ -90,6 +94,8 @@ reg     pp_pu_hop_error;
 
 pp_piarb_meta_type pp_pu_meta_data_p1;
 
+wire [1:0] pp_id0;
+
 wire pp_valid0_p1;
 wire [`DATA_PATH_RANGE] pp_data0_p1;
 wire pp_sop0_p1;
@@ -100,7 +106,6 @@ pp_meta_type pp_meta_data_p1;
 wire [31:0] pp_creation_time_p1;
 wire [`CHUNK_LEN_NBITS-1:0] pp_loc_p1;
 
-wire [1:0] pp_id0;
 
 wire en_arb = pp_valid0_p1&pp_sop0_p1;
 
@@ -225,8 +230,8 @@ always @(`CLK_RST)
 	pp_meta_fifo_rd <= 1'b0;
     end else begin
 	  if (no_pp) begin
-		    pp_pu_hop_valid <= 1'b1;
-	    	    pp_meta_fifo_rd <= ~pp_meta_fifo_empty;
+		    pp_pu_hop_valid <= ~pp_meta_fifo_empty&~pp_meta_fifo_rd;
+	    	    pp_meta_fifo_rd <= ~pp_meta_fifo_empty&~pp_meta_fifo_rd;
 	  end else begin
 	    case (fifo_pp_id)
 		2'd0: begin
@@ -286,10 +291,12 @@ end
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
 	pp_valid0 <= 1'b0;
+	pp_meta_valid <= 1'b0;
 	pp_meta_valid0 <= 1'b0;
     end else begin
 	pp_valid0 <= pp_valid0_p1;
-	pp_meta_valid0 <= pp_meta_valid0_p1;
+	pp_meta_valid <= pp_meta_valid0_p1;
+	pp_meta_valid0 <= pp_meta_valid0_p1&~pp_meta_data_p1.type3;
     end
 
 /**************************************************************************/
@@ -300,7 +307,7 @@ sfifo2f_fo #(2+32+`CHUNK_LEN_NBITS, FIFO_DEPTH_NBITS) u_sfifo2f_fo_1(
 
         .din({pp_id0, pp_creation_time, pp_loc}),              
         .rd(pp_meta_fifo_rd),
-        .wr(pp_meta_valid0),
+        .wr(pp_meta_valid),
 
         .ncount(),
         .count(),
@@ -317,7 +324,7 @@ sfifo_pp_meta #(FIFO_DEPTH_NBITS) u_sfifo_pp_meta_1(
 
         .din(pp_meta_data),              
         .rd(pp_meta_fifo_rd),
-        .wr(pp_meta_valid0),
+        .wr(pp_meta_valid),
 
         .ncount(),
         .count(),
@@ -353,6 +360,7 @@ pp_front_end u_pp_front_end(
 
         .pp_pu_hop_valid(pp_pu_hop_valid),
         .pp_pu_hop_eop(pp_pu_hop_eop),
+        .pp_pu_hop_type3(pp_pu_meta_data.type3),
 
         .pu_pp_buf_fifo_rd(pu_pp_buf_fifo_rd),
         .pu_pp_inst_buf_fifo_count(pu_pp_inst_buf_fifo_count),
@@ -375,6 +383,7 @@ pp_front_end u_pp_front_end(
         .pp_pu_data(pp_pu_data),
         .pp_pu_valid_bytes(pp_pu_valid_bytes),
         .pp_pu_pd_loc(pp_pu_pd_loc),
+        .pp_pu_pd_len(pp_pu_pd_len),
         .pp_pu_inst_pd(pp_pu_inst_pd),
 
         .clk(clk),

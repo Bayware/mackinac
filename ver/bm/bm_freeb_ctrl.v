@@ -31,7 +31,7 @@ module bm_freeb_ctrl (
     output reg init_read_count_valid,
     output reg [`BUF_PTR_NBITS-1:0] init_read_count_ptr,
 
-    output reg inc_freeb_rd_count, 
+    output inc_freeb_rd_count, 
     output reg inc_freeb_wr_count,
 
     output reg freeb_init_done,    

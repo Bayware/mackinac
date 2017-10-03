@@ -124,7 +124,6 @@ logic asa_proc_valid;
 logic asa_proc_type3;
 asa_proc_meta_type asa_proc_meta;
 logic [RAS_WIDTH-1:0] asa_proc_ras;
-logic asa_proc_discard;
 
 logic [`SUB_EXP_TIME_NBITS-1:0] default_sub_exp_time;
 
@@ -211,8 +210,7 @@ asa_front_end u_asa_front_end(
 		.asa_proc_valid(asa_proc_valid),
 		.asa_proc_type3(asa_proc_type3),
 		.asa_proc_meta(asa_proc_meta),
-		.asa_proc_ras(asa_proc_ras),
-		.asa_proc_discard(asa_proc_discard)
+		.asa_proc_ras(asa_proc_ras)
 
 );
 
@@ -234,7 +232,6 @@ asa_process u_asa_process(
 		.asa_proc_type3(asa_proc_type3),
 		.asa_proc_meta(asa_proc_meta),
 		.asa_proc_ras(asa_proc_ras),
-		.asa_proc_discard(asa_proc_discard),
 
 		.asa_classifier_valid(asa_classifier_valid),
 		.asa_classifier_fid(asa_classifier_fid),
@@ -439,10 +436,12 @@ pio_mem_wo #(`SCI_NBITS, `RCI_NBITS) u_pio_mem_wo(
 		.app_mem_rdata(rci2sci_table_rdata[`SCI_NBITS-1:0])
 );
 
+logic [`RCI_NBITS-1:0] ram_raddr1;
+flop #(`RCI_NBITS) u_flop_1(.clk(clk), .din({rci2sci_table_raddr[`RCI_NBITS*2-1:`RCI_NBITS]}), .dout(ram_raddr1));
 ram_1r1w #(`SCI_NBITS, `RCI_NBITS) u_ram_1r1w_0(
 		.clk(clk),
 		.wr(wr_active),
-		.raddr(rci2sci_table_raddr[`RCI_NBITS*2-1:`RCI_NBITS]),
+		.raddr(ram_raddr1),
 		.waddr(wr_addr),
 		.din(wr_data),
 
