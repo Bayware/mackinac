@@ -522,10 +522,10 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data[31:0]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
-					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
-					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+					p_tx_fifo_in_valid_bytes = out_fifo_valid_bytes;
+					p_tx_fifo_in_eop = out_fifo_eop;
+					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
 		5'h05: 
@@ -577,10 +577,10 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
-					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
-					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+					p_tx_fifo_in_valid_bytes = out_fifo_valid_bytes;
+					p_tx_fifo_in_eop = out_fifo_eop;
+					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
 		5'h06: 
@@ -644,10 +644,10 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data[31:0]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
-					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
-					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+					p_tx_fifo_in_valid_bytes = out_fifo_valid_bytes;
+					p_tx_fifo_in_eop = out_fifo_eop;
+					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
 		5'h07: 
@@ -714,10 +714,10 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data[31:0]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
-					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
-					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+					p_tx_fifo_in_valid_bytes = out_fifo_valid_bytes;
+					p_tx_fifo_in_eop = out_fifo_eop;
+					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
 		5'h08: 
@@ -981,10 +981,10 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data[31:0]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
-					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
-					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+					p_tx_fifo_in_valid_bytes = out_fifo_valid_bytes;
+					p_tx_fifo_in_eop = out_fifo_eop;
+					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
 		5'h0d: 
@@ -1039,10 +1039,10 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data[31:0]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
-					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
-					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+					p_tx_fifo_in_valid_bytes = out_fifo_valid_bytes;
+					p_tx_fifo_in_eop = out_fifo_eop;
+					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
 		5'h0e: 
@@ -1109,10 +1109,10 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data[31:0]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
-					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
-					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+					p_tx_fifo_in_valid_bytes = out_fifo_valid_bytes;
+					p_tx_fifo_in_eop = out_fifo_eop;
+					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
 		5'h0f: 
@@ -1182,10 +1182,10 @@ always @(*) begin
 				end
 				default: begin
 					p_tx_fifo_in_data = {out_fifo_data[31:0]};
-					p_tx_fifo_in_valid_bytes = out_fifo_eop_d1?mout_fifo_valid_bytes_d1:~out_fifo_eop?0:one_more_tx?0:out_fifo_valid_bytes+2;
-					p_tx_fifo_in_eop = out_fifo_eop_d1?1'b1:~out_fifo_eop?1'b0:mout_fifo_valid_bytes<3;      
-					p_tx_fifo_wr = out_fifo_eop_d1?~p_tx_fifo_nav:~out_fifo_empty&~p_tx_fifo_nav;
-					out_fifo_rd = ~out_fifo_eop_d1&~out_fifo_empty&~p_tx_fifo_nav;
+					p_tx_fifo_in_valid_bytes = out_fifo_valid_bytes;
+					p_tx_fifo_in_eop = out_fifo_eop;
+					p_tx_fifo_wr = ~out_fifo_empty&~p_tx_fifo_nav;
+					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
 	endcase
