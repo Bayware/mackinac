@@ -336,7 +336,9 @@ always @(posedge clk) begin
 		discard_packet_length_d1 <= discard_packet_length;
 		discard_buf_ptr_d1 <= discard_buf_ptr;
 		discard_src_port_d1 <= discard_src_port;
-
+		discard_em_len_d1 <= discard_em_len;
+        discard_em_buf_ptr_d1 <= discard_em_buf_ptr;
+        
 		rep_enq_drop_d1 <= rep_enq_drop;
 		rep_enq_ucast_d1 <= rep_enq_ucast;
 		rep_enq_last_d1 <= rep_enq_last;

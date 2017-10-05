@@ -32,6 +32,7 @@ input [QUEUE_ID_NBITS-1:0] pu_id,
 input pu_fid_sel,
 
 
+output logic [`NUM_OF_PU-1:0] queue_available,
 
 output reg head_wr,
 output reg [QUEUE_ID_NBITS-1:0] head_raddr,
@@ -96,6 +97,8 @@ localparam MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL = (1<<QUEUE_ENTRIES_NBITS)-MIN_QUEU
 localparam [1:0]	INIT_IDLE = 0,
 		 	INIT_COUNT = 1,
 		 	INIT_DONE = 2;
+
+integer i;
 
 reg [1:0] init_st, nxt_init_st;
 reg [QUEUE_ENTRIES_NBITS-1:0] init_count;
@@ -185,7 +188,6 @@ reg [QUEUE_ID_NBITS-1:0] depth_fid0_raddr_d1;
 reg [QUEUE_ID_NBITS-1:0] depth_fid0_raddr_d2;
 
 reg depth_fid1_wr_d1;
-reg depth_fid1_wr_d2;
 reg [QUEUE_ID_NBITS-1:0] depth_fid1_waddr_d1;
 reg [QUEUE_ID_NBITS-1:0] depth_fid1_waddr_d2;
 reg [QUEUE_ENTRIES_NBITS-1:0] depth_fid1_wdata_d1;
@@ -202,17 +204,10 @@ reg [QUEUE_ENTRIES_NBITS-1:0] mdepth_wdata;
 reg [QUEUE_ENTRIES_NBITS-1:0] mdepth_fid0_wdata;
 reg [QUEUE_ENTRIES_NBITS-1:0] mdepth_fid1_wdata;
 
-reg [QUEUE_ENTRIES_NBITS:0] port_queue_count0;
-reg [QUEUE_ENTRIES_NBITS:0] port_queue_count1;
-reg [QUEUE_ENTRIES_NBITS:0] port_queue_count2;
-reg [QUEUE_ENTRIES_NBITS:0] port_queue_count3;
-reg [QUEUE_ENTRIES_NBITS:0] port_queue_count4;
-reg [QUEUE_ENTRIES_NBITS:0] port_queue_count5;
-reg [QUEUE_ENTRIES_NBITS:0] port_queue_count6;
-reg [QUEUE_ENTRIES_NBITS:0] port_queue_count7;
+reg [QUEUE_ENTRIES_NBITS:0] port_queue_count[`NUM_OF_PU];
 
-reg [7:0] port_queue_count_inc;
-reg [7:0] port_queue_count_dec;
+reg [`NUM_OF_PU-1:0] port_queue_count_inc;
+reg [`NUM_OF_PU-1:0] port_queue_count_dec;
 
 reg [QUEUE_ENTRIES_NBITS:0] queue_threshold;
 
@@ -243,8 +238,6 @@ reg lat_fifo_pu_fid_sel_d1;
 reg lat_fifo_pu_fid_sel_d2;
 reg lat_fifo_pu_fid_sel_d3;
 
-reg [`NUM_OF_PU-1:0] src_queue_available;
-reg [`NUM_OF_PU-1:0] dst_queue_available;
 //
 
 wire[3:0] alpha = 0;
@@ -340,26 +333,13 @@ wire [QUEUE_ENTRIES_NBITS-1:0] mdepth_fid1_rdata = depth_fid1_same_address0?dept
 							depth_fid1_same_address21?mdepth_fid1_wdata:depth_fid1_rdata_d1;
 
 
-wire [`NUM_OF_PU-1:0] dst_queue_available_p1;
 wire freeq_avail = (freeq_count>MIN_QUEUE_ID_AVAILABLE_LEVEL);
-assign dst_queue_available_p1[0] = freeq_avail;
-assign dst_queue_available_p1[1] = freeq_avail;
-assign dst_queue_available_p1[2] = freeq_avail;
-assign dst_queue_available_p1[3] = freeq_avail;
-assign dst_queue_available_p1[4] = freeq_avail;
-assign dst_queue_available_p1[5] = freeq_avail;
-assign dst_queue_available_p1[6] = freeq_avail;
-assign dst_queue_available_p1[7] = freeq_avail;
+wire [`NUM_OF_PU-1:0] dst_queue_available_p1 = {(`NUM_OF_PU){freeq_avail}};
 
-wire [`NUM_OF_PU-1:0] src_queue_available_p1;
-assign src_queue_available_p1[0] = (port_queue_count0<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
-assign src_queue_available_p1[1] = (port_queue_count1<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
-assign src_queue_available_p1[2] = (port_queue_count2<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
-assign src_queue_available_p1[3] = (port_queue_count3<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
-assign src_queue_available_p1[4] = (port_queue_count4<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
-assign src_queue_available_p1[5] = (port_queue_count5<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
-assign src_queue_available_p1[6] = (port_queue_count6<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
-assign src_queue_available_p1[7] = (port_queue_count7<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
+logic [`NUM_OF_PU-1:0] src_queue_available_p1;
+always @*
+	for(i=0; i<`NUM_OF_PU; i++)
+		src_queue_available_p1[i] = (port_queue_count[i]<MAX_PORT_QUEUE_ID_AVAILABLE_LEVEL);
 
 wire init_wr = init_st==INIT_COUNT;
 
@@ -409,11 +389,13 @@ always @(posedge clk) begin
 		depth_fid0_wr <= depth_fid0_wr_p1;
 		depth_fid0_waddr <= depth_fid0_waddr_p1;
 		depth_fid0_wdata <= depth_fid0_wdata_p1;
+		depth_fid0_wdata_d1 <= depth_fid0_wdata;
 
 		depth_fid1_raddr <= pu_done_active?lat_fifo_pu_id_d1:lat_fifo_enq_qid;
 		depth_fid1_wr <= depth_fid1_wr_p1;
 		depth_fid1_waddr <= depth_fid1_waddr_p1;
 		depth_fid1_wdata <= depth_fid1_wdata_p1;
+		depth_fid1_wdata_d1 <= depth_fid1_wdata;
 
 		ll_raddr <= mhead_rdata;
 		ll_wr <= enq_active_d2&(depth_rdata!=0);
@@ -432,20 +414,15 @@ always @(`CLK_RST)
 		enq_ack <= 0;
 		deq_depth_ack <= 0;
 		deq_ack <= 0;
-		src_queue_available <= 0;
-		dst_queue_available <= 0;
+		queue_available <= 0;
 	end else begin
 		enq_ack <= enq_active_d3;
 		deq_depth_ack <= deq_active_d3;
 		deq_ack <= deq_active_d4;
-		src_queue_available <= src_queue_available_p1;
-		dst_queue_available <= dst_queue_available_p1;
+		queue_available <= dst_queue_available_p1/*&src_queue_available_p1*/;
 	end
 
 /***************************** PROGRAM BODY **********************************/
-
-
-integer i;
 
 always @(*) begin
     for (i = 0; i < `NUM_OF_PU; i = i+1) begin
@@ -549,12 +526,14 @@ always @(posedge clk) begin
 		depth_fid0_raddr_d2 <= depth_fid0_raddr_d1;
 		depth_fid0_waddr_d1 <= depth_fid0_waddr;
 		depth_fid0_waddr_d2 <= depth_fid0_waddr_d1;
+		depth_fid0_rdata_d1 <= depth_fid0_rdata;
 
-		depth_fid1_wr_d2 <= depth_fid1_wr_d1;
+		depth_fid1_wr_d1 <= depth_fid1_wr;
 		depth_fid1_raddr_d1 <= depth_fid1_raddr;
 		depth_fid1_raddr_d2 <= depth_fid1_raddr_d1;
 		depth_fid1_waddr_d1 <= depth_fid1_waddr;
 		depth_fid1_waddr_d2 <= depth_fid1_waddr_d1;
+		depth_fid1_rdata_d1 <= depth_fid1_rdata;
 
 		tail_same_address <= tail_wr&(tail_raddr==tail_waddr);
 		head_same_address <= deq_active_d4&deq_from_emptyp2_p1&(head_raddr==depth_waddr);
@@ -585,14 +564,8 @@ always @(`CLK_RST)
 
 		init_count <= 0;
 
-		port_queue_count0 <= 0;
-		port_queue_count1 <= 0;
-		port_queue_count2 <= 0;
-		port_queue_count3 <= 0;
-		port_queue_count4 <= 0;
-		port_queue_count5 <= 0;
-		port_queue_count6 <= 0;
-		port_queue_count7 <= 0;
+		for(i=0; i<`NUM_OF_PU; i++)
+			port_queue_count[i] <= 0;
 
 		fifo_wr5 <= 0;
 
@@ -603,22 +576,9 @@ always @(`CLK_RST)
 
 		init_count <= init_wr?init_count+1:init_count;
 
-		port_queue_count0 <= ~(port_queue_count_inc[0]^port_queue_count_dec[0])?port_queue_count0:
-							port_queue_count_inc[0]?port_queue_count0+1:port_queue_count0-1;
-		port_queue_count1 <= ~(port_queue_count_inc[1]^port_queue_count_dec[1])?port_queue_count1:
-							port_queue_count_inc[1]?port_queue_count1+1:port_queue_count1-1;
-		port_queue_count2 <= ~(port_queue_count_inc[2]^port_queue_count_dec[2])?port_queue_count2:
-							port_queue_count_inc[2]?port_queue_count2+1:port_queue_count2-1;
-		port_queue_count3 <= ~(port_queue_count_inc[3]^port_queue_count_dec[3])?port_queue_count3:
-							port_queue_count_inc[3]?port_queue_count3+1:port_queue_count3-1;
-		port_queue_count4 <= ~(port_queue_count_inc[4]^port_queue_count_dec[4])?port_queue_count4:
-							port_queue_count_inc[4]?port_queue_count4+1:port_queue_count4-1;
-		port_queue_count5 <= ~(port_queue_count_inc[5]^port_queue_count_dec[5])?port_queue_count5:
-							port_queue_count_inc[5]?port_queue_count5+1:port_queue_count5-1;
-		port_queue_count6 <= ~(port_queue_count_inc[6]^port_queue_count_dec[6])?port_queue_count6:
-							port_queue_count_inc[6]?port_queue_count6+1:port_queue_count6-1;
-		port_queue_count7 <= ~(port_queue_count_inc[7]^port_queue_count_dec[7])?port_queue_count7:
-							port_queue_count_inc[7]?port_queue_count7+1:port_queue_count7-1;
+		for(i=0; i<`NUM_OF_PU; i++)
+			port_queue_count[i] <= ~(port_queue_count_inc[i]^port_queue_count_dec[i])?port_queue_count[i]:
+							port_queue_count_inc[i]?port_queue_count[i]+1:port_queue_count[i]-1;
 
 		fifo_wr5 <= enq_active_d3&enq_to_empty_p1;
 
@@ -711,7 +671,7 @@ sfifo2f_fo #(QUEUE_ID_NBITS+1, 3) u_sfifo2f_fo_3(
 		.empty(lat_fifo_empty3),
 		.fullm1(),
 		.emptyp2(),
-		.dout({lat_fifo_pu_id, lat_fifo_fid_sel})       
+		.dout({lat_fifo_pu_id, lat_fifo_pu_fid_sel})       
 	);
 
 tm_freeq_fifo #(QUEUE_ENTRIES_NBITS) u_tm_freeq_fifo(

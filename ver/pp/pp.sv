@@ -172,7 +172,7 @@ assign pp_pu_meta_data_p1.discard = out_discard|pp_pu_hop_error;
 
 always @(*) 
   if (no_pp) begin
-	    pp_pu_hop_error <= 1'b0;
+	    pp_pu_hop_error = 1'b0;
   end else begin
     case (fifo_pp_id)
 	2'b00: begin

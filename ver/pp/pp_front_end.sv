@@ -184,6 +184,7 @@ always @(*)
 		4'b1010: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len+len_fifo_data;
 		4'b1011: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len+len_fifo_data+1;
 		4'b1100: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len-1;
+		4'b1101: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len-1+1;
 		4'b1110: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len-1+len_fifo_data;
 		4'b1111: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len+len_fifo_data;
 	endcase	

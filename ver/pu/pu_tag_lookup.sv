@@ -213,7 +213,7 @@ sfifo2f_fo #(TAG_BUCKET_NBITS*2, 1) u_sfifo2f_fo_1(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(ht_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({tag_hash_table0_rdata_sv, tag_hash_table1_rdata_sv})

@@ -59,20 +59,20 @@ localparam XOFF_LEVEL = 5;
 localparam XON_LEVEL = 3;
 localparam PORT_BUS_NBYTES_CEILING = `PORT_BUS_NBYTES+1;
 
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes0_p2;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes0_p1;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes1_p2;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes1_p1;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes2_p2;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes2_p1;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes3_p2;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes3_p1;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes4_p2;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes4_p1;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes5_p2;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes5_p1;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes6_p2;	
-reg [`DATA_PATH_VB_RANGE] dstr_enc_valid_bytes6_p1;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes0_p2;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes0_p1;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes1_p2;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes1_p1;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes2_p2;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes2_p1;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes3_p2;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes3_p1;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes4_p2;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes4_p1;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes5_p2;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes5_p1;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes6_p2;	
+reg [`PORT_BUS_VB_RANGE] dstr_enc_valid_bytes6_p1;	
 
 
 reg [`NUM_OF_PORTS-1:0] port_dstr_bp_d1;
@@ -309,11 +309,13 @@ always @(posedge clk) begin
 		dstr_enc_sop2 <= hold_fifo_sop[2]&(hold_fifo_port_id2?~disable_rci[3]:~disable_rci[2]);
 		dstr_enc_eop2 <= hold_fifo_eop[2];
 		dstr_enc_valid_bytes2 <= hold_fifo_valid_bytes2;
+		dstr_enc_port_id2 <= hold_fifo_port_id2;
 
 		dstr_enc_packet_data3 <= set_en_rci[4]?latency_fifo_rci4:set_en_rci[5]?latency_fifo_rci5:set_en_rci[6]?latency_fifo_rci6:hold_fifo_packet_data3;
 		dstr_enc_sop3 <= hold_fifo_sop[3]&(hold_fifo_port_id3==0?~disable_rci[4]:hold_fifo_port_id3==1?~disable_rci[5]:~disable_rci[6]);
 		dstr_enc_eop3 <= hold_fifo_eop[3];
 		dstr_enc_valid_bytes3 <= hold_fifo_valid_bytes3;
+		dstr_enc_port_id3 <= hold_fifo_port_id3;
 
 end
 

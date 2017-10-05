@@ -39,7 +39,7 @@ assign sel = arb;
 wire [NUM_OF_INPUT-1:0] rot_req = rot(req, arb); 
 wire [INPUT_NBITS-1:0] pri_result = pri(rot_req);
 always @* begin
-	n_arb = arb+pri_result;
+	n_arb = {1'b0, arb}+pri_result;
 	n_arb = n_arb>NUM_OF_INPUT?n_arb-NUM_OF_INPUT:n_arb;
 end
 

@@ -948,8 +948,7 @@ wire [SCH_NBITS-1:0] pri_sch_ctrl_raddr;
 wire [SCH_NBITS-1:0] event_fifo_rd_ptr_raddr;
 wire [SCH_NBITS-1:0] event_fifo_wr_ptr_raddr;
 
-wire [SCH_NBITS-1:0] event_fifo_rd_ptr_waddr;
-wire [SCH_NBITS-1:0] event_fifo_wr_ptr_waddr;
+wire [SCH_NBITS-1:0] event_fifo_rd_ptr_waddr = event_fifo_rd_ptr_waddr0;
 
 wire lat_fifo_empty3;
 wire lat_fifo_empty5;

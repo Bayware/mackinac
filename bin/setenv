@@ -1,0 +1,4 @@
+export BASE_DIR="/home/kchin/projects/mackinac"
+export BASE_DV_DIR="/home/kchin/projects/"
+export DV_TOP="$BASE_DV_DIR/dv"
+export RTL_TOP="$BASE_DIR/ver"

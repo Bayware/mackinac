@@ -1445,7 +1445,7 @@ function logic [KEY_NBITS-1:0] FUNC_NAME (input [KEY_NBITS-1:0] key);\
 integer i; \
 begin \
 		\
-	for (i=0; i<KEY_NBITS+1; i++)	\
+	for (i=0; i<KEY_NBITS; i++)	\
 		FUNC_NAME[i] = key[KEY_NBITS-1-i];	\
 end \
 endfunction \

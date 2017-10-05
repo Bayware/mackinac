@@ -226,6 +226,7 @@ assign token_bucket_rd = fill_tb_src_ack_d1;
 assign limiting_profile_cir_rd = token_bucket_rd;
 assign limiting_profile_eir_rd = token_bucket_rd;
 
+assign eir_tb_rd = token_bucket_rd;
  
 always @(posedge clk) begin
 

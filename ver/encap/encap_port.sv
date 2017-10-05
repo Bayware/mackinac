@@ -139,7 +139,8 @@ logic req_pending_fifo_empty;
 wire req_pending_fifo_rd = my_segment&~req_pending_fifo_empty&(word_cnt==4)&encr_ring_in_valid_d2;
 
 wire key_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&((word_cnt==0)|(word_cnt==1));
-logic key_fifo_rd;
+logic key_fifo_empty;
+logic key_fifo_rd = ~key_fifo_empty;
 logic ip_sa_fifo_rd;
 logic ip_da_fifo_rd;
 logic [KEY_NBITS/2-1:0] key_fifo_data;
@@ -264,6 +265,7 @@ always @(*) begin
 	out_fifo_rd = 1'b0;
 	ip_sa_fifo_rd = 1'b0;
 	ip_da_fifo_rd = 1'b0;
+	p_tx_fifo_in_data = 0;
 	p_tx_fifo_in_valid_bytes = 0;
 	p_tx_fifo_in_sop = 1'b0;
 	p_tx_fifo_in_eop = 1'b0;      
@@ -291,7 +293,7 @@ always @(*) begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
 				6: begin
-					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+					p_tx_fifo_in_data = {~checksum, ip_sa[31:16]};
 				end
 				7: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
@@ -333,7 +335,7 @@ always @(*) begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
 				7: begin
-					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+					p_tx_fifo_in_data = {~checksum, ip_sa[31:16]};
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
@@ -498,7 +500,7 @@ always @(*) begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
 				6: begin
-					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+					p_tx_fifo_in_data = {~checksum, ip_sa[31:16]};
 				end
 				7: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
@@ -553,7 +555,7 @@ always @(*) begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
 				7: begin
-					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+					p_tx_fifo_in_data = {~checksum, ip_sa[31:16]};
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
@@ -742,7 +744,7 @@ always @(*) begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
 				6: begin
-					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+					p_tx_fifo_in_data = {~checksum, ip_sa[31:16]};
 				end
 				7: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
@@ -789,7 +791,7 @@ always @(*) begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
 				7: begin
-					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+					p_tx_fifo_in_data = {~checksum, ip_sa[31:16]};
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
@@ -954,7 +956,7 @@ always @(*) begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
 				6: begin
-					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+					p_tx_fifo_in_data = {~checksum, ip_sa[31:16]};
 				end
 				7: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
@@ -1012,7 +1014,7 @@ always @(*) begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
 				7: begin
-					p_tx_fifo_in_data = {checksum, ip_sa[31:16]};
+					p_tx_fifo_in_data = {~checksum, ip_sa[31:16]};
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
@@ -1330,7 +1332,7 @@ sfifo2f_fo #(RING_NBITS, 4) u_sfifo2f_fo_3(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(key_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({key_fifo_data})       

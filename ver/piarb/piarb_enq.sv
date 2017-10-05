@@ -53,6 +53,8 @@ input fid_lookup_ack,
 input [1:0] fid_lookup_fid_valid[QUEUE_DEPTH-1:0],
 input [1:0] fid_lookup_fid_hit[QUEUE_DEPTH-1:0],
 
+input [`NUM_OF_PU-1:0] queue_available,
+
 output logic         piarb_asa_valid,
 output logic         piarb_asa_type3,
 output logic [`PU_ID_NBITS-1:0] piarb_asa_pu_id,				
@@ -106,8 +108,11 @@ typedef enum {
 IDLE,
 BOTH_BUF_RD_ST,
 BUF_RD_ST,
-INST_BUF_RD_ST
+INST_BUF_RD_ST,
+BUF_QUEUE_CHECK
 } state_t;
+
+integer i;
 
 logic pp_pu_hop_valid_d1;
 logic [DATA_NBITS-1:0] pp_pu_hop_data_d1;
@@ -155,8 +160,6 @@ logic [`INST_CHUNK_NBITS-1:0] inst_len;
 logic [`INST_CHUNK_NBITS-1:0] pd_len;
 
 logic [`HOP_ID_NBITS-1:0] len;
-
-integer i;
 
 logic [INST_PREFETCH_FIFO_DEPTH_NBITS:0] inst_prefetch_fifo_count;
 logic [PREFETCH_FIFO_DEPTH_NBITS:0] prefetch_fifo_count;
@@ -262,6 +265,9 @@ wire [BPTR_NBITS-1:0] write_buf_ptr_p1 = prefetch_fifo_buf_ptr;
 wire [BPTR_LSB_NBITS-1:0] write_buf_ptr_lsb_p1 = buf_ptr_lsb;
 wire [BPTR_NBITS-1:0] buf_ptr_fifo_wdata = write_buf_ptr_p1;
 
+wire en_discard = meta_fifo_data.discard;
+wire en_type3 = meta_fifo_data.type3|en_discard;
+
 logic type3_fid_fifo_wr;
 
 wire type1_fid_fifo_wr = fid_lookup_ack&~stall;
@@ -272,9 +278,9 @@ wire meta_fifo_rd = fid_fifo_wr;
 
 wire type3_fid_fifo_rd = ~fid_fifo_empty&~fid_fifo_type1;
 
-wire type1_fid_fifo_rd = (buf_rd_st==BOTH_BUF_RD_ST)?inst_buf_fifo_rd_last&buf_fifo_rd_last:
-			(buf_rd_st==INST_BUF_RD_ST)?inst_buf_fifo_rd_last:
-			(buf_rd_st==BUF_RD_ST)?buf_fifo_rd_last:1'b0;
+wire queue_avail = queue_available[fid_fifo_fid_sel_id];
+
+wire type1_fid_fifo_rd = (buf_rd_st==BUF_QUEUE_CHECK)?queue_avail:1'b0;
 
 wire fid_fifo_rd = type1_fid_fifo_rd|type3_fid_fifo_rd;
 
@@ -363,7 +369,7 @@ always @(`CLK_RST)
     end else begin
         inst_free_buf_req <= inst_free_buf_req_p1;
         free_buf_req <= free_buf_req_p1;
-	fid_lookup_req <= either_fid_lookup_req_p1&~meta_fifo_data.type3;
+	fid_lookup_req <= either_fid_lookup_req_p1&~en_type3;
         inst_write_data_valid <= inst_write_data_valid_p1;
         write_data_valid <= write_data_valid_p1;
         enq_req <= enq_req_p1;
@@ -504,23 +510,28 @@ always @(`CLK_RST)
 				buf_rd_st <= IDLE;
 		INST_BUF_RD_ST: 
 			if(inst_buf_fifo_rd_last)
-				buf_rd_st <= IDLE;
+				buf_rd_st <= BUF_QUEUE_CHECK;
 			else 
 				buf_rd_st <= INST_BUF_RD_ST;
 		BUF_RD_ST: 
 			if(buf_fifo_rd_last)
-				buf_rd_st <= IDLE;
+				buf_rd_st <= BUF_QUEUE_CHECK;
 			else 
 				buf_rd_st <= BUF_RD_ST;
 		BOTH_BUF_RD_ST: 
 			if(buf_fifo_rd_last&inst_buf_fifo_rd_last)
-				buf_rd_st <= IDLE;
+				buf_rd_st <= BUF_QUEUE_CHECK;
 			else if(buf_fifo_rd_last)
 				buf_rd_st <= INST_BUF_RD_ST;
 			else if(inst_buf_fifo_rd_last)
 				buf_rd_st <= BUF_RD_ST;
 			else 
 				buf_rd_st <= BOTH_BUF_RD_ST;
+		BUF_QUEUE_CHECK: 
+			if(queue_avail)
+				buf_rd_st <= IDLE;
+			else 
+				buf_rd_st <= BUF_QUEUE_CHECK;
 	endcase
 
         enq_req_p1 <= type1_fid_fifo_rd&~type3&~in_discard;
@@ -556,7 +567,7 @@ always @(`CLK_RST)
 	buf_ptr_lsb <= ~write_data_valid_p1?buf_ptr_lsb:write_eop_p1?0:buf_ptr_lsb+1;
 
 	either_fid_lookup_req_d1 <= either_fid_lookup_req;
-	type3_fid_lookup_req <= either_fid_lookup_req_p1&meta_fifo_data.type3;
+	type3_fid_lookup_req <= either_fid_lookup_req_p1&en_type3;
 	type3_fid_fifo_wr <= type3_fid_lookup_req;
 
     end
@@ -569,7 +580,7 @@ sfifo2f_2f1 #(DATA_NBITS+2, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_0(
 
         .din({pp_pu_hop_data_d1, pp_pu_hop_sop_d1, pp_pu_hop_eop_d1}),             
         .rd(buf_fifo_rd),
-        .wr(pp_pu_hop_valid_d1&~pp_pu_meta_data.type3),
+        .wr(pp_pu_hop_valid_d1&~pp_pu_meta_data_d1.type3),
 
         .ncount(buf_fifo_ncount),
         .count(),

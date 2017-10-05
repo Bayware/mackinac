@@ -61,7 +61,7 @@ always @(*) begin
 	pio_rdata = {(`PIO_NBITS){1'b0}};
 	reg_ms_tunnel_hash_table = 2'b0;
 	reg_ms_tunnel_value = 5'b0;
-	reg_ms_ekey_value = 2'b0;
+	reg_ms_ekey_hash_table = 2'b0;
 	reg_ms_ekey_value = 5'b0;
 
 	case(reg_addr[`ENCR_MEM_ADDR_RANGE])

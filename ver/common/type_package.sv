@@ -65,8 +65,6 @@ typedef struct {
 	logic aq;
 	logic rl;
 	logic [4:0] funct5;
-	logic [4:0] wb_addr;
-	logic [31:0] wb_data;
 	logic wr;
 	logic [`PU_MEM_DEPTH_NBITS-1:0] addr;
 	logic [31:0] wdata;

@@ -110,6 +110,8 @@ wire [`FID_NBITS-1:0] wr_fid;
 wire [ID_NBITS-1:0] wr_fid_sel_id;
 wire wr_fid_sel;
 
+wire [`NUM_OF_PU-1:0] queue_available;
+
 wire enq_req; 
 wire [QUEUE_ID_NBITS-1:0] enq_qid;
 wire pu_queue_payload_type enq_desc;
@@ -253,6 +255,8 @@ piarb_enq u_piarb_enq(
 	.fid_lookup_ack(fid_lookup_ack),
 	.fid_lookup_fid_valid(fid_lookup_fid_valid),
 	.fid_lookup_fid_hit(fid_lookup_fid_hit),
+
+	.queue_available(queue_available),
 
 	.piarb_asa_valid(piarb_asa_valid),
 	.piarb_asa_type3(piarb_asa_type3),
@@ -410,6 +414,8 @@ piarb_qm u_piarb_qm(
 	.pu_fid_done(pu_fid_done), 
 	.pu_id(pu_id), 
 	.pu_fid_sel(pu_fid_sel), 
+
+	.queue_available(queue_available),
 
 	.head_wr(head_wr), 
 	.head_raddr(head_raddr), 
