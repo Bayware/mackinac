@@ -31,7 +31,7 @@ input topic_policy_rd,
 input [DEPTH_NBITS-1:0] topic_policy_raddr,
 
 output topic_policy_ack, 
-output [VALUE_NBITS-1:0] topic_policy_rdata  /* synthesis keep = 1 */
+output [VALUE_NBITS-1:0] topic_policy_rdata
 
 );
 
@@ -87,7 +87,7 @@ end
 /***************************** PROGRAM BODY **********************************/
 
 
-pio_mem #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem0(
+pio_mem_bram #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem_bram0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -109,7 +109,7 @@ pio_mem #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem0(
 		.app_mem_rdata(topic_policy_rdata[ITEM_NBITS*1-1:ITEM_NBITS*0])
 );
 
-pio_mem #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem1(
+pio_mem_bram #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem_bram1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -131,7 +131,7 @@ pio_mem #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem1(
 		.app_mem_rdata(topic_policy_rdata[ITEM_NBITS*2-1:ITEM_NBITS*1])
 );
 
-pio_mem #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem2(
+pio_mem_bram #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem_bram2(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -153,7 +153,7 @@ pio_mem #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem2(
 		.app_mem_rdata(topic_policy_rdata[ITEM_NBITS*3-1:ITEM_NBITS*2])
 );
 
-pio_mem #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem3(
+pio_mem_bram #(ITEM_NBITS, DEPTH_NBITS) u_pio_mem_bram3(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

@@ -61,7 +61,7 @@ logic [DEPTH_NBITS-1:0] ram_raddr_d2;
 
 logic [WIDTH_NBITS-1:0] io_cmd_wdata;
 
-logic [WIDTH_NBITS-1:0] ram_rdata;
+logic [WIDTH_NBITS-1:0] ram_rdata /* synthesis keep = 1 */;
 logic [WIDTH_NBITS-1:0] ram_rdata_d1;
 logic [WIDTH_NBITS-1:0] mod_ram_rdata;
 
@@ -161,7 +161,7 @@ rr_arb20 u_rr_arb_20_1 (
 
 
 
-ram_1r1w #(WIDTH_NBITS, DEPTH_NBITS) u_ram_1r1w(
+ram_1r1w_bram #(WIDTH_NBITS, DEPTH_NBITS) u_ram_1r1w_bram(
 		.clk(clk),
 		.wr(ram_wr),
 		.raddr(ram_raddr),

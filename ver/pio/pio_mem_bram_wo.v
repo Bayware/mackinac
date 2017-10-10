@@ -7,7 +7,7 @@
 
 `include "defines.vh"
 
-module pio_mem_wo #(
+module pio_mem_bram_wo #(
   parameter WIDTH = 20,
   parameter DEPTH_NBITS = 1
 )(

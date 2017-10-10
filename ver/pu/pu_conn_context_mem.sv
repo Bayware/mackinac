@@ -93,7 +93,7 @@ always @(posedge clk) begin
 end
 
 wire [`RCI_NBITS-1:0] ram_raddr = io_cmd_d1[arb_rd_sel].addr[`RCI_NBITS-1+`CONNECTION_CONTEXT_DEPTH_NBITS:`CONNECTION_CONTEXT_DEPTH_NBITS];
-logic [`SCI_NBITS-1:0] ram_rdata;
+logic [`SCI_NBITS-1:0] ram_rdata /* synthesis keep = 1 */;
 
 wire conn_context_rd = arb_rd_gnt_d1;
 wire [DEPTH_NBITS-1:0] conn_context_raddr = {ram_rdata, io_cmd_d1[arb_rd_sel_d1].addr[`CONNECTION_CONTEXT_DEPTH_NBITS-1:0]};
@@ -118,7 +118,7 @@ rr_arb20 u_rr_arb_20_0 (
 	.gnt(arb_rd_gnt)
 );
 
-ram_1r1w #(`SCI_NBITS, `RCI_NBITS) u_ram_1r1w(
+ram_1r1w_bram #(`SCI_NBITS, `RCI_NBITS) u_ram_1r1w_bram(
 		.clk(clk),
 		.wr(asa_pu_table_wr_d1),
 		.raddr(ram_raddr),
@@ -144,7 +144,7 @@ sfifo2f_fo #(`PU_ID_NBITS, 2) u_sfifo2f_fo(
 		.dout(fifo_arb_sel)
 );
 
-pio_mem #(WIDTH_NBITS, DEPTH_NBITS) u_pio_mem(
+pio_mem_bram #(WIDTH_NBITS, DEPTH_NBITS) u_pio_mem_bram(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

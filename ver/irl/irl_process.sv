@@ -24,19 +24,19 @@ input cla_irl_sop,
 input cla_irl_eop,
 
 input limiting_profile_cir_ack, 
-input [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_cir_rdata  /* synthesis keep = 1 */,
+input [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_cir_rdata,
 
 input limiting_profile_eir_ack, 
-input [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_eir_rdata  /* synthesis keep = 1 */,
+input [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_eir_rdata,
 
 input fill_tb_src_ack, 
-input [`FILL_TB_NBITS-1:0] fill_tb_src_rdata  /* synthesis keep = 1 */,
+input [`FILL_TB_NBITS-1:0] fill_tb_src_rdata,
 
 input eir_tb_ack, 
-input [`EIR_NBITS+2-1:0] eir_tb_rdata  /* synthesis keep = 1 */,
+input [`EIR_NBITS+2-1:0] eir_tb_rdata,
 
 input token_bucket_ack, 
-input [BUCKET_NBITS-1:0] token_bucket_rdata  /* synthesis keep = 1 */,
+input [BUCKET_NBITS-1:0] token_bucket_rdata,
 
 
     // outputs

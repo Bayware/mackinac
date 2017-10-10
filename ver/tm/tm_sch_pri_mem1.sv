@@ -54,21 +54,21 @@ output reg [DEPTH_NBITS-1:0] pri_sch_ctrl_waddr,
 output reg [WIDTH-1:0] pri_sch_ctrl_wdata,
 
 output pri_sch_ctrl0_ack, 
-output [WIDTH-1:0] pri_sch_ctrl0_rdata  /* synthesis keep = 1 */,
+output [WIDTH-1:0] pri_sch_ctrl0_rdata,
 output pri_sch_ctrl1_ack, 
-output [WIDTH-1:0] pri_sch_ctrl1_rdata  /* synthesis keep = 1 */,
+output [WIDTH-1:0] pri_sch_ctrl1_rdata,
 output pri_sch_ctrl2_ack, 
-output [WIDTH-1:0] pri_sch_ctrl2_rdata  /* synthesis keep = 1 */,
+output [WIDTH-1:0] pri_sch_ctrl2_rdata,
 output pri_sch_ctrl3_ack, 
-output [WIDTH-1:0] pri_sch_ctrl3_rdata  /* synthesis keep = 1 */,
+output [WIDTH-1:0] pri_sch_ctrl3_rdata,
 output pri_sch_ctrl4_ack, 
-output [WIDTH-1:0] pri_sch_ctrl4_rdata  /* synthesis keep = 1 */,
+output [WIDTH-1:0] pri_sch_ctrl4_rdata,
 output pri_sch_ctrl5_ack, 
-output [WIDTH-1:0] pri_sch_ctrl5_rdata  /* synthesis keep = 1 */,
+output [WIDTH-1:0] pri_sch_ctrl5_rdata,
 output pri_sch_ctrl6_ack, 
-output [WIDTH-1:0] pri_sch_ctrl6_rdata  /* synthesis keep = 1 */,
+output [WIDTH-1:0] pri_sch_ctrl6_rdata,
 output pri_sch_ctrl7_ack, 
-output [WIDTH-1:0] pri_sch_ctrl7_rdata  /* synthesis keep = 1 */
+output [WIDTH-1:0] pri_sch_ctrl7_rdata
 
 );
 
@@ -103,7 +103,7 @@ always @(`CLK_RST)
 
 /***************************** PROGRAM BODY **********************************/
 
-pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f0(
+pio_mem_bram_f #(WIDTH, DEPTH_NBITS) u_pio_mem_bram_f0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -125,7 +125,7 @@ pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f0(
         .app_mem_rdata(pri_sch_ctrl0_rdata)
 );
 
-pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f1(
+pio_mem_bram_f #(WIDTH, DEPTH_NBITS) u_pio_mem_bram_f1(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -147,7 +147,7 @@ pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f1(
         .app_mem_rdata(pri_sch_ctrl1_rdata)
 );
 
-pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f2(
+pio_mem_bram_f #(WIDTH, DEPTH_NBITS) u_pio_mem_bram_f2(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -169,7 +169,7 @@ pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f2(
         .app_mem_rdata(pri_sch_ctrl2_rdata)
 );
 
-pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f3(
+pio_mem_bram_f #(WIDTH, DEPTH_NBITS) u_pio_mem_bram_f3(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -191,7 +191,7 @@ pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f3(
         .app_mem_rdata(pri_sch_ctrl3_rdata)
 );
 
-pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f4(
+pio_mem_bram_f #(WIDTH, DEPTH_NBITS) u_pio_mem_bram_f4(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -213,7 +213,7 @@ pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f4(
         .app_mem_rdata(pri_sch_ctrl4_rdata)
 );
 
-pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f5(
+pio_mem_bram_f #(WIDTH, DEPTH_NBITS) u_pio_mem_bram_f5(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -235,7 +235,7 @@ pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f5(
         .app_mem_rdata(pri_sch_ctrl5_rdata)
 );
 
-pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f6(
+pio_mem_bram_f #(WIDTH, DEPTH_NBITS) u_pio_mem_bram_f6(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -257,7 +257,7 @@ pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f6(
         .app_mem_rdata(pri_sch_ctrl6_rdata)
 );
 
-pio_mem_f #(WIDTH, DEPTH_NBITS) u_pio_mem_f7(
+pio_mem_bram_f #(WIDTH, DEPTH_NBITS) u_pio_mem_bram_f7(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 

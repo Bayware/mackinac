@@ -207,7 +207,7 @@ output semaphore_rdata  /* synthesis keep = 1 */
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w #(`DEFICIT_COUNTER_NBITS+`TQNA_NBITS, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_3(
+ram_1r1w_bram #(`DEFICIT_COUNTER_NBITS+`TQNA_NBITS, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_3(
 		.clk(clk),
 		.wr(deficit_counter_wr),
 		.raddr(deficit_counter_raddr),
@@ -216,7 +216,7 @@ ram_1r1w #(`DEFICIT_COUNTER_NBITS+`TQNA_NBITS, `SECOND_LVL_QUEUE_ID_NBITS) u_ram
 
 		.dout(deficit_counter_rdata));
 
-ram_1r1w #(`CIR_NBITS+2+`EIR_NBITS+2, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_4(
+ram_1r1w_bram #(`CIR_NBITS+2+`EIR_NBITS+2, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_4(
 		.clk(clk),
 		.wr(token_bucket_wr),
 		.raddr(token_bucket_raddr),
@@ -225,7 +225,7 @@ ram_1r1w #(`CIR_NBITS+2+`EIR_NBITS+2, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_4(
 
 		.dout(token_bucket_rdata));
 
-ram_1r1w #(`EIR_NBITS+2, `PORT_ID_NBITS) u_ram_1r1w_41(
+ram_1r1w_bram #(`EIR_NBITS+2, `PORT_ID_NBITS) u_ram_1r1w_bram_41(
 		.clk(clk),
 		.wr(eir_tb_wr),
 		.raddr(eir_tb_raddr),
@@ -234,7 +234,7 @@ ram_1r1w #(`EIR_NBITS+2, `PORT_ID_NBITS) u_ram_1r1w_41(
 
 		.dout(eir_tb_rdata));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS+2, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_5(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS+2, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_5(
 		.clk(clk),
 		.wr(event_fifo_wr),
 		.raddr(event_fifo_raddr),
@@ -243,7 +243,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS+2, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_
 
 		.dout(event_fifo_rdata));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_60(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_60(
 		.clk(clk),
 		.wr(event_fifo_rd_ptr_wr0),
 		.raddr(event_fifo_rd_ptr_raddr0),
@@ -252,7 +252,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_60(
 
 		.dout(event_fifo_rd_ptr_rdata0));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_61(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_61(
 		.clk(clk),
 		.wr(event_fifo_rd_ptr_wr1),
 		.raddr(event_fifo_rd_ptr_raddr1),
@@ -261,7 +261,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_61(
 
 		.dout(event_fifo_rd_ptr_rdata1));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_62(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_62(
 		.clk(clk),
 		.wr(event_fifo_rd_ptr_wr2),
 		.raddr(event_fifo_rd_ptr_raddr2),
@@ -270,7 +270,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_62(
 
 		.dout(event_fifo_rd_ptr_rdata2));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_63(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_63(
 		.clk(clk),
 		.wr(event_fifo_rd_ptr_wr3),
 		.raddr(event_fifo_rd_ptr_raddr3),
@@ -279,7 +279,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_63(
 
 		.dout(event_fifo_rd_ptr_rdata3));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_64(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_64(
 		.clk(clk),
 		.wr(event_fifo_rd_ptr_wr4),
 		.raddr(event_fifo_rd_ptr_raddr4),
@@ -288,7 +288,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_64(
 
 		.dout(event_fifo_rd_ptr_rdata4));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_65(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_65(
 		.clk(clk),
 		.wr(event_fifo_rd_ptr_wr5),
 		.raddr(event_fifo_rd_ptr_raddr5),
@@ -297,7 +297,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_65(
 
 		.dout(event_fifo_rd_ptr_rdata5));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_66(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_66(
 		.clk(clk),
 		.wr(event_fifo_rd_ptr_wr6),
 		.raddr(event_fifo_rd_ptr_raddr6),
@@ -306,7 +306,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_66(
 
 		.dout(event_fifo_rd_ptr_rdata6));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_67(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_67(
 		.clk(clk),
 		.wr(event_fifo_rd_ptr_wr7),
 		.raddr(event_fifo_rd_ptr_raddr7),
@@ -315,7 +315,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_67(
 
 		.dout(event_fifo_rd_ptr_rdata7));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_70(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_70(
 		.clk(clk),
 		.wr(event_fifo_wr_ptr_wr0),
 		.raddr(event_fifo_wr_ptr_raddr0),
@@ -324,7 +324,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_70(
 
 		.dout(event_fifo_wr_ptr_rdata0));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_71(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_71(
 		.clk(clk),
 		.wr(event_fifo_wr_ptr_wr1),
 		.raddr(event_fifo_wr_ptr_raddr1),
@@ -333,7 +333,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_71(
 
 		.dout(event_fifo_wr_ptr_rdata1));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_72(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_72(
 		.clk(clk),
 		.wr(event_fifo_wr_ptr_wr2),
 		.raddr(event_fifo_wr_ptr_raddr2),
@@ -342,7 +342,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_72(
 
 		.dout(event_fifo_wr_ptr_rdata2));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_73(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_73(
 		.clk(clk),
 		.wr(event_fifo_wr_ptr_wr3),
 		.raddr(event_fifo_wr_ptr_raddr3),
@@ -351,7 +351,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_73(
 
 		.dout(event_fifo_wr_ptr_rdata3));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_74(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_74(
 		.clk(clk),
 		.wr(event_fifo_wr_ptr_wr4),
 		.raddr(event_fifo_wr_ptr_raddr4),
@@ -360,7 +360,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_74(
 
 		.dout(event_fifo_wr_ptr_rdata4));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_75(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_75(
 		.clk(clk),
 		.wr(event_fifo_wr_ptr_wr5),
 		.raddr(event_fifo_wr_ptr_raddr5),
@@ -369,7 +369,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_75(
 
 		.dout(event_fifo_wr_ptr_rdata5));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_76(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_76(
 		.clk(clk),
 		.wr(event_fifo_wr_ptr_wr6),
 		.raddr(event_fifo_wr_ptr_raddr6),
@@ -378,7 +378,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_76(
 
 		.dout(event_fifo_wr_ptr_rdata6));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_77(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_77(
 		.clk(clk),
 		.wr(event_fifo_wr_ptr_wr7),
 		.raddr(event_fifo_wr_ptr_raddr7),
@@ -387,7 +387,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_77(
 
 		.dout(event_fifo_wr_ptr_rdata7));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_80(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_80(
 		.clk(clk),
 		.wr(event_fifo_count_wr0),
 		.raddr(event_fifo_count_raddr0),
@@ -396,7 +396,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_80(
 
 		.dout(event_fifo_count_rdata0));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_81(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_81(
 		.clk(clk),
 		.wr(event_fifo_count_wr1),
 		.raddr(event_fifo_count_raddr1),
@@ -405,7 +405,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_81(
 
 		.dout(event_fifo_count_rdata1));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_82(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_82(
 		.clk(clk),
 		.wr(event_fifo_count_wr2),
 		.raddr(event_fifo_count_raddr2),
@@ -414,7 +414,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_82(
 
 		.dout(event_fifo_count_rdata2));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_83(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_83(
 		.clk(clk),
 		.wr(event_fifo_count_wr3),
 		.raddr(event_fifo_count_raddr3),
@@ -423,7 +423,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_83(
 
 		.dout(event_fifo_count_rdata3));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_84(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_84(
 		.clk(clk),
 		.wr(event_fifo_count_wr4),
 		.raddr(event_fifo_count_raddr4),
@@ -432,7 +432,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_84(
 
 		.dout(event_fifo_count_rdata4));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_85(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_85(
 		.clk(clk),
 		.wr(event_fifo_count_wr5),
 		.raddr(event_fifo_count_raddr5),
@@ -441,7 +441,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_85(
 
 		.dout(event_fifo_count_rdata5));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_86(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_86(
 		.clk(clk),
 		.wr(event_fifo_count_wr6),
 		.raddr(event_fifo_count_raddr6),
@@ -450,7 +450,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_86(
 
 		.dout(event_fifo_count_rdata6));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_87(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_87(
 		.clk(clk),
 		.wr(event_fifo_count_wr7),
 		.raddr(event_fifo_count_raddr7),
@@ -459,7 +459,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_87(
 
 		.dout(event_fifo_count_rdata7));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS<<1, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_88(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS<<1, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_88(
 		.clk(clk),
 		.wr(event_fifo_count_wr),
 		.raddr(event_fifo_count_raddr),
@@ -468,7 +468,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS<<1, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_8
 
 		.dout(event_fifo_count_rdata));
 
-ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_89(
+ram_1r1w_bram #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_89(
 		.clk(clk),
 		.wr(event_fifo_f1_count_wr),
 		.raddr(event_fifo_f1_count_raddr),
@@ -477,7 +477,7 @@ ram_1r1w #(`SECOND_LVL_QUEUE_ID_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_89(
 
 		.dout(event_fifo_f1_count_rdata));
 
-ram_1r1w #(`TQNA_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_11(
+ram_1r1w_bram #(`TQNA_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_bram_11(
 		.clk(clk),
 		.wr(wdrr_sch_tqna_wr),
 		.raddr(wdrr_sch_tqna_raddr),
@@ -486,7 +486,7 @@ ram_1r1w #(`TQNA_NBITS, `SECOND_LVL_SCH_ID_NBITS) u_ram_1r1w_11(
 
 		.dout(wdrr_sch_tqna_rdata));
 
-ram_1r1w #(1, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_12(
+ram_1r1w_bram #(1, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_12(
 		.clk(clk),
 		.wr(semaphore_wr),
 		.raddr(semaphore_raddr),

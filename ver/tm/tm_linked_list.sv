@@ -416,7 +416,7 @@ tm_freeq_fifo u_tm_freeq_fifo(
 );
 
 /***************************** MEMORY ***************************************/
-ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_0(
+ram_1r1w_bram #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_0(
 			.clk(clk),
 			.wr(head_wr),
 			.raddr(head_raddr),
@@ -425,7 +425,7 @@ ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_0(
 
 			.dout(head_rdata));
 
-ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_1(
+ram_1r1w_bram #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_1(
         .clk(clk),
         .wr(tail_wr),
         .raddr(tail_raddr),
@@ -434,7 +434,7 @@ ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_1(
 
         .dout(tail_rdata));
 
-ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_2(
+ram_1r1w_bram #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_2(
 		.clk(clk),
 		.wr(ll_wr),
 		.raddr(ll_raddr),

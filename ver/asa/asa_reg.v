@@ -73,6 +73,7 @@ always @(*) begin
 			sel_class2pri = 1'b1;
 			pio_rdata = {{(`PIO_NBITS-4){1'b0}}, class2pri};
 		end
+		default: n_pio_rvalid = 1'b0;
 	endcase
 end
 

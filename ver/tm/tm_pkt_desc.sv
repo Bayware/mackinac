@@ -202,7 +202,8 @@ sfifo2f_fo #(`PKT_DESC_DEPTH_NBITS, 2) u_sfifo2f_fo_0(
 );
 
 /***************************** MEMORY ***************************************/
-ext_pkt_desc_type ram_din, ram_dout;
+ext_pkt_desc_type ram_din;
+ext_pkt_desc_type ram_dout /* synthesis keep = 1 */;
 assign ram_din.conn_id = wr_pkt_desc_conn_id_d1;
 assign ram_din.conn_group_id = wr_pkt_desc_conn_group_id_d1;
 assign ram_din.port_queue_id = wr_pkt_desc_port_queue_id_d1;

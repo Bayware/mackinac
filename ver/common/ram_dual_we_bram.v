@@ -6,57 +6,107 @@
 //===========================================================================
 
 module ram_dual_we_bram
-             ( clk1, we1, raddr1, waddr1, din1, dout1, clk2, we2, raddr2, waddr2, din2, dout2);
+             ( clka, wea, addra, dina, douta, clkb, web, addrb, dinb, doutb);
 
-parameter WIDTH = 32,
-	      DEPTH_NBITS = 4,
-	      DEPTH = 16'h1<<DEPTH_NBITS;
+parameter DI_WIDTH = 8,
+	      ADDR_WIDTH = 4,
+	      SIZE = 16'h1<<ADDR_WIDTH;
 
-output  [WIDTH-1:0] dout1;
+output  [4*DI_WIDTH-1:0] douta;
 
-input    clk1;  
-input   [3:0] we1;
-input   [DEPTH_NBITS-1:0] raddr1, waddr1;
-input   [WIDTH-1:0] din1;
+input    clka;  
+input   [3:0] wea;
+input   [ADDR_WIDTH-1:0] addra;
+input   [4*DI_WIDTH-1:0] dina;
 
-output  [WIDTH-1:0] dout2;
+output  [4*DI_WIDTH-1:0] doutb;
 
-input    clk2;  
-input   [3:0] we2;
-input   [DEPTH_NBITS-1:0] raddr2, waddr2;
-input   [WIDTH-1:0] din2;
+input    clkb;  
+input   [3:0] web;
+input   [ADDR_WIDTH-1:0] addrb;
+input   [4*DI_WIDTH-1:0] dinb;
 
-reg [WIDTH-1:0] dout1;
-reg [WIDTH-1:0] dout2;
-reg [WIDTH-1:0] mem_d1;
-reg [WIDTH-1:0] mem_d2;
+reg [4*DI_WIDTH-1:0] douta;
+reg [4*DI_WIDTH-1:0] doutb;
+reg [DI_WIDTH-1:0] dina0, dina1, dina2, dina3;
+reg [DI_WIDTH-1:0] douta0, douta1, douta2, douta3;
+reg [DI_WIDTH-1:0] dinb0, dinb1, dinb2, dinb3;
+reg [DI_WIDTH-1:0] doutb0, doutb1, doutb2, doutb3;
 (* ram_style = "block" *)
-reg [WIDTH-1:0] mem_d[DEPTH-1:0];
+reg [4*DI_WIDTH-1:0] RAM[SIZE-1:0];
 
 always @* begin
-	if(we1[0]) mem_d1[7:0] <= din1[7:0]; else mem_d1[7:0] = mem_d[waddr1][7:0];
-	if(we1[1]) mem_d1[15:8] <= din1[15:8]; else mem_d1[15:8] = mem_d[waddr1][15:8];
-	if(we1[2]) mem_d1[23:16] <= din1[23:16]; else mem_d1[23:16] = mem_d[waddr1][23:16];
-	if(we1[3]) mem_d1[31:24] <= din1[31:24]; else mem_d1[31:24] = mem_d[waddr1][31:24];
+	if(wea[3]) begin
+		dina3 = dina[4*DI_WIDTH-1:3*DI_WIDTH];
+		douta3 = dina[4*DI_WIDTH-1:3*DI_WIDTH];
+	end else begin
+		dina3 = RAM[addra][4*DI_WIDTH-1:3*DI_WIDTH];
+		douta3 = RAM[addra][4*DI_WIDTH-1:3*DI_WIDTH];
+	end
+	if(wea[2]) begin
+		dina2 = dina[3*DI_WIDTH-1:2*DI_WIDTH];
+		douta2 = dina[3*DI_WIDTH-1:2*DI_WIDTH];
+	end else begin
+		dina2 = RAM[addra][3*DI_WIDTH-1:2*DI_WIDTH];
+		douta2 = RAM[addra][3*DI_WIDTH-1:2*DI_WIDTH];
+	end
+	if(wea[1]) begin
+		dina1 = dina[2*DI_WIDTH-1:1*DI_WIDTH];
+		douta1 = dina[2*DI_WIDTH-1:1*DI_WIDTH];
+	end else begin
+		dina1 = RAM[addra][2*DI_WIDTH-1:1*DI_WIDTH];
+		douta1 = RAM[addra][2*DI_WIDTH-1:1*DI_WIDTH];
+	end
+	if(wea[0]) begin
+		dina0 = dina[1*DI_WIDTH-1:0*DI_WIDTH];
+		douta0 = dina[1*DI_WIDTH-1:0*DI_WIDTH];
+	end else begin
+		dina0 = RAM[addra][1*DI_WIDTH-1:0*DI_WIDTH];
+		douta0 = RAM[addra][1*DI_WIDTH-1:0*DI_WIDTH];
+	end
 end
 
 
-always @(posedge clk1) begin
-	mem_d[waddr1] <= mem_d1;
-	dout1 <= mem_d[raddr1];
+always @(posedge clka) begin
+	RAM[addra] <= {dina3, dina2, dina1, dina0};
+	douta <= {douta3, douta2, douta1, douta0};
 end
 
 always @* begin
-	if(we2[0]) mem_d2[7:0] <= din2[7:0]; else mem_d2[7:0] = mem_d[waddr2][7:0];
-	if(we2[1]) mem_d2[15:8] <= din2[15:8]; else mem_d2[15:8] = mem_d[waddr2][15:8];
-	if(we2[2]) mem_d2[23:16] <= din2[23:16]; else mem_d2[23:16] = mem_d[waddr2][23:16];
-	if(we2[3]) mem_d2[31:24] <= din2[31:24]; else mem_d2[31:24] = mem_d[waddr2][31:24];
+	if(web[3]) begin
+		dinb3 = dinb[4*DI_WIDTH-1:3*DI_WIDTH];
+		doutb3 = dinb[4*DI_WIDTH-1:3*DI_WIDTH];
+	end else begin
+		dinb3 = RAM[addrb][4*DI_WIDTH-1:3*DI_WIDTH];
+		doutb3 = RAM[addrb][4*DI_WIDTH-1:3*DI_WIDTH];
+	end
+	if(web[2]) begin
+		dinb2 = dinb[3*DI_WIDTH-1:2*DI_WIDTH];
+		doutb2 = dinb[3*DI_WIDTH-1:2*DI_WIDTH];
+	end else begin
+		dinb2 = RAM[addrb][3*DI_WIDTH-1:2*DI_WIDTH];
+		doutb2 = RAM[addrb][3*DI_WIDTH-1:2*DI_WIDTH];
+	end
+	if(web[1]) begin
+		dinb1 = dinb[2*DI_WIDTH-1:1*DI_WIDTH];
+		doutb1 = dinb[2*DI_WIDTH-1:1*DI_WIDTH];
+	end else begin
+		dinb1 = RAM[addrb][2*DI_WIDTH-1:1*DI_WIDTH];
+		doutb1 = RAM[addrb][2*DI_WIDTH-1:1*DI_WIDTH];
+	end
+	if(web[0]) begin
+		dinb0 = dinb[1*DI_WIDTH-1:0*DI_WIDTH];
+		doutb0 = dinb[1*DI_WIDTH-1:0*DI_WIDTH];
+	end else begin
+		dinb0 = RAM[addrb][1*DI_WIDTH-1:0*DI_WIDTH];
+		doutb0 = RAM[addrb][1*DI_WIDTH-1:0*DI_WIDTH];
+	end
 end
 
 
-always @(posedge clk2) begin
-	mem_d[waddr2] <= mem_d2;
-	dout2 <= mem_d[raddr2];
+always @(posedge clka) begin
+	RAM[addrb] <= {dinb3, dinb2, dinb1, dinb0};
+	doutb <= {doutb3, doutb2, doutb1, doutb0};
 end
 
 endmodule            

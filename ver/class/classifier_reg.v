@@ -54,6 +54,7 @@ always @(*) begin
 			sel_aging_time = 1'b1;
 			pio_rdata = {{(`PIO_NBITS-`AGING_TIME_NBITS){1'b0}}, aging_time};
 		end
+		default: n_pio_rvalid = 1'b0;
 	endcase
 end
 

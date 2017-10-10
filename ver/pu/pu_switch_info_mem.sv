@@ -114,7 +114,7 @@ sfifo2f_fo #(`PU_ID_NBITS, 2) u_sfifo2f_fo(
 		.dout(fifo_arb_sel)
 );
 
-pio_mem #(WIDTH_NBITS, DEPTH_NBITS) u_pio_mem(
+pio_mem_bram #(WIDTH_NBITS, DEPTH_NBITS) u_pio_mem_bram(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

@@ -54,6 +54,7 @@ always @(*) begin
 			sel_default_exp_time = 1'b1;
 			pio_rdata = {{(`PIO_NBITS-`REAL_TIME_NBITS){1'b0}}, default_exp_time};
 		end
+		default: n_pio_rvalid = 1'b0;
 	endcase
 end
 

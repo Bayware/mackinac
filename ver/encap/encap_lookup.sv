@@ -37,22 +37,22 @@ input encr_ring_in_sos,
 input encr_ring_in_valid,
 
 input tunnel_hash_table0_ack, 
-input [TUNNEL_BUCKET_NBITS-1:0] tunnel_hash_table0_rdata  /* synthesis keep = 1 */,
+input [TUNNEL_BUCKET_NBITS-1:0] tunnel_hash_table0_rdata,
 
 input tunnel_hash_table1_ack, 
-input [TUNNEL_BUCKET_NBITS-1:0] tunnel_hash_table1_rdata  /* synthesis keep = 1 */,
+input [TUNNEL_BUCKET_NBITS-1:0] tunnel_hash_table1_rdata,
 
 input tunnel_value_ack, 
-input [TUNNEL_VALUE_NBITS-1:0] tunnel_value_rdata, /* synthesis keep = 1 */
+input [TUNNEL_VALUE_NBITS-1:0] tunnel_value_rdata,
 
 input ekey_hash_table0_ack, 
-input [EEKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata  /* synthesis keep = 1 */,
+input [EEKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata,
 
 input ekey_hash_table1_ack, 
-input [EEKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata  /* synthesis keep = 1 */,
+input [EEKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata,
 
 input ekey_value_ack, 
-input [EEKEY_VALUE_NBITS-1:0] ekey_value_rdata, /* synthesis keep = 1 */
+input [EEKEY_VALUE_NBITS-1:0] ekey_value_rdata,
 
 output logic tunnel_hash_table0_rd, 
 output logic [TUNNEL_DEPTH_NBITS-1:0] tunnel_hash_table0_raddr,

@@ -199,7 +199,7 @@ sfifo2f_fo #(`BUF_PTR_NBITS+`PORT_ID_NBITS, 2) u_sfifo2f_fo(
 	);
 
 /***************************** MEMORY ***************************************/
-ram_1r1w #(`READ_COUNT_NBITS, `BUF_PTR_NBITS) u_ram_1r1w_0(
+ram_1r1w_bram #(`READ_COUNT_NBITS, `BUF_PTR_NBITS) u_ram_1r1w_bram_0(
         .clk(clk),
         .wr(read_count_valid_d1),
         .raddr(rel_ctr_raddr),
@@ -208,7 +208,7 @@ ram_1r1w #(`READ_COUNT_NBITS, `BUF_PTR_NBITS) u_ram_1r1w_0(
 
         .dout(rd_cnt));
 
-ram_1r1w #(`READ_COUNT_NBITS, `BUF_PTR_NBITS) u_ram_1r1w_1(
+ram_1r1w_bram #(`READ_COUNT_NBITS, `BUF_PTR_NBITS) u_ram_1r1w_bram_1(
         .clk(clk),
         .wr(rel_ctr_wr),
         .raddr(rel_ctr_raddr),
@@ -219,16 +219,6 @@ ram_1r1w #(`READ_COUNT_NBITS, `BUF_PTR_NBITS) u_ram_1r1w_1(
 
 /***************************** DIAGNOSTICS **********************************/
 // synopsys translate_off
-
-/*
-always @(posedge tm_rel_buf_valid)
-        if (`INACTIVE_RESET) #1 $display (" %t : Free Buffer returned=%0d ", 
-					$realtime, tm_rel_buf_ptr);
-				*/
-always @(posedge read_count_valid)
-        if (`INACTIVE_RESET) #1 $display (" %t : Copy count written =%0d for buffer=%0d ", 
-					$realtime, read_count,
-						read_count_buf_ptr);
 
 // synopsys translate_on
 

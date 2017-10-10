@@ -122,13 +122,13 @@ localparam TAG_VALUE_NBITS = `TAG_VALUE_NBITS;
 localparam TAG_VALUE_DEPTH_NBITS = `TAG_VALUE_DEPTH_NBITS;
 
 logic tag_hash_table0_ack; 
-wire [TAG_BUCKET_NBITS-1:0] tag_hash_table0_rdata  /* synthesis keep = 1 */;
+wire [TAG_BUCKET_NBITS-1:0] tag_hash_table0_rdata;
 
 logic tag_hash_table1_ack; 
-wire [TAG_BUCKET_NBITS-1:0] tag_hash_table1_rdata  /* synthesis keep = 1 */;
+wire [TAG_BUCKET_NBITS-1:0] tag_hash_table1_rdata;
 
 logic tag_value_ack; 
-wire [TAG_VALUE_NBITS-1:0] tag_value_rdata; /* synthesis keep = 1 */
+wire [TAG_VALUE_NBITS-1:0] tag_value_rdata;
 
 logic tag_hash_table0_rd; 
 logic [TAG_DEPTH_NBITS-1:0] tag_hash_table0_raddr;

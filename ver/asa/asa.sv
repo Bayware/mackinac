@@ -438,7 +438,7 @@ pio_mem_wo #(`SCI_NBITS, `RCI_NBITS) u_pio_mem_wo(
 
 logic [`RCI_NBITS-1:0] ram_raddr1;
 flop #(`RCI_NBITS) u_flop_1(.clk(clk), .din({rci2sci_table_raddr[`RCI_NBITS*2-1:`RCI_NBITS]}), .dout(ram_raddr1));
-ram_1r1w #(`SCI_NBITS, `RCI_NBITS) u_ram_1r1w_0(
+ram_1r1w_bram #(`SCI_NBITS, `RCI_NBITS) u_ram_1r1w_bram_0(
 		.clk(clk),
 		.wr(wr_active),
 		.raddr(ram_raddr1),
@@ -450,7 +450,7 @@ ram_1r1w #(`SCI_NBITS, `RCI_NBITS) u_ram_1r1w_0(
 
 flop #(`SCI_NBITS) u_flop_0(.clk(clk), .din({ram_rdata1}), .dout({rci2sci_table_rdata[`SCI_NBITS*2-1:`SCI_NBITS]}));
 
-ram_1r1w #(`SCI_NBITS, `RCI_NBITS) u_ram_1r1w_1(
+ram_1r1w_bram #(`SCI_NBITS, `RCI_NBITS) u_ram_1r1w_bram_1(
 		.clk(clk),
 		.wr(wr_active),
 		.raddr(ram_raddr),

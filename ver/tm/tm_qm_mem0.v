@@ -45,7 +45,7 @@ output [`QUEUE_ASSOCIATION_NBITS-1:0] queue_association_rdata  /* synthesis keep
 
 /***************************** PROGRAM BODY **********************************/
 
-pio_mem #(`QUEUE_ASSOCIATION_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_pio_mem(
+pio_mem_bram #(`QUEUE_ASSOCIATION_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_pio_mem_bram(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

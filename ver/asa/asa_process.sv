@@ -294,7 +294,7 @@ always @(`CLK_RST)
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w #(`FLOW_POLICY2_NBITS, `FID_NBITS) u_ram_1r1w_0(
+ram_1r1w_bram #(`FLOW_POLICY2_NBITS, `FID_NBITS) u_ram_1r1w_bram_0(
 			.clk(clk),
 			.wr(ecdsa_asa_fp_wr_d1),
 			.raddr(fp_raddr),
@@ -303,7 +303,7 @@ ram_1r1w #(`FLOW_POLICY2_NBITS, `FID_NBITS) u_ram_1r1w_0(
 
 			.dout(fp_rdata));
 
-ram_1r1w #(`FLOW_ACTION_NBITS, `FID_NBITS) u_ram_1r1w_1(
+ram_1r1w_bram #(`FLOW_ACTION_NBITS, `FID_NBITS) u_ram_1r1w_bram_1(
 			.clk(clk),
 			.wr(fa_wr),
 			.raddr(fa_raddr),
@@ -312,7 +312,7 @@ ram_1r1w #(`FLOW_ACTION_NBITS, `FID_NBITS) u_ram_1r1w_1(
 
 			.dout(fa_rdata));
 
-ram_1r1w #(`SCI_VEC_NBITS, `TID_NBITS) u_ram_1r1w_2(
+ram_1r1w_bram #(`SCI_VEC_NBITS, `TID_NBITS) u_ram_1r1w_bram_2(
 			.clk(clk),
 			.wr(ta_wr),
 			.raddr(ta_raddr),

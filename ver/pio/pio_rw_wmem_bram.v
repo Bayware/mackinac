@@ -7,7 +7,7 @@
 
 `include "defines.vh"
 
-module pio_rw_wmem #(
+module pio_rw_wmem_bram #(
   parameter WIDTH = 40,
   parameter DEPTH_NBITS = 10,
   parameter REG_WR_EN = 1'b1
@@ -127,7 +127,7 @@ always @(`CLK_RST)
 	end
 
 /***************************** MEMORY ***************************************/
-ram_1r1w #(WIDTH, DEPTH_NBITS) u_ram_1r1w(
+ram_1r1w_bram #(WIDTH, DEPTH_NBITS) u_ram_1r1w_bram(
 		.clk(clk),
 		.wr(ram_wr),
 		.raddr(ram_raddr),

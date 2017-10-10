@@ -430,7 +430,7 @@ sfifo_enq_pkt_desc #(2) u_sfifo_enq_pkt_desc_3(
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w #(`SUB_EXP_TIME_NBITS, `TID_NBITS+`SCI_NBITS) u_ram_1r1w_3(
+ram_1r1w_bram #(`SUB_EXP_TIME_NBITS, `TID_NBITS+`SCI_NBITS) u_ram_1r1w_bram_3(
 			.clk(clk),
 			.wr(tset_wr),
 			.raddr(tset_raddr),

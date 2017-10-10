@@ -42,13 +42,13 @@ input tag_value_rd,
 input [VALUE_DEPTH_NBITS-1:0] tag_value_raddr,
 
 output tag_hash_table0_ack, 
-output [BUCKET_NBITS-1:0] tag_hash_table0_rdata  /* synthesis keep = 1 */,
+output [BUCKET_NBITS-1:0] tag_hash_table0_rdata,
 
 output tag_hash_table1_ack, 
-output [BUCKET_NBITS-1:0] tag_hash_table1_rdata  /* synthesis keep = 1 */,
+output [BUCKET_NBITS-1:0] tag_hash_table1_rdata,
 
 output tag_value_ack, 
-output [VALUE_NBITS-1:0] tag_value_rdata  /* synthesis keep = 1 */
+output [VALUE_NBITS-1:0] tag_value_rdata
 
 );
 
@@ -76,7 +76,7 @@ end
 /***************************** PROGRAM BODY **********************************/
 
 
-pio_wmem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_wmem0(
+pio_wmem_bram #(BUCKET_NBITS, DEPTH_NBITS) u_pio_wmem_bram0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -98,7 +98,7 @@ pio_wmem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_wmem0(
 		.app_mem_rdata(tag_hash_table0_rdata)
 );
 
-pio_wmem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_wmem1(
+pio_wmem_bram #(BUCKET_NBITS, DEPTH_NBITS) u_pio_wmem_bram1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -120,7 +120,7 @@ pio_wmem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_wmem1(
 		.app_mem_rdata(tag_hash_table1_rdata)
 );
 
-pio_wmem #(VALUE_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem2(
+pio_wmem_bram #(VALUE_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram2(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

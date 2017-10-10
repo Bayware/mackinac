@@ -364,7 +364,7 @@ always @(`CLK_RST)
     end
 
 
-ram_1r1w #(`LOGIC_HASH_NBITS, `FID_NBITS) u_ram_1r1w_0(
+ram_1r1w_bram #(`LOGIC_HASH_NBITS, `FID_NBITS) u_ram_1r1w_bram_0(
 		.clk(clk),
 		.wr(logic_hash_wr|init_wr),
 		.raddr(logic_hash_raddr),
@@ -374,7 +374,7 @@ ram_1r1w #(`LOGIC_HASH_NBITS, `FID_NBITS) u_ram_1r1w_0(
 		.dout(logic_hash_rdata)
 );
 
-ram_1r1w #(`PPL_NBITS+`SERIAL_NUM_NBITS, `FID_NBITS) u_ram_1r1w_1(
+ram_1r1w_bram #(`PPL_NBITS+`SERIAL_NUM_NBITS, `FID_NBITS) u_ram_1r1w_bram_1(
 		.clk(clk),
 		.wr(ecdsa_lh_wr_d1|init_wr),
 		.raddr(serial_num_raddr),

@@ -37,22 +37,22 @@ input decr_ring_in_sos,
 input decr_ring_in_valid,
 
 input rci_hash_table0_ack, 
-input [RCI_BUCKET_NBITS-1:0] rci_hash_table0_rdata  /* synthesis keep = 1 */,
+input [RCI_BUCKET_NBITS-1:0] rci_hash_table0_rdata,
 
 input rci_hash_table1_ack, 
-input [RCI_BUCKET_NBITS-1:0] rci_hash_table1_rdata  /* synthesis keep = 1 */,
+input [RCI_BUCKET_NBITS-1:0] rci_hash_table1_rdata,
 
 input rci_value_ack, 
-input [RCI_VALUE_NBITS-1:0] rci_value_rdata, /* synthesis keep = 1 */
+input [RCI_VALUE_NBITS-1:0] rci_value_rdata, 
 
 input ekey_hash_table0_ack, 
-input [EKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata  /* synthesis keep = 1 */,
+input [EKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata,
 
 input ekey_hash_table1_ack, 
-input [EKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata  /* synthesis keep = 1 */,
+input [EKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata,
 
 input ekey_value_ack, 
-input [EKEY_VALUE_NBITS-1:0] ekey_value_rdata, /* synthesis keep = 1 */
+input [EKEY_VALUE_NBITS-1:0] ekey_value_rdata,
 
 output logic rci_hash_table0_rd, 
 output logic [RCI_DEPTH_NBITS-1:0] rci_hash_table0_raddr,

@@ -208,22 +208,22 @@ wire decr_ring_out_sos4;
 wire decr_ring_out_valid4;
 
 wire rci_hash_table0_ack; 
-wire [RCI_BUCKET_NBITS-1:0] rci_hash_table0_rdata  /* synthesis keep = 1 */;
+wire [RCI_BUCKET_NBITS-1:0] rci_hash_table0_rdata;
 
 wire rci_hash_table1_ack; 
-wire [RCI_BUCKET_NBITS-1:0] rci_hash_table1_rdata  /* synthesis keep = 1 */;
+wire [RCI_BUCKET_NBITS-1:0] rci_hash_table1_rdata;
 
 wire rci_value_ack; 
-wire [RCI_VALUE_NBITS-1:0] rci_value_rdata  /* synthesis keep = 1 */;
+wire [RCI_VALUE_NBITS-1:0] rci_value_rdata;
 
 wire ekey_hash_table0_ack; 
-wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata  /* synthesis keep = 1 */;
+wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata;
 
 wire ekey_hash_table1_ack; 
-wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata  /* synthesis keep = 1 */;
+wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata;
 
 wire ekey_value_ack; 
-wire [EKEY_VALUE_NBITS-1:0] ekey_value_rdata  /* synthesis keep = 1 */;
+wire [EKEY_VALUE_NBITS-1:0] ekey_value_rdata;
 
 wire rci_hash_table0_rd; 
 wire [RCI_DEPTH_NBITS-1:0] rci_hash_table0_raddr;

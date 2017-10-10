@@ -72,28 +72,28 @@ output logic cla_irl_eop
 
 /***************************** LOCAL VARIABLES *******************************/
 logic flow_hash_table0_ack; 
-logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table0_rdata  /* synthesis keep = 1 */;
+logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table0_rdata;
 
 logic flow_hash_table1_ack; 
-logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table1_rdata  /* synthesis keep = 1 */;
+logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table1_rdata;
 
 logic flow_key_ack; 
-logic [`FLOW_KEY_NBITS-1:0] flow_key_rdata; /* synthesis keep = 1 */
+logic [`FLOW_KEY_NBITS-1:0] flow_key_rdata;
 
 logic flow_etime_ack; 
-logic [`EXP_TIME_NBITS-1:0] flow_etime_rdata; /* synthesis keep = 1 */
+logic [`EXP_TIME_NBITS-1:0] flow_etime_rdata; 
 
 logic topic_hash_table0_ack; 
-logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table0_rdata  /* synthesis keep = 1 */;
+logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table0_rdata;
 
 logic topic_hash_table1_ack; 
-logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table1_rdata  /* synthesis keep = 1 */;
+logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table1_rdata;
 
 logic topic_key_ack; 
-logic [`TOPIC_KEY_NBITS-1:0] topic_key_rdata; /* synthesis keep = 1 */
+logic [`TOPIC_KEY_NBITS-1:0] topic_key_rdata; 
 
 logic topic_etime_ack; 
-logic [`EXP_TIME_NBITS-1:0] topic_etime_rdata; /* synthesis keep = 1 */
+logic [`EXP_TIME_NBITS-1:0] topic_etime_rdata;
 
 logic flow_hash_table0_rd; 
 logic [FLOW_DEPTH_NBITS-1:0] flow_hash_table0_raddr;

@@ -48,13 +48,13 @@ input [WM_NBITS-1:0] ekey_value_wdata,
 
 
 output ekey_hash_table0_ack, 
-output [BUCKET_NBITS-1:0] ekey_hash_table0_rdata  /* synthesis keep = 1 */,
+output [BUCKET_NBITS-1:0] ekey_hash_table0_rdata,
 
 output ekey_hash_table1_ack, 
-output [BUCKET_NBITS-1:0] ekey_hash_table1_rdata  /* synthesis keep = 1 */,
+output [BUCKET_NBITS-1:0] ekey_hash_table1_rdata,
 
 output ekey_value_ack, 
-output [VALUE_NBITS-1:0] ekey_value_rdata  /* synthesis keep = 1 */
+output [VALUE_NBITS-1:0] ekey_value_rdata 
 
 );
 
@@ -173,7 +173,7 @@ pio_wmem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_wmem1(
 		.app_mem_rdata(ekey_hash_table1_rdata)
 );
 
-pio_rw_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_rw_wmem2(
+pio_rw_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_rw_wmem_bram2(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -199,7 +199,7 @@ pio_rw_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_rw_wmem2(
 		.app_mem_rdata(ekey_value_rdata[WM_NBITS*1-1:WM_NBITS*0])
 );
 
-pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem3(
+pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram3(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -221,7 +221,7 @@ pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem3(
 		.app_mem_rdata(ekey_value_rdata[WM_NBITS*2-1:WM_NBITS*1])
 );
 
-pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem4(
+pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram4(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -243,7 +243,7 @@ pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem4(
 		.app_mem_rdata(ekey_value_rdata[WM_NBITS*3-1:WM_NBITS*2])
 );
 
-pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem5(
+pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram5(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -265,7 +265,7 @@ pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem5(
 		.app_mem_rdata(ekey_value_rdata[WM_NBITS*4-1:WM_NBITS*3])
 );
 
-pio_wmem #(VALUE_NBITS-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem6(
+pio_wmem_bram #(VALUE_NBITS-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram6(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

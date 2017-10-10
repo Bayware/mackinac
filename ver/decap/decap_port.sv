@@ -241,19 +241,19 @@ logic [1:0] more_eop_valid_bytes_d1;
 wire [1:0] min_fifo_valid_bytes = in_fifo_eop?(more_eop?0:in_fifo_valid_bytes+2):more_eop_d1?more_eop_valid_bytes_d1:in_fifo_valid_bytes;
 wire min_fifo_eop = in_fifo_eop&~more_eop|more_eop_d1;
 
-wire rci_fifo_rd = out_fifo_rd&out_fifo_eop;
-
 logic [16-1:0] out_fifo_data_save;
 
 wire out_more_eop = ~^out_fifo_valid_bytes&~out_fifo_empty&out_fifo_eop&rci_fifo_l2_gre;
 
 wire [1:0] out_more_eop_valid_bytes = &out_fifo_valid_bytes?1:2;
 logic [1:0] out_more_eop_valid_bytes_d1;
-wire [1:0] mout_fifo_valid_bytes = out_more_eop_d1?more_eop_valid_bytes_d1:out_fifo_eop?(out_more_eop?0:out_fifo_valid_bytes+2):out_fifo_valid_bytes;
+wire [1:0] mout_fifo_valid_bytes = out_more_eop_d1?out_more_eop_valid_bytes_d1:out_fifo_eop?(out_more_eop?0:out_fifo_valid_bytes+2):out_fifo_valid_bytes;
 wire mout_fifo_eop = out_fifo_eop&~out_more_eop|out_more_eop_d1;
 
 wire out_fifo_error = ~out_fifo_good|~rci_fifo_valid;
 logic out_fifo_error_d1;
+
+wire rci_fifo_rd = out_fifo_rd&out_fifo_eop&~out_more_eop|out_more_eop_d1;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -298,6 +298,7 @@ always @(*) begin
 		rx_axis_tkeep_d1[1]: rx_axis_valid_bytes = 3;
 		rx_axis_tkeep_d1[2]: rx_axis_valid_bytes = 2;
 		rx_axis_tkeep_d1[3]: rx_axis_valid_bytes = 1;
+		default: rx_axis_valid_bytes = 0;
 	endcase
 end
 

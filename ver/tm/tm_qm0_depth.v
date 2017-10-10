@@ -79,7 +79,7 @@ wire ram_queue_wr_p1 = (deq_req_d2)|(enq_lat_fifo_rd0_d1);
 
 wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_queue_raddr = deq_req_d1?deq_qid_d1:lat_enq_qid;
  
-wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_queue_depth;
+wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_queue_depth /* synthesis keep = 1 */;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -187,7 +187,7 @@ sfifo2f_fo #(`FIRST_LVL_QUEUE_ID_NBITS, 2) u_sfifo2f_fo_4(
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_0(
+ram_1r1w_bram #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_0(
         .clk(clk),
         .wr(init_wr|ram_queue_wr),
         .raddr(ram_queue_raddr),

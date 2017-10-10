@@ -131,7 +131,7 @@ always @(`CLK_RST)
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w #(`DATA_PATH_NBITS, (`BUF_PTR_NBITS+`BUF_PTR_LSB_NBITS)) u_ram_1r1w(
+ram_1r1w_bram #(`DATA_PATH_NBITS, (`BUF_PTR_NBITS+`BUF_PTR_LSB_NBITS)) u_ram_1r1w_bram(
         .clk(clk),
         .wr(aggr_bm_packet_valid_d1),
         .raddr({packet_req_buf_ptr_d1, packet_req_buf_ptr_lsb_d1}),

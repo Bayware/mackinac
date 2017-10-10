@@ -43,13 +43,13 @@ input rci_value_rd,
 input [VALUE_DEPTH_NBITS-1:0] rci_value_raddr,
 
 output rci_hash_table0_ack, 
-output [BUCKET_NBITS-1:0] rci_hash_table0_rdata  /* synthesis keep = 1 */,
+output [BUCKET_NBITS-1:0] rci_hash_table0_rdata,
 
 output rci_hash_table1_ack, 
-output [BUCKET_NBITS-1:0] rci_hash_table1_rdata  /* synthesis keep = 1 */,
+output [BUCKET_NBITS-1:0] rci_hash_table1_rdata,
 
 output rci_value_ack, 
-output [VALUE_NBITS-1:0] rci_value_rdata  /* synthesis keep = 1 */
+output [VALUE_NBITS-1:0] rci_value_rdata
 
 );
 
@@ -192,7 +192,7 @@ pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem2(
 		.app_mem_rdata(rci_value_rdata[WM_NBITS*1-1:WM_NBITS*0])
 );
 
-pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem3(
+pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram3(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -214,7 +214,7 @@ pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem3(
 		.app_mem_rdata(rci_value_rdata[WM_NBITS*2-1:WM_NBITS*1])
 );
 
-pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem4(
+pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram4(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -236,7 +236,7 @@ pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem4(
 		.app_mem_rdata(rci_value_rdata[WM_NBITS*3-1:WM_NBITS*2])
 );
 
-pio_wmem #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem5(
+pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram5(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

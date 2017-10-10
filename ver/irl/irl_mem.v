@@ -71,19 +71,19 @@ input [DEPTH_NBITS-1:0] token_bucket_waddr,
 input [BUCKET_NBITS-1:0] token_bucket_wdata,
 
 output limiting_profile_cir_ack, 
-output [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_cir_rdata  /* synthesis keep = 1 */,
+output [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_cir_rdata,
 
 output limiting_profile_eir_ack, 
-output [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_eir_rdata  /* synthesis keep = 1 */,
+output [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_eir_rdata,
 
 output reg fill_tb_src_ack, 
-output [`FILL_TB_NBITS-1:0] fill_tb_src_rdata  /* synthesis keep = 1 */,
+output [`FILL_TB_NBITS-1:0] fill_tb_src_rdata /* synthesis keep = 1 */,
 
 output reg eir_tb_ack, 
-output [EIR_TB_NBITS-1:0] eir_tb_rdata  /* synthesis keep = 1 */,
+output [EIR_TB_NBITS-1:0] eir_tb_rdata /* synthesis keep = 1 */,
 
 output reg token_bucket_ack, 
-output [BUCKET_NBITS-1:0] token_bucket_rdata  /* synthesis keep = 1 */
+output [BUCKET_NBITS-1:0] token_bucket_rdata /* synthesis keep = 1 */
 
 );
 
@@ -129,7 +129,7 @@ always @(`CLK_RST)
 	end
 
 
-pio_rw_mem #(`LIMITING_PROFILE_NBITS, `LIMITER_NBITS) u_pio_rw_mem0(
+pio_rw_mem_bram #(`LIMITING_PROFILE_NBITS, `LIMITER_NBITS) u_pio_rw_mem_bram0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -155,7 +155,7 @@ pio_rw_mem #(`LIMITING_PROFILE_NBITS, `LIMITER_NBITS) u_pio_rw_mem0(
 		.app_mem_rdata(limiting_profile_cir_rdata)
 );
 
-pio_rw_mem #(`LIMITING_PROFILE_NBITS, `LIMITER_NBITS) u_pio_rw_mem1(
+pio_rw_mem_bram #(`LIMITING_PROFILE_NBITS, `LIMITER_NBITS) u_pio_rw_mem_bram1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -182,7 +182,7 @@ pio_rw_mem #(`LIMITING_PROFILE_NBITS, `LIMITER_NBITS) u_pio_rw_mem1(
 );
 
 
-ram_1r1w #(`FILL_TB_NBITS, DEPTH_NBITS) u_ram_1r1w_0(
+ram_1r1w_bram #(`FILL_TB_NBITS, DEPTH_NBITS) u_ram_1r1w_bram_0(
 		.clk(clk),
 		.wr(fill_wr),
 		.raddr(fill_tb_src_raddr),
@@ -192,7 +192,7 @@ ram_1r1w #(`FILL_TB_NBITS, DEPTH_NBITS) u_ram_1r1w_0(
 		.dout(fill_tb_src_rdata));
 
 
-ram_1r1w #(EIR_TB_NBITS, `PORT_ID_NBITS) u_ram_1r1w_1(
+ram_1r1w_bram #(EIR_TB_NBITS, `PORT_ID_NBITS) u_ram_1r1w_bram_1(
 		.clk(clk),
 		.wr(eir_tb_wr),
 		.raddr(eir_tb_raddr),
@@ -202,7 +202,7 @@ ram_1r1w #(EIR_TB_NBITS, `PORT_ID_NBITS) u_ram_1r1w_1(
 		.dout(eir_tb_rdata));
 
 
-ram_1r1w #(BUCKET_NBITS, DEPTH_NBITS) u_ram_1r1w_2(
+ram_1r1w_bram #(BUCKET_NBITS, DEPTH_NBITS) u_ram_1r1w_bram_2(
 		.clk(clk),
 		.wr(token_bucket_wr),
 		.raddr(token_bucket_raddr),

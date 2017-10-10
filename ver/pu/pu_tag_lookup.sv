@@ -26,13 +26,13 @@ input [TAG_KEY_NBITS-1:0] tag_key,
 input [`PU_ID_NBITS-1:0] tag_pid,
 
 input tag_hash_table0_ack, 
-input [TAG_BUCKET_NBITS-1:0] tag_hash_table0_rdata  /* synthesis keep = 1 */,
+input [TAG_BUCKET_NBITS-1:0] tag_hash_table0_rdata,
 
 input tag_hash_table1_ack, 
-input [TAG_BUCKET_NBITS-1:0] tag_hash_table1_rdata  /* synthesis keep = 1 */,
+input [TAG_BUCKET_NBITS-1:0] tag_hash_table1_rdata,
 
 input tag_value_ack, 
-input [TAG_VALUE_NBITS-1:0] tag_value_rdata, /* synthesis keep = 1 */
+input [TAG_VALUE_NBITS-1:0] tag_value_rdata,
 
 output logic tag_lookup_valid,
 output logic [`RCI_NBITS-1:0] tag_lookup_result,

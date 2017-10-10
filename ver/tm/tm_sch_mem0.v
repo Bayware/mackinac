@@ -104,7 +104,7 @@ output [`PORT_ID_NBITS-1:0] fill_tb_dst_rdata  /* synthesis keep = 1 */
 
 /***************************** PROGRAM BODY **********************************/
 
-pio_mem_f #(QUEUE_PROFILE_NBITS, QUEUE_NBITS) u_pio_mem_f0(
+pio_mem_bram_f #(QUEUE_PROFILE_NBITS, QUEUE_NBITS) u_pio_mem_bram_f0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -126,7 +126,7 @@ pio_mem_f #(QUEUE_PROFILE_NBITS, QUEUE_NBITS) u_pio_mem_f0(
 		.app_mem_rdata(queue_profile_rdata)
 );
 
-pio_mem_f #(`WDRR_QUANTUM_NBITS, QUEUE_NBITS) u_pio_mem_f1(
+pio_mem_bram_f #(`WDRR_QUANTUM_NBITS, QUEUE_NBITS) u_pio_mem_bram_f1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -148,7 +148,7 @@ pio_mem_f #(`WDRR_QUANTUM_NBITS, QUEUE_NBITS) u_pio_mem_f1(
 		.app_mem_rdata(wdrr_quantum_rdata)
 );
 
-pio_rw_mem_f #(`SHAPING_PROFILE_NBITS, QUEUE_NBITS) u_pio_rw_mem_f0(
+pio_rw_mem_bram_f #(`SHAPING_PROFILE_NBITS, QUEUE_NBITS) u_pio_rw_mem_bram_f0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -174,7 +174,7 @@ pio_rw_mem_f #(`SHAPING_PROFILE_NBITS, QUEUE_NBITS) u_pio_rw_mem_f0(
 		.app_mem_rdata(shaping_profile_cir_rdata)
 );
 
-pio_rw_mem_f #(`SHAPING_PROFILE_NBITS, QUEUE_NBITS) u_pio_rw_mem_f1(
+pio_rw_mem_bram_f #(`SHAPING_PROFILE_NBITS, QUEUE_NBITS) u_pio_rw_mem_bram_f1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -200,7 +200,7 @@ pio_rw_mem_f #(`SHAPING_PROFILE_NBITS, QUEUE_NBITS) u_pio_rw_mem_f1(
 		.app_mem_rdata(shaping_profile_eir_rdata)
 );
 
-pio_mem_f #(`WDRR_N_NBITS, SCH_NBITS) u_pio_mem_f2(
+pio_mem_bram_f #(`WDRR_N_NBITS, SCH_NBITS) u_pio_mem_bram_f2(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -222,7 +222,7 @@ pio_mem_f #(`WDRR_N_NBITS, SCH_NBITS) u_pio_mem_f2(
 		.app_mem_rdata(wdrr_sch_ctrl_rdata)
 );
 
-pio_rw_mem_f #(`PORT_ID_NBITS, QUEUE_NBITS) u_pio_rw_mem_f2(
+pio_rw_mem_bram_f #(`PORT_ID_NBITS, QUEUE_NBITS) u_pio_rw_mem_bram_f2(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

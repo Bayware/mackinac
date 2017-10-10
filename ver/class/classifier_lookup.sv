@@ -41,28 +41,28 @@ input aggr_par_sop,
 input aggr_par_eop,
 
 input flow_hash_table0_ack, 
-input [FLOW_BUCKET_NBITS-1:0] flow_hash_table0_rdata  /* synthesis keep = 1 */,
+input [FLOW_BUCKET_NBITS-1:0] flow_hash_table0_rdata,
 
 input flow_hash_table1_ack, 
-input [FLOW_BUCKET_NBITS-1:0] flow_hash_table1_rdata  /* synthesis keep = 1 */,
+input [FLOW_BUCKET_NBITS-1:0] flow_hash_table1_rdata,
 
 input flow_key_ack, 
-input [FLOW_KEY_NBITS-1:0] flow_key_rdata, /* synthesis keep = 1 */
+input [FLOW_KEY_NBITS-1:0] flow_key_rdata,
 
 input flow_etime_ack, 
-input [`EXP_TIME_NBITS-1:0] flow_etime_rdata, /* synthesis keep = 1 */
+input [`EXP_TIME_NBITS-1:0] flow_etime_rdata,
 
 input topic_hash_table0_ack, 
-input [TOPIC_BUCKET_NBITS-1:0] topic_hash_table0_rdata  /* synthesis keep = 1 */,
+input [TOPIC_BUCKET_NBITS-1:0] topic_hash_table0_rdata,
 
 input topic_hash_table1_ack, 
-input [TOPIC_BUCKET_NBITS-1:0] topic_hash_table1_rdata  /* synthesis keep = 1 */,
+input [TOPIC_BUCKET_NBITS-1:0] topic_hash_table1_rdata,
 
 input topic_key_ack, 
-input [TOPIC_KEY_NBITS-1:0] topic_key_rdata, /* synthesis keep = 1 */
+input [TOPIC_KEY_NBITS-1:0] topic_key_rdata,
 
 input topic_etime_ack, 
-input [`EXP_TIME_NBITS-1:0] topic_etime_rdata, /* synthesis keep = 1 */
+input [`EXP_TIME_NBITS-1:0] topic_etime_rdata,
 
 output logic cla_supervisor_flow_valid,
 output logic [`FLOW_HASH_TABLE_DEPTH_NBITS-1:0] cla_supervisor_flow_hash0,
@@ -150,10 +150,10 @@ logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table1_rdata_sv;
 logic flow_key_ack_d1; 
 logic flow_key_ack_d2; 
 
-logic [FLOW_KEY_NBITS-1:0] flow_key_rdata_d1;  /* synthesis keep = 1 */
+logic [FLOW_KEY_NBITS-1:0] flow_key_rdata_d1;
 
 logic flow_etime_ack_d1; 
-logic [`EXP_TIME_NBITS-1:0] flow_etime_rdata_d1;  /* synthesis keep = 1 */
+logic [`EXP_TIME_NBITS-1:0] flow_etime_rdata_d1;
 
 logic [4:1] topic_hash_table0_ack_d;
 logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table0_rdata_sv;
@@ -164,9 +164,9 @@ logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table1_rdata_sv;
 logic topic_key_ack_d1; 
 logic topic_key_ack_d2; 
 
-logic [TOPIC_KEY_NBITS-1:0] topic_key_rdata_d1; /* synthesis keep = 1 */
+logic [TOPIC_KEY_NBITS-1:0] topic_key_rdata_d1;
 
-logic [`EXP_TIME_NBITS-1:0] topic_etime_rdata_d1; /* synthesis keep = 1 */
+logic [`EXP_TIME_NBITS-1:0] topic_etime_rdata_d1; 
 
 logic [`AGING_TIME_NBITS-1:0] aging_ctr;
 logic [FLOW_VALUE_DEPTH_NBITS-1:0] aging_fid;
@@ -457,7 +457,7 @@ always @(posedge clk) begin
 		ip_sa[127:64] <= aggr_par_hdr_valid_d1&aggr_par_sop_d1?aggr_par_hdr_data_d1[63:0]:ip_sa[127:64];
 		{ip_sa[63:0], ip_da[127:64]} <= aggr_par_hdr_valid_d1&(data_cnt==1)?aggr_par_hdr_data_d1:{ip_sa[63:0], ip_da[127:64]};
 		ip_da[63:0] <= aggr_par_hdr_valid_d1&(data_cnt==2)?aggr_par_hdr_data_d1[127:64]:ip_da[63:0];
-		type1 <= aggr_par_hdr_valid_d1&(data_cnt==2)?aggr_par_hdr_data_d1[47:44]==4'h1:type1;
+		type1 <= aggr_par_hdr_valid_d1&(data_cnt==2)&~type3?aggr_par_hdr_data_d1[47:44]==4'h1:type1;
 
 		data_sv <= aggr_par_hdr_valid_d1?aggr_par_hdr_data_d1[63:0]:data_sv;
 

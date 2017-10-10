@@ -35,7 +35,7 @@ output     reg   mem_ack,
 output reg [`PIO_RANGE] mem_rdata,
 
 output reg app_mem_ack, 
-output reg [WIDTH-1:0] app_mem_rdata  /* synthesis keep = 1 */
+output reg [WIDTH-1:0] app_mem_rdata
 
 );
 /***************************** LOCAL VARIABLES *******************************/
@@ -56,7 +56,7 @@ reg ram_rd_mem_ack_d1;
 wire reg_ram_wr = reg_ms&reg_wr;
 wire ram_rd = reg_ms&reg_rd;
 
-wire [WIDTH-1:0] ram_rdata;
+wire [WIDTH-1:0] ram_rdata /* synthesis keep = 1 */;
 
 wire ram_rd_mem_ack = ~app_mem_rd_d1&(ram_rd|ram_rd_save);
 wire ram_wr_mem_ack = ~app_mem_wr_d1&(reg_ram_wr|ram_wr_save);

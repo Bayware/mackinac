@@ -1190,6 +1190,8 @@ always @(*) begin
 					out_fifo_rd = p_tx_fifo_wr;
 				end
 			endcase
+		default: 
+					p_tx_fifo_wr = 0;
 	endcase
 end
 

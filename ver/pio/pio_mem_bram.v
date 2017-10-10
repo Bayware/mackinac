@@ -7,9 +7,9 @@
 
 `include "defines.vh"
 
-module pio_mem_wo #(
+module pio_mem_bram #(
   parameter WIDTH = 20,
-  parameter DEPTH_NBITS = 1
+  parameter DEPTH_NBITS = 10
 )(
 
 input clk, 
@@ -26,23 +26,14 @@ input reg_ms,
 input app_mem_rd, 
 input [DEPTH_NBITS-1:0] app_mem_raddr,
 
-output reg   wr_active,
-output reg [DEPTH_NBITS-1:0] wr_addr,
-output reg [WIDTH-1:0] wr_data,
-
 output reg   mem_ack,
 output reg [`PIO_RANGE] mem_rdata,
 
 output reg app_mem_ack, 
-output reg [WIDTH-1:0] app_mem_rdata 
+output reg [WIDTH-1:0] app_mem_rdata  
 
 );
 /***************************** LOCAL VARIABLES *******************************/
-
-wire [`PIO_ADDR_MSB-2:0] reg_addr_dw = reg_addr[`PIO_ADDR_MSB:2];
-
-wire [DEPTH_NBITS-1:0] ram_waddr = reg_addr_dw[DEPTH_NBITS-1:0];
-wire [WIDTH-1:0] ram_wdata = reg_din[WIDTH-1:0];
 
 reg n_mem_ack;
 
@@ -67,24 +58,24 @@ wire ram_rd_mem_ack = ~app_mem_rd_d1&(ram_rd|ram_rd_save);
 always @(posedge clk) begin
 	app_mem_rdata <= ram_rdata;
         mem_rdata <= ram_rd_mem_ack_d1?{{(`PIO_NBITS-WIDTH){1'b0}}, ram_rdata}:mem_rdata;
-	wr_addr <= ram_waddr;
-	wr_data <= ram_wdata;
 end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
 	app_mem_ack <= 0;
 	mem_ack <= 0;
-	wr_active <= 0;
     end else begin
 	app_mem_ack <= app_mem_rd_d2;
 	mem_ack <= clk_div?n_mem_ack:mem_ack;
-	wr_active <= ram_wr;
     end
 
 /***************************** PROGRAM BODY **********************************/
 
+wire [`PIO_ADDR_MSB-2:0] reg_addr_dw = reg_addr[`PIO_ADDR_MSB:2];
+
 wire [DEPTH_NBITS-1:0] ram_raddr = app_mem_rd_d1?app_mem_raddr_d1:reg_addr_dw[DEPTH_NBITS-1:0];
+wire [DEPTH_NBITS-1:0] ram_waddr = reg_addr_dw[DEPTH_NBITS-1:0];
+wire [WIDTH-1:0] ram_wdata = reg_din[WIDTH-1:0];
 
 always @(posedge clk) begin
 	app_mem_raddr_d1 <= app_mem_raddr;
@@ -106,7 +97,7 @@ always @(`CLK_RST)
 	end
 
 /***************************** MEMORY ***************************************/
-ram_1r1w #(WIDTH, DEPTH_NBITS) u_ram_1r1w(
+ram_1r1w_bram #(WIDTH, DEPTH_NBITS) u_ram_1r1w_bram(
 		.clk(clk),
 		.wr(ram_wr),
 		.raddr(ram_raddr),

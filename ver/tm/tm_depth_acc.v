@@ -189,10 +189,10 @@ wire [`SECOND_LVL_QUEUE_ID_NBITS-1:0] ram_conn_raddr = depth_deq_req_d1?depth_de
 wire [`THIRD_LVL_QUEUE_ID_NBITS-1:0] ram_conn_group_raddr = depth_deq_req_d1?depth_deq_conn_group_id_d1:lat_fifo_dout2;
 wire [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] ram_port_queue_raddr = depth_deq_req_d1?depth_deq_port_queue_id_d1:lat_fifo_dout3;
  
-wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_queue_depth;
-wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_conn_depth;
-wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_conn_group_depth;
-wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_port_queue_queue_depth;
+wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_queue_depth /* synthesis keep = 1 */;
+wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_conn_depth /* synthesis keep = 1 */;
+wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_conn_group_depth /* synthesis keep = 1 */;
+wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_port_queue_queue_depth /* synthesis keep = 1 */;
 
 wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] mram_queue_depth = queue_same_addr[0]?ram_queue_wdata:
 											queue_same_addr[1]?ram_queue_wdata_d1:
@@ -424,7 +424,7 @@ sfifo2f_fo #(`FIRST_LVL_QUEUE_ID_NBITS, 2) u_sfifo2f_fo_0(
 		);
 
 /***************************** MEMORY ***************************************/
-ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_0(
+ram_1r1w_bram #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_0(
         .clk(clk),
         .wr(init_wr|ram_queue_wr),
         .raddr(ram_queue_raddr),
@@ -432,7 +432,8 @@ ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FIRST_LVL_QUEUE_ID_NBITS) u_ram_1r1w_0(
         .din(init_wr?{(`FIRST_LVL_QUEUE_ID_NBITS){1'b0}}:ram_queue_wdata),
 
         .dout(ram_queue_depth));
-ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_1(
+
+ram_1r1w_bram #(`FIRST_LVL_QUEUE_ID_NBITS, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_1(
 		.clk(clk),
 		.wr(init_wr|ram_conn_wr),
 		.raddr(ram_conn_raddr),
@@ -441,7 +442,7 @@ ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `SECOND_LVL_QUEUE_ID_NBITS) u_ram_1r1w_1(
 
 		.dout(ram_conn_depth));
 
-ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `THIRD_LVL_QUEUE_ID_NBITS) u_ram_1r1w_2(
+ram_1r1w_bram #(`FIRST_LVL_QUEUE_ID_NBITS, `THIRD_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_2(
 		.clk(clk),
 		.wr(init_wr|ram_conn_group_wr),
 		.raddr(ram_conn_group_raddr),
@@ -450,7 +451,7 @@ ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `THIRD_LVL_QUEUE_ID_NBITS) u_ram_1r1w_2(
 
 		.dout(ram_conn_group_depth));
 
-ram_1r1w #(`FIRST_LVL_QUEUE_ID_NBITS, `FOURTH_LVL_QUEUE_ID_NBITS) u_ram_1r1w_3(
+ram_1r1w_bram #(`FIRST_LVL_QUEUE_ID_NBITS, `FOURTH_LVL_QUEUE_ID_NBITS) u_ram_1r1w_bram_3(
 		.clk(clk),
 		.wr(init_wr|ram_port_queue_wr),
 		.raddr(ram_port_queue_raddr),

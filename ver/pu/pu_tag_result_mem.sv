@@ -49,8 +49,8 @@ logic [WIDTH_NBITS/2-1:0] ram_wdata_l[NUM_OF_PU-1:0];
 logic [WIDTH_NBITS/2-1:0] ram_wdata_h[NUM_OF_PU-1:0];
 
 logic [DEPTH_NBITS-1:0] ram_raddr[NUM_OF_PU-1:0];
-logic [WIDTH_NBITS/2-1:0] ram_rdata_l[NUM_OF_PU-1:0];
-logic [WIDTH_NBITS/2-1:0] ram_rdata_h[NUM_OF_PU-1:0];
+logic [WIDTH_NBITS/2-1:0] ram_rdata_l[NUM_OF_PU-1:0] /* synthesis keep = 1 */;
+logic [WIDTH_NBITS/2-1:0] ram_rdata_h[NUM_OF_PU-1:0] /* synthesis keep = 1 */;
 
 
 always @(`CLK_RST) 
@@ -92,7 +92,7 @@ genvar gi;
 generate
 for (gi = 0; gi < NUM_OF_PU ; gi = gi + 1) begin 
 
-	ram_1r1w #(WIDTH_NBITS/2, `TAG_RESULT_DEPTH_NBITS) u_ram_1r1w_h(
+	ram_1r1w_bram #(WIDTH_NBITS/2, `TAG_RESULT_DEPTH_NBITS) u_ram_1r1w_bram_h(
 		.clk(clk),
 		.wr(ram_wr_h[gi]),
 		.raddr(ram_raddr[gi]),
@@ -102,7 +102,7 @@ for (gi = 0; gi < NUM_OF_PU ; gi = gi + 1) begin
 		.dout(ram_rdata_h[gi])
 	);
 
-	ram_1r1w #(WIDTH_NBITS/2, `TAG_RESULT_DEPTH_NBITS) u_ram_1r1w_l(
+	ram_1r1w_bram #(WIDTH_NBITS/2, `TAG_RESULT_DEPTH_NBITS) u_ram_1r1w_bram_l(
 		.clk(clk),
 		.wr(ram_wr_l[gi]),
 		.raddr(ram_raddr[gi]),

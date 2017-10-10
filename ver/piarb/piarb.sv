@@ -567,7 +567,7 @@ ram_1r1w #(`FLOW_PU_NBITS, `FID_NBITS) u_ram_1r1w_2(
 		.dout(flow_value_rdata)
 );
 
-pio_mem #(`SWITCH_TAG_NBITS, `TID_NBITS) u_pio_mem0(
+pio_mem_bram #(`SWITCH_TAG_NBITS, `TID_NBITS) u_pio_mem_bram0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

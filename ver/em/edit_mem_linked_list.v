@@ -204,7 +204,7 @@ sfifo2f_fo #(RC_NBITS+`PORT_ID_NBITS+BPTR_NBITS+LEN_NBITS, 8) u_sfifo2f_fo(
 );
 
 /***************************** MEMORY ***************************************/
-ram_1r1w #(BPTR_NBITS, BPTR_NBITS) u_ram_1r1w(
+ram_1r1w_bram #(BPTR_NBITS, BPTR_NBITS) u_ram_1r1w_bram(
 	.clk(clk),
 	.wr(enq_buf_valid_d1),
 	.raddr(deq_buf_ptr),
@@ -216,10 +216,6 @@ ram_1r1w #(BPTR_NBITS, BPTR_NBITS) u_ram_1r1w(
 /***************************** DIAGNOSTICS **********************************/
 // synopsys translate_off
 
-always @(posedge read_count_valid)
-        if (`INACTIVE_RESET) #1 $display (" %t : Copy count written =%0d for buffer=%0d ", 
-					$realtime, read_count,
-						read_count_buf_ptr);
 
 // synopsys translate_on
 

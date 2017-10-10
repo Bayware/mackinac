@@ -210,11 +210,6 @@ ram_1r1w #(`BUF_PTR_NBITS, `BUF_PTR_NBITS) u_ram_1r1w(
 /***************************** DIAGNOSTICS **********************************/
 // synopsys translate_off
 
-always @(posedge read_count_valid)
-        if (`INACTIVE_RESET) #1 $display (" %t : Copy count written =%0d for buffer=%0d ", 
-					$realtime, read_count,
-						read_count_buf_ptr);
-
 // synopsys translate_on
 
 endmodule

@@ -161,6 +161,7 @@ always @(*) begin
 			sel_flow_label = 1'b1;
 			pio_rdata = flow_label;
 		end
+		default: n_pio_rvalid = 1'b0;
 	endcase
 end
 

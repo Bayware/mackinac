@@ -104,6 +104,7 @@ always @(*) begin
 			sel_dt_alpha = 1'b1;
 			pio_rdata = {{(`PIO_NBITS-4){1'b0}}, dt_alpha};
 		end
+		default: n_pio_rvalid = 1'b0;
 	endcase
 end
 

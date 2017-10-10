@@ -63,7 +63,7 @@ output pu_queue_payload_type desc_rdata  /* synthesis keep = 1 */
 
 /***************************** MEMORY ***************************************/
 // head memory
-ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_0(
+ram_1r1w_bram #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_bram_0(
 			.clk(clk),
 			.wr(head_wr),
 			.raddr(head_raddr),
@@ -73,7 +73,7 @@ ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_0(
 			.dout(head_rdata));
 
 // tail memory
-ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_1(
+ram_1r1w_bram #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_bram_1(
         .clk(clk),
         .wr(tail_wr),
         .raddr(tail_raddr),
@@ -83,7 +83,7 @@ ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_1(
         .dout(tail_rdata));
 
 // depth memory
-ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_2(
+ram_1r1w_bram #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_bram_2(
         .clk(clk),
         .wr(depth_wr),
         .raddr(depth_raddr),
@@ -93,7 +93,7 @@ ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_2(
         .dout(depth_rdata));
 
 // depth_fid0 memory
-ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_21(
+ram_1r1w_bram #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_bram_21(
         .clk(clk),
         .wr(depth_fid0_wr),
         .raddr(depth_fid0_raddr),
@@ -103,7 +103,7 @@ ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_21(
         .dout(depth_fid0_rdata));
 
 // depth_fid0 memory
-ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_22(
+ram_1r1w_bram #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_bram_22(
         .clk(clk),
         .wr(depth_fid1_wr),
         .raddr(depth_fid1_raddr),
@@ -113,7 +113,7 @@ ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ID_NBITS, QUEUE_DEPTH) u_ram_1r1w_22(
         .dout(depth_fid1_rdata));
 
 // linked list memory
-ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ENTRIES_NBITS) u_ram_1r1w_3(
+ram_1r1w_bram #(QUEUE_ENTRIES_NBITS, QUEUE_ENTRIES_NBITS) u_ram_1r1w_bram_3(
 		.clk(clk),
 		.wr(ll_wr),
 		.raddr(ll_raddr),
@@ -123,7 +123,7 @@ ram_1r1w #(QUEUE_ENTRIES_NBITS, QUEUE_ENTRIES_NBITS) u_ram_1r1w_3(
 		.dout(ll_rdata));
 
 // packet descriptor memory
-ram_1r1w_bram_pu_queue_payload #(QUEUE_ENTRIES_NBITS) u_ram_1r1w_4(
+ram_1r1w_bram_pu_queue_payload #(QUEUE_ENTRIES_NBITS) u_ram_1r1w_bram_4(
 		.clk(clk),
 		.wr(desc_wr),
 		.raddr(desc_raddr),
