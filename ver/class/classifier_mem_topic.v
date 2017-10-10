@@ -63,10 +63,10 @@ output topic_hash_table1_ack,
 output [BUCKET_NBITS-1:0] topic_hash_table1_rdata,
 
 output reg topic_key_ack, 
-output [VALUE_NBITS-1:0] topic_key_rdata /* synthesis keep = 1 */,
+output [VALUE_NBITS-1:0] topic_key_rdata /* synthesis DONT_TOUCH */,
 
 output reg topic_etime_ack, 
-output [`EXP_TIME_NBITS-1:0] topic_etime_rdata /* synthesis keep = 1 */
+output [`EXP_TIME_NBITS-1:0] topic_etime_rdata /* synthesis DONT_TOUCH */
 
 
 );
@@ -136,7 +136,7 @@ always @(`CLK_RST)
 	end
 
 
-pio_rw_wmem_bram #(BUCKET_NBITS, DEPTH_NBITS) u_pio_rw_wmem_bram0(
+pio_rw_wmem_ultra #(BUCKET_NBITS, DEPTH_NBITS) u_pio_rw_wmem_ultra0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -162,7 +162,7 @@ pio_rw_wmem_bram #(BUCKET_NBITS, DEPTH_NBITS) u_pio_rw_wmem_bram0(
 		.app_mem_rdata(topic_hash_table0_rdata)
 );
 
-pio_rw_wmem_bram #(BUCKET_NBITS, DEPTH_NBITS) u_pio_rw_wmem_bram1(
+pio_rw_wmem_ultra #(BUCKET_NBITS, DEPTH_NBITS) u_pio_rw_wmem_ultra1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -188,7 +188,7 @@ pio_rw_wmem_bram #(BUCKET_NBITS, DEPTH_NBITS) u_pio_rw_wmem_bram1(
 		.app_mem_rdata(topic_hash_table1_rdata)
 );
 
-ram_1r1w_bram #(`TOPIC_KEY_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_bram_0(
+ram_1r1w_ultra #(`TOPIC_KEY_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_ultra_0(
 		.clk(clk),
 		.wr(init_wr|topic_key_wr_d1),
 		.raddr(topic_key_raddr),
@@ -198,7 +198,7 @@ ram_1r1w_bram #(`TOPIC_KEY_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_bram_0(
 		.dout(topic_key_rdata)
 );
 
-ram_1r1w_bram #(`EXP_TIME_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_bram_2(
+ram_1r1w_ultra #(`EXP_TIME_NBITS, VALUE_DEPTH_NBITS) u_ram_1r1w_ultra_2(
 		.clk(clk),
 		.wr(init_wr|topic_etime_wr),
 		.raddr(topic_etime_raddr),

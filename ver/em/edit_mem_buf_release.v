@@ -70,9 +70,9 @@ reg rd_snoop_hit0;
 reg rd_snoop_hit12;
 reg [RC_NBITS-1:0] mrel_ctr_wdata;
 
-wire [RC_NBITS-1:0] rd_cnt  /* synthesis keep = 1 */;
+wire [RC_NBITS-1:0] rd_cnt  /* synthesis DONT_TOUCH */;
 
-wire [RC_NBITS-1:0] rel_ctr_rdata  /* synthesis keep = 1 */;
+wire [RC_NBITS-1:0] rel_ctr_rdata  /* synthesis DONT_TOUCH */;
 
 wire [BPTR_NBITS-1:0] fifo_buf_ptr;
 wire [ID_NBITS-1:0] fifo_port_id;
@@ -191,7 +191,7 @@ sfifo2f_fo #(BPTR_NBITS+ID_NBITS, 2) u_sfifo2f_fo(
 	);
 
 /***************************** MEMORY ***************************************/
-ram_1r1w_bram #(RC_NBITS, BPTR_NBITS) u_ram_1r1w_bram_0(
+ram_1r1w_ultra #(RC_NBITS, BPTR_NBITS) u_ram_1r1w_ultra_0(
         .clk(clk),
         .wr(read_count_valid_d1),
         .raddr(rel_ctr_raddr),
@@ -200,7 +200,7 @@ ram_1r1w_bram #(RC_NBITS, BPTR_NBITS) u_ram_1r1w_bram_0(
 
         .dout(rd_cnt));
 
-ram_1r1w_bram #(RC_NBITS, BPTR_NBITS) u_ram_1r1w_bram_1(
+ram_1r1w_ultra #(RC_NBITS, BPTR_NBITS) u_ram_1r1w_ultra_1(
         .clk(clk),
         .wr(rel_ctr_wr),
         .raddr(rel_ctr_raddr),

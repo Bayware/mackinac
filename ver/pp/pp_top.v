@@ -37,7 +37,7 @@ reg path_parser_ready0_d1;
 reg path_parser_ready1_d1;
 reg [`PATH_CHUNK_DEPTH_NBITS-1:0] ram_waddr;
 
-wire [`DATA_PATH_RANGE] ram_rdata /* synthesis keep = 1 */;
+wire [`DATA_PATH_RANGE] ram_rdata /* synthesis DONT_TOUCH */;
 
 wire hop_fifo_full0;
 wire hop_fifo_fullm10;
@@ -105,7 +105,7 @@ always @(`CLK_RST)
 
 /**************************************************************************/
 
-ram_1r1w_bram #(`DATA_PATH_NBITS, `PATH_CHUNK_DEPTH_NBITS+1) u_ram_1r1w_bram(
+ram_1r1w_ultra #(`DATA_PATH_NBITS, `PATH_CHUNK_DEPTH_NBITS+1) u_ram_1r1w_ultra(
         .clk(clk),
         .wr(wen),
         .raddr(ram_raddr),

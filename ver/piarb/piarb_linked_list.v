@@ -38,7 +38,7 @@ reg buf_req_d1;
 reg buf_req_d2;
 reg [BUF_NBITS-1:0] buf_req_ptr_d1;
 
-wire [BUF_NBITS-1:0] deq_buf_ptr_nxt /* synthesis keep = 1 */;
+wire [BUF_NBITS-1:0] deq_buf_ptr_nxt /* synthesis DONT_TOUCH */;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -81,7 +81,7 @@ always @(`CLK_RST)
 	end
 
 /***************************** MEMORY ***************************************/
-ram_1r1w_bram #(BUF_NBITS, BUF_NBITS) u_ram_1r1w_bram(
+ram_1r1w_ultra #(BUF_NBITS, BUF_NBITS) u_ram_1r1w_ultra(
 	.clk(clk),
 	.wr(enq_buf_valid_d1),
 	.raddr(buf_req_ptr_d1),

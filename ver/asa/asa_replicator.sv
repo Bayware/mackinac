@@ -153,7 +153,7 @@ wire [`TID_NBITS - 1 : 0] lat_fifo_asa_rep_enq_tid_in = p_in_fifo_empty?in_fifo_
 logic tset_rd_d1;
 wire tset_rd = out_fifo_wr;
 wire [`TID_NBITS+`SCI_NBITS-1:0] tset_raddr = {lat_fifo_asa_rep_enq_tid, enq_conn};
-logic [`SUB_EXP_TIME_NBITS-1:0] tset_rdata;	
+logic [`SUB_EXP_TIME_NBITS-1:0] tset_rdata /* synthesis DONT_TOUCH */;	
 
 logic tset_fifo_empty;
 logic [`SUB_EXP_TIME_NBITS-1:0] tset_fifo_data;	
@@ -430,7 +430,7 @@ sfifo_enq_pkt_desc #(2) u_sfifo_enq_pkt_desc_3(
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w_bram #(`SUB_EXP_TIME_NBITS, `TID_NBITS+`SCI_NBITS) u_ram_1r1w_bram_3(
+ram_1r1w_ultra #(`SUB_EXP_TIME_NBITS, `TID_NBITS+`SCI_NBITS) u_ram_1r1w_ultra_3(
 			.clk(clk),
 			.wr(tset_wr),
 			.raddr(tset_raddr),

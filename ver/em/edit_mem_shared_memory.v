@@ -60,7 +60,7 @@ reg [BPTR_LSB_NBITS-1:0] pu_data_buf_ptr_lsb_d1;
 reg [DATA_NBITS-1:0] pu_data_d1;
 
 
-wire [DATA_NBITS-1:0] pb_dout  /* synthesis keep = 1 */;
+wire [DATA_NBITS-1:0] pb_dout  /* synthesis DONT_TOUCH */;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -110,7 +110,7 @@ always @(`CLK_RST)
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w_bram #(DATA_NBITS, BPTR_NBITS+BPTR_LSB_NBITS) u_ram_1r1w_bram(
+ram_1r1w_ultra #(DATA_NBITS, BPTR_NBITS+BPTR_LSB_NBITS) u_ram_1r1w_ultra(
         .clk(clk),
         .wr(pu_data_valid_d1),
         .raddr({data_req_buf_ptr_d1, data_req_buf_ptr_lsb_d1}),

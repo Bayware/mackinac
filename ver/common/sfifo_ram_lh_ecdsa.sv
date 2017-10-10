@@ -84,7 +84,7 @@ sfifo_ctrl #(DEPTH_NBITS, DEPTH, DEPTH-1, 0) u_sfifo_ctrl(
                 .wptr                   (wptr)
 );
 
-(* ram_style = "block" *)
+(* ram_style = "ultra" *)
 lh_ecdsa_meta_type mem_d[DEPTH-1:0];
 
 always @(posedge clk) 

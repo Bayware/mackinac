@@ -83,7 +83,7 @@ sfifo_ctrl #(DEPTH_BITS, DEPTH, DEPTH-1, 0) u_sfifo_ctrl(
                 .wptr                   (wptr)
 );
 
-ram_1r1w_bram #(WIDTH, DEPTH_BITS) u_ram_1r1w_bram(
+ram_1r1w_ultra #(WIDTH, DEPTH_BITS) u_ram_1r1w_ultra(
         .clk(clk),
         .wr(wen1),
         .raddr(rptr),

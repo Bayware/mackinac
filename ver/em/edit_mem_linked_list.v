@@ -81,7 +81,7 @@ reg rc_deq_valid_d1;
 reg rc_deq_valid_d2;
 
 
-wire [BPTR_NBITS-1:0] deq_buf_ptr_nxt  /* synthesis keep = 1 */;
+wire [BPTR_NBITS-1:0] deq_buf_ptr_nxt  /* synthesis DONT_TOUCH */;
 
 wire [BPTR_NBITS-1:0] fifo_buf_ptr;
 wire [`PORT_ID_NBITS-1:0] fifo_port_id;
@@ -204,7 +204,7 @@ sfifo2f_fo #(RC_NBITS+`PORT_ID_NBITS+BPTR_NBITS+LEN_NBITS, 8) u_sfifo2f_fo(
 );
 
 /***************************** MEMORY ***************************************/
-ram_1r1w_bram #(BPTR_NBITS, BPTR_NBITS) u_ram_1r1w_bram(
+ram_1r1w_ultra #(BPTR_NBITS, BPTR_NBITS) u_ram_1r1w_ultra(
 	.clk(clk),
 	.wr(enq_buf_valid_d1),
 	.raddr(deq_buf_ptr),

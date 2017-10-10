@@ -43,7 +43,7 @@ logic arb_wr_gnt;
 
 logic [`PU_ID_NBITS-1:0] fifo_arb_sel;
 
-logic [WIDTH_NBITS-1:0] ram_rdata /* synthesis keep = 1 */;
+logic [WIDTH_NBITS-1:0] ram_rdata /* synthesis DONT_TOUCH */;
 wire [WIDTH_NBITS-1:0] flow_pd_rdata = ram_rdata;
 wire flow_pd_ack = in_fifo_rd_d1;
 
@@ -134,7 +134,7 @@ sfifo2f_fo #(`PU_ID_NBITS, 1) u_sfifo2f_fo(
 		.dout(fifo_arb_sel)
 );
 
-ram_1r1w_bram #(WIDTH_NBITS, DEPTH_NBITS) u_ram_1r1w_bram(
+ram_1r1w_ultra #(WIDTH_NBITS, DEPTH_NBITS) u_ram_1r1w_ultra(
 		.clk(clk),
 		.wr(ram_wr),
 		.raddr(ram_raddr),

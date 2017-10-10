@@ -69,7 +69,7 @@ reg [`BUF_PTR_LSB_RANGE] aggr_bm_buf_ptr_lsb_d1;
 reg [`DATA_PATH_NBITS-1:0] aggr_bm_packet_data_d1;
 
 
-wire [`DATA_PATH_NBITS-1:0] pb_dout  /* synthesis keep = 1 */;
+wire [`DATA_PATH_NBITS-1:0] pb_dout  /* synthesis DONT_TOUCH */;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -131,7 +131,7 @@ always @(`CLK_RST)
 
 /***************************** MEMORY ***************************************/
 
-ram_1r1w_bram #(`DATA_PATH_NBITS, (`BUF_PTR_NBITS+`BUF_PTR_LSB_NBITS)) u_ram_1r1w_bram(
+ram_1r1w_ultra #(`DATA_PATH_NBITS, (`BUF_PTR_NBITS+`BUF_PTR_LSB_NBITS)) u_ram_1r1w_ultra(
         .clk(clk),
         .wr(aggr_bm_packet_valid_d1),
         .raddr({packet_req_buf_ptr_d1, packet_req_buf_ptr_lsb_d1}),

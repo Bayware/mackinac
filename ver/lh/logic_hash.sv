@@ -89,9 +89,9 @@ wire serial_num_rd = set_type1;
 logic serial_num_ack;
 logic serial_num_ack_d1;
 wire [`FID_NBITS-1:0] serial_num_raddr = irl_lh_meta_data_d1.fid;
-logic [`SERIAL_NUM_NBITS-1:0]   serial_num_rdata;
+logic [`SERIAL_NUM_NBITS-1:0]   serial_num_rdata /* synthesis DONT_TOUCH */;
 logic [`SERIAL_NUM_NBITS-1:0]   serial_num_rdata_d1;
-logic [`PPL_NBITS-1:0]   ppl_rdata;
+logic [`PPL_NBITS-1:0]   ppl_rdata /* synthesis DONT_TOUCH */;
 logic [`PPL_NBITS-1:0]   ppl_rdata_d1;
 
 wire [`SERIAL_NUM_NBITS-1:0] pkt_serial_num = irl_lh_hdr_data_d1[`SERIAL_NUM_POS:`SERIAL_NUM_POS-`SERIAL_NUM_NBITS+1];
@@ -107,7 +107,7 @@ logic sc_fifo_data;
 wire logic_hash_rd = set_type1|set_type2; 
 logic logic_hash_ack;
 wire [`FID_NBITS-1:0] logic_hash_raddr = irl_lh_meta_data_d1.fid;
-logic [`LOGIC_HASH_NBITS-1:0]   logic_hash_rdata;
+logic [`LOGIC_HASH_NBITS-1:0]   logic_hash_rdata /* synthesis DONT_TOUCH */;
 
 logic [`LOGIC_HASH_NBITS-1:0]   lh_gen_fifo_data;
 logic lh_gen_fifo_empty;
@@ -364,7 +364,7 @@ always @(`CLK_RST)
     end
 
 
-ram_1r1w_bram #(`LOGIC_HASH_NBITS, `FID_NBITS) u_ram_1r1w_bram_0(
+ram_1r1w_ultra #(`LOGIC_HASH_NBITS, `FID_NBITS) u_ram_1r1w_ultra_0(
 		.clk(clk),
 		.wr(logic_hash_wr|init_wr),
 		.raddr(logic_hash_raddr),
@@ -374,7 +374,7 @@ ram_1r1w_bram #(`LOGIC_HASH_NBITS, `FID_NBITS) u_ram_1r1w_bram_0(
 		.dout(logic_hash_rdata)
 );
 
-ram_1r1w_bram #(`PPL_NBITS+`SERIAL_NUM_NBITS, `FID_NBITS) u_ram_1r1w_bram_1(
+ram_1r1w_ultra #(`PPL_NBITS+`SERIAL_NUM_NBITS, `FID_NBITS) u_ram_1r1w_ultra_1(
 		.clk(clk),
 		.wr(ecdsa_lh_wr_d1|init_wr),
 		.raddr(serial_num_raddr),
