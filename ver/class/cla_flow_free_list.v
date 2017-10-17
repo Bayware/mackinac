@@ -23,6 +23,7 @@ parameter BPTR_NBITS = `FLOW_VALUE_DEPTH_NBITS
     // outputs
 
     output inc_freeb_rd_count, 
+
     output reg inc_freeb_wr_count,
 
     output reg freeb_init_done,    

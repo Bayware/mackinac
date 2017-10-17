@@ -27,7 +27,7 @@ parameter BPTR_NBITS = `TOPIC_VALUE_DEPTH_NBITS
 
     output reg freeb_init_done,    
 
-    output freeb_empty,    
+    output wire freeb_empty,    
 
     output [BPTR_NBITS-1:0] free_buf_ptr    
     
