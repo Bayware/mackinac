@@ -160,11 +160,14 @@ logic [1:0] ekey_value_ack_cnt;
 logic [3:0] tunnel_hash_valid;
 logic [3:0] ekey_hash_valid;
 
-wire tunnel_hash_compare = tunnel_hash_valid[tunnel_value_ack_cnt]&(latency_fifo_tunnel_key==tunnel_value_rdata_d1[`TUNNEL_VALUE_KEY]);
+logic [3:0] valid_fifo_tunnel_valid;
+logic [3:0] ekey_valid_fifo_ekey_valid;
+
+wire tunnel_hash_compare = valid_fifo_tunnel_valid[tunnel_value_ack_cnt]&(latency_fifo_tunnel_key==tunnel_value_rdata_d1[`TUNNEL_VALUE_KEY]);
 
 wire [`SPI_NBITS-1:0] ekey_latency_fifo_ekey_key = ekey_latency_fifo_tunnel_lookup_result[`TUNNEL_VALUE_SPI];
 wire [`SPI_NBITS-1:0] ekey_value_key = ekey_value_rdata_d1[`EEKEY_VALUE_KEY];
-wire ekey_hash_compare = ekey_hash_valid[ekey_value_ack_cnt]&(ekey_latency_fifo_ekey_key==ekey_value_key);
+wire ekey_hash_compare = ekey_valid_fifo_ekey_valid[ekey_value_ack_cnt]&(ekey_latency_fifo_ekey_key==ekey_value_key);
 
 logic tunnel_lookup_valid;
 logic ekey_lookup_valid;
@@ -208,9 +211,7 @@ assign ekey_hash_valid[2] = ekey_hash_table1_rdata_d1[EEKEY_ENTRY_NBITS*1-1];
 assign ekey_hash_valid[3] = ekey_hash_table1_rdata_d1[EEKEY_ENTRY_NBITS*2-1];
 
 wire valid_fifo_wr = tunnel_hash_table0_ack_d[2];
-logic [3:0] valid_fifo_tunnel_valid;
 wire ekey_valid_fifo_wr = ekey_hash_table0_ack_d[2];
-logic [3:0] ekey_valid_fifo_ekey_valid;
 
 wire valid_fifo_rd = latency_fifo_rd;
 wire ekey_valid_fifo_rd = ekey_latency_fifo_rd;
@@ -256,7 +257,7 @@ always @(posedge clk) begin
 				default: encr_ring_out_data <= {(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_MAC]:48'b0), 
 								(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_VLAN]:16'b0), 
 								(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_SPI]:32'b0), 
-								(pending_fifo_ekey_valid?pending_fifo_ekey_result[`EEKEY_VALUE_SN]:32'b0)};
+								(pending_fifo_tunnel_valid?pending_fifo_tunnel_result[`TUNNEL_VALUE_SN]:32'b0)};
 			endcase
 
 		tunnel_hash_table0_raddr <= tunnel_hash0;

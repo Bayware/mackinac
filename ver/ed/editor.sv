@@ -145,7 +145,6 @@ always @(posedge clk) begin
 	ed_dstr_pkt_len <= bm_ed_pkt_len_d1;
 	ed_dstr_valid_bytes <= bm_ed_valid_bytes_d1;
 	ed_dstr_packet_data <= n_ed_dstr_packet_data;
-	edit_mem_req <= n_edit_mem_req;
 	edit_mem_raddr <= {cmd_fifo_pd_bp[sel_port_id_d1], rd_len[sel_port_id_d1][`PD_CHUNK_DEPTH_NBITS-1:`DATA_PATH_VB_NBITS]};
 	edit_mem_port_id <= sel_port_id_d1;
 	edit_mem_sop <= rd_len[sel_port_id_d1]==0;
@@ -159,7 +158,7 @@ always @(`CLK_RST)
 		edit_mem_req <= 1'b0;
 	end else begin
 		ed_dstr_data_valid <= bm_ed_data_valid_d1;
-		edit_mem_req <= |edit_mem_req_port;
+		edit_mem_req <= n_edit_mem_req;
 	end
 /***************************** PROGRAM BODY **********************************/
 
@@ -269,7 +268,7 @@ always @(`CLK_RST)
 			rd_len[i] <= edit_mem_req_port[i]?rd_len[i]+DATA_PATH_NBYTES:cmd_fifo_rd[i]?0:rd_len[i];
 			pd_fifo_count[i] <= ~pd_fifo_rd[i]^edit_mem_req_port[i]?pd_fifo_count[i]:pd_fifo_rd[i]?pd_fifo_count[i]-1'b1:pd_fifo_count[i]+1'b1;
 
-			pd_loc_hit_st[i] <= ~port_data_valid[i]?pd_loc_hit_st[i]:start_pd[i]?1'b1:end_pd[i]?1'b0:pd_loc_hit_st[i];
+			pd_loc_hit_st[i] <= ~port_data_valid[i]?pd_loc_hit_st[i]:bm_ed_eop_d1?1'b0:start_pd[i]?1'b1:end_pd[i]?1'b0:pd_loc_hit_st[i];
 			pd_len[i] <= ~port_data_valid[i]?pd_len[i]:bm_ed_sop_d1?{~|bm_ed_cmd_d1.pd_len, bm_ed_cmd_d1.pd_len}:start_pd[i]?next_first_pd_len[i]:pd_loc_hit_st[i]?next_pd_len[i]:pd_len[i];
 		end
 

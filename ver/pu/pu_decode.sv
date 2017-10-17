@@ -45,37 +45,50 @@ always @(*) begin
 	dec_cmd.end_program = 1'b0;
 	dec_cmd.use_imm = 1'b0;
 	dec_cmd.take_branch = 1'b0;
+	dec_cmd.use_rs1 = 1'b0;
+	dec_cmd.use_rs2 = 1'b0;
 	case (opcode)
 		5'b01100: begin // R
 			dec_cmd.op = 1'b1;
+			dec_cmd.use_rs1 = 1'b1;
+			dec_cmd.use_rs2 = 1'b1;
 		end
 		5'b01011: begin // R
 			dec_cmd.atomic = dec_cmd.funct3==3'b010;
+			dec_cmd.use_rs1 = 1'b1;
+			dec_cmd.use_rs2 = ~(inst[31:27]==5'b00010);
 		end
 		5'b00000: begin 
 			dec_cmd.imm = {{(21){inst[31]}}, inst[30:20]}; // I
 			dec_cmd.load = 1'b1;
 			dec_cmd.use_imm = 1'b1;
+			dec_cmd.use_rs1 = 1'b1;
 		end
 		5'b00100: begin
 			dec_cmd.imm = {{(21){inst[31]}}, inst[30:20]}; // I
 			dec_cmd.opi = 1'b1;
 			dec_cmd.use_imm = 1'b1;
+			dec_cmd.use_rs1 = 1'b1;
 		end
 		5'b11001: begin
 			dec_cmd.imm = {{(21){inst[31]}}, inst[30:20]}; // I
 			dec_cmd.jalr = 1'b1; // rd=x0, no write back, pc+4
 			dec_cmd.use_imm = 1'b1;
+			dec_cmd.use_rs1 = 1'b1;
 		end
 		5'b01000: begin
 			dec_cmd.imm = {{(21){inst[31]}}, inst[30:25], inst[11:7]}; // S
 			dec_cmd.store = 1'b1;
 			dec_cmd.use_imm = 1'b1;
+			dec_cmd.use_rs1 = 1'b1;
+			dec_cmd.use_rs2 = 1'b1;
 		end
 		5'b11000: begin
 			dec_cmd.imm = {{(20){inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0}; // B
 			dec_cmd.branch = 1'b1;
 			dec_cmd.use_imm = 1'b1;
+			dec_cmd.use_rs1 = 1'b1;
+			dec_cmd.use_rs2 = 1'b1;
 			case (inst[14:12])
 				3'b000: begin
 					dec_cmd.funct3 = 3'b000;

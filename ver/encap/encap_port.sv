@@ -39,7 +39,7 @@ input [47:0] in_mac_da,
 input [47:0] mac_sa,
 input [63:0] ipsec_iv,
 input [31:0] gre_header,
-input [23:0] flow_label,
+input [19:0] flow_label,
 input [15:0] identification,
 input [7:0] ttl,
 input [7:0] dscp_ecn,
@@ -73,8 +73,8 @@ localparam IPV4_TYPE = 16'h0800;
 localparam IPV6_TYPE = 16'h86dd;
 localparam IPV4_PROTOCOL_LOC = 24;
 localparam IPV6_PROTOCOL_LOC = 20;
-localparam IPSEC_PROTOCOL_NUM = 16'd50;
-localparam GRE_PROTOCOL_NUM = 16'd47;
+localparam IPSEC_PROTOCOL_NUM = 8'd50;
+localparam GRE_PROTOCOL_NUM = 8'd47;
 localparam GRE_PROTOCOL_TYPE_IP = 16'h0800;
 localparam GRE_PROTOCOL_TYPE_L2 = 16'h6558;
 
@@ -244,15 +244,18 @@ logic `RESET_SIG_MAC;
 
 synchronizer u_synchronizer(.clk(clk_mac), .din(`RESET_SIG), .dout(`RESET_SIG_MAC));
 
-wire [15:0] payload_length = result_fifo_ipsec?result_fifo_pkt_len+4+16:result_fifo_pkt_len+4;
-wire [15:0] total_length = payload_length+20;
+wire [15:0] payload_length = result_fifo_pkt_len+4+
+				(l2_gre?14:0)+
+				(in_vlan_tagged?4:0)+
+				(result_fifo_ipsec?20:0);
+wire [15:0] total_length = payload_length+(result_fifo_ipv4?20:40);
 
 wire [15:0] ipv4_1st_word = {8'h45, dscp_ecn};
 wire [15:0] fragment = 16'h0;
 
 wire [7:0] protocol = result_fifo_ipsec?IPSEC_PROTOCOL_NUM:GRE_PROTOCOL_NUM;
 
-wire [15:0] ipv6_1st_word = {4'h6, dscp_ecn[3:0], flow_label[23:16]};
+wire [15:0] ipv6_1st_word = {4'h6, dscp_ecn, flow_label};
 
 wire [15:0] etype = result_fifo_vlan_tagged?VLAN_TYPE:result_fifo_ipv4?IPV4_TYPE:IPV6_TYPE;
 wire [15:0] vlan_2bytes = result_fifo_vlan_tagged?result_fifo_vlan:result_fifo_ipv4?IPV4_TYPE:IPV6_TYPE;
@@ -329,8 +332,9 @@ always @(*) begin
 					p_tx_fifo_in_data = {VLAN_TYPE, result_fifo_vlan};
 				4: 
 					p_tx_fifo_in_data = {IPV4_TYPE, ipv4_1st_word};
-				5: 
+				5: begin
 					p_tx_fifo_in_data = {total_length, identification};
+				end
 				6: begin
 					p_tx_fifo_in_data = {fragment, ttl, GRE_PROTOCOL_NUM};
 				end
@@ -1215,14 +1219,14 @@ always @(posedge clk) begin
 		ipv4_cond_d1 <= ipv4_cond;
 		ipv4_d1 <= ipv4;
 
-		cs00 <= ones_add(ipv4_1st_word, total_length);
+		cs00 <= ones_add(ipv4_1st_word, {ttl, protocol});
 		cs01 <= ones_add(identification, fragment);
 		cs02 <= ones_add(ip_sa_fifo_data[31:16], ip_sa_fifo_data[15:0]);
 		cs03 <= ones_add(ip_da_fifo_data[31:16], ip_da_fifo_data[15:0]);
 		cs10 <= ones_add(cs00, cs01);
 		cs11 <= ones_add(cs02, cs03);
 		cs2 <= ones_add(cs10, cs11);
-		checksum <= ones_add({ttl, protocol}, cs2);
+		checksum <= ones_add(total_length, cs2);
 
 		out_fifo_data_lsb_sv <= out_fifo_rd?out_fifo_data[15:0]:out_fifo_data_lsb_sv;
 

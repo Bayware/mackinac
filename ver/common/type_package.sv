@@ -33,6 +33,8 @@ typedef struct {
 	logic end_program;
 	logic use_imm;
 	logic take_branch;
+	logic use_rs1;
+	logic use_rs2;
 } dec_type; 
 
 typedef struct { 

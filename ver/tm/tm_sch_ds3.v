@@ -16,25 +16,25 @@ input deficit_counter_wr,
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] deficit_counter_waddr,
 input [`DEFICIT_COUNTER_NBITS+`TQNA_NBITS-1:0] deficit_counter_wdata,
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] deficit_counter_raddr,
-output [`DEFICIT_COUNTER_NBITS+`TQNA_NBITS-1:0] deficit_counter_rdata  /* synthesis keep = 1 */,
+output [`DEFICIT_COUNTER_NBITS+`TQNA_NBITS-1:0] deficit_counter_rdata  /* synthesis DONT_TOUCH */,
 
 input token_bucket_wr,			
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] token_bucket_waddr,
 input [`CIR_NBITS+2+`EIR_NBITS+2-1:0] token_bucket_wdata,
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] token_bucket_raddr,
-output [`CIR_NBITS+2+`EIR_NBITS+2-1:0] token_bucket_rdata  /* synthesis keep = 1 */,
+output [`CIR_NBITS+2+`EIR_NBITS+2-1:0] token_bucket_rdata  /* synthesis DONT_TOUCH */,
 
 input eir_tb_wr,			
 input [`PORT_ID_NBITS-1:0] eir_tb_waddr,
 input [`EIR_NBITS+2-1:0] eir_tb_wdata,
 input [`PORT_ID_NBITS-1:0] eir_tb_raddr,
-output [`EIR_NBITS+2-1:0] eir_tb_rdata  /* synthesis keep = 1 */,
+output [`EIR_NBITS+2-1:0] eir_tb_rdata  /* synthesis DONT_TOUCH */,
 
 input event_fifo_wr,			
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] event_fifo_waddr,
 input [`FOURTH_LVL_QUEUE_ID_NBITS+2-1:0] event_fifo_wdata,
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] event_fifo_raddr,
-output [`FOURTH_LVL_QUEUE_ID_NBITS+2-1:0] event_fifo_rdata  /* synthesis keep = 1 */,
+output [`FOURTH_LVL_QUEUE_ID_NBITS+2-1:0] event_fifo_rdata  /* synthesis DONT_TOUCH */,
 
 input event_fifo_rd_ptr_wr0,			
 input [`FOURTH_LVL_SCH_ID_NBITS-1:0] event_fifo_rd_ptr_waddr0,
@@ -184,25 +184,25 @@ input event_fifo_count_wr,
 input [`FOURTH_LVL_SCH_ID_NBITS-1:0] event_fifo_count_waddr,
 input [(`FOURTH_LVL_QUEUE_ID_NBITS<<1)-1:0] event_fifo_count_wdata,
 input [`FOURTH_LVL_SCH_ID_NBITS-1:0] event_fifo_count_raddr,
-output [(`FOURTH_LVL_QUEUE_ID_NBITS<<1)-1:0] event_fifo_count_rdata  /* synthesis keep = 1 */,
+output [(`FOURTH_LVL_QUEUE_ID_NBITS<<1)-1:0] event_fifo_count_rdata  /* synthesis DONT_TOUCH */,
 
 input event_fifo_f1_count_wr,			
 input [`FOURTH_LVL_SCH_ID_NBITS-1:0] event_fifo_f1_count_waddr,
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] event_fifo_f1_count_wdata,
 input [`FOURTH_LVL_SCH_ID_NBITS-1:0] event_fifo_f1_count_raddr,
-output [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] event_fifo_f1_count_rdata  /* synthesis keep = 1 */,
+output [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] event_fifo_f1_count_rdata  /* synthesis DONT_TOUCH */,
 
 input wdrr_sch_tqna_wr,			
 input [`FOURTH_LVL_SCH_ID_NBITS-1:0] wdrr_sch_tqna_waddr,
 input [`TQNA_NBITS-1:0] wdrr_sch_tqna_wdata,
 input [`FOURTH_LVL_SCH_ID_NBITS-1:0] wdrr_sch_tqna_raddr,
-output [`TQNA_NBITS-1:0] wdrr_sch_tqna_rdata  /* synthesis keep = 1 */,
+output [`TQNA_NBITS-1:0] wdrr_sch_tqna_rdata  /* synthesis DONT_TOUCH */,
 
 input semaphore_wr,			
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] semaphore_waddr,
 input semaphore_wdata,
 input [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] semaphore_raddr,
-output semaphore_rdata  /* synthesis keep = 1 */
+output semaphore_rdata  /* synthesis DONT_TOUCH */
 );
 
 /***************************** MEMORY ***************************************/

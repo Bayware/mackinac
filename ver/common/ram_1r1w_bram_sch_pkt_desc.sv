@@ -5,6 +5,8 @@
 // DESCRIPTION : 1 read port, 1 write port memory model
 //===========================================================================
 
+`include "defines.vh"
+
 import meta_package::sch_pkt_desc_type;
 
 module ram_1r1w_bram_sch_pkt_desc
@@ -19,17 +21,32 @@ input    clk, wr;
 input   [DEPTH_NBITS-1:0] raddr, waddr;
 input   sch_pkt_desc_type din;
 
+localparam WIDTH = `SCH_PKT_DESC_NBITS;
 (* ram_style = "block" *)
-sch_pkt_desc_type mem_d[DEPTH-1:0];
+logic [WIDTH-1:0] mem_d[DEPTH-1:0];
 
+logic [WIDTH-1:0] dout0;
+
+wire [WIDTH-1:0] din0 = {
+			din.src_port, 
+			din.dst_port, 
+			din.len,
+			din.idx 
+			}; 
+
+assign {
+			dout.src_port, 
+			dout.dst_port, 
+			dout.len,
+			dout.idx 
+			} = dout0; 
 
 always @(posedge clk) begin
-	if(wr) mem_d[waddr] <= din;
+	if(wr) mem_d[waddr] <= din0;
 end
 
-
 always @(posedge clk) begin
-	dout <= mem_d[raddr];
+	dout0 <= mem_d[raddr];
 end
 
 endmodule            

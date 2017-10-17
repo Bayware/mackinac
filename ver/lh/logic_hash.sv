@@ -426,7 +426,7 @@ sfifo_irl_lh #(6) u_sfifo_irl_lh_0(
         .ncount(),
         .count(),
         .full(),
-        .empty(in_fifo_empty),
+        .empty(),
         .fullm1(),
         .emptyp2(),
         .dout(in_fifo_meta_data)               
@@ -460,7 +460,7 @@ sfifo_irl_lh #(6) u_sfifo_irl_lh_1(
         .ncount(),
         .count(),
         .full(),
-        .empty(lat_fifo_empty),
+        .empty(),
         .fullm1(),
         .emptyp2(),
         .dout(lat_fifo_meta_data)               

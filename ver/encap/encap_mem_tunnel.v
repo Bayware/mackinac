@@ -79,6 +79,12 @@ wire [`PIO_RANGE] tunnel_value4_mem_rdata;
 wire tunnel_value5_mem_ack;
 wire [`PIO_RANGE] tunnel_value5_mem_rdata;
 
+wire tunnel_value6_mem_ack;
+wire [`PIO_RANGE] tunnel_value6_mem_rdata;
+
+wire tunnel_value7_mem_ack;
+wire [`PIO_RANGE] tunnel_value7_mem_rdata;
+
 wire [`PIO_ADDR_MSB-2:0] reg_addr_dw = reg_addr[`PIO_ADDR_MSB:2];
 
 wire reg_ms_tunnel_hash_table0 = reg_ms_tunnel_hash_table&~reg_addr_dw[DEPTH_NBITS];
@@ -92,8 +98,11 @@ wire reg_ms_tunnel_value2 = reg_ms_tunnel_value&reg_addr_qw[2:0]==2;
 wire reg_ms_tunnel_value3 = reg_ms_tunnel_value&reg_addr_qw[2:0]==3;
 wire reg_ms_tunnel_value4 = reg_ms_tunnel_value&reg_addr_qw[2:0]==4;
 wire reg_ms_tunnel_value5 = reg_ms_tunnel_value&reg_addr_qw[2:0]==5;
+wire reg_ms_tunnel_value6 = reg_ms_tunnel_value&reg_addr_qw[2:0]==6&~reg_addr[2];
+wire reg_ms_tunnel_value7 = reg_ms_tunnel_value&(reg_addr_qw[2:0]==6&reg_addr[2]|reg_addr_qw[2:0]==7);
 
 wire [`PIO_RANGE] tunnel_value_reg_addr = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr[2:0]};
+wire [`PIO_RANGE] tunnel_value_reg_addr1 = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr[1:0]};
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -121,9 +130,22 @@ always @(*) begin
 			tunnel_value_mem_ack = tunnel_value4_mem_ack;
 			tunnel_value_mem_rdata = tunnel_value4_mem_rdata;
 		end
-		default: begin
+		3'h5: begin
 			tunnel_value_mem_ack = tunnel_value5_mem_ack;
 			tunnel_value_mem_rdata = tunnel_value5_mem_rdata;
+		end
+		3'h6: begin
+			if(~reg_addr[2]) begin
+				tunnel_value_mem_ack = tunnel_value6_mem_ack;
+				tunnel_value_mem_rdata = tunnel_value6_mem_rdata;
+			end else begin
+				tunnel_value_mem_ack = tunnel_value7_mem_ack;
+				tunnel_value_mem_rdata = tunnel_value7_mem_rdata;
+			end
+		end
+		default: begin
+			tunnel_value_mem_ack = tunnel_value7_mem_ack;
+			tunnel_value_mem_rdata = tunnel_value7_mem_rdata;
 		end
 	endcase
 end
@@ -133,6 +155,20 @@ end
 
 /***************************** PROGRAM BODY **********************************/
 
+pio_no_mem u_pio_no_mem0(
+
+		.clk(clk),
+		.`RESET_SIG(`RESET_SIG),
+
+		.clk_div(clk_div),
+
+        	.reg_rd(reg_rd),
+        	.reg_wr(reg_wr),
+        	.reg_ms(reg_ms_tunnel_value7),
+
+        	.mem_ack(tunnel_value7_mem_ack),
+        	.mem_rdata(tunnel_value7_mem_rdata)
+);
 
 pio_mem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_mem0(
 		.clk(clk),
@@ -266,7 +302,7 @@ pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram5(
 		.app_mem_rdata(tunnel_value_rdata[WM_NBITS*4-1:WM_NBITS*3])
 );
 
-pio_wmem_bram #(WM_NBITS*5-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram6(
+pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram6(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -288,8 +324,7 @@ pio_wmem_bram #(WM_NBITS*5-4*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram6(
 		.app_mem_rdata(tunnel_value_rdata[WM_NBITS*5-1:WM_NBITS*4])
 );
 
-
-pio_wmem_bram #(VALUE_NBITS-5*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram7(
+pio_wmem_bram #(WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram7(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -308,7 +343,30 @@ pio_wmem_bram #(VALUE_NBITS-5*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_wmem_bram7(
         	.mem_rdata(tunnel_value5_mem_rdata),
 
 		.app_mem_ack(),
-		.app_mem_rdata(tunnel_value_rdata[VALUE_NBITS-1:WM_NBITS*5])
+		.app_mem_rdata(tunnel_value_rdata[WM_NBITS*6-1:WM_NBITS*5])
+);
+
+
+pio_mem_bram #(VALUE_NBITS-6*WM_NBITS, VALUE_DEPTH_NBITS) u_pio_mem_bram8(
+		.clk(clk),
+		.`RESET_SIG(`RESET_SIG),
+
+		.clk_div(clk_div),
+
+	        .reg_addr(tunnel_value_reg_addr1),
+       	 	.reg_din(reg_din),
+        	.reg_rd(reg_rd),
+        	.reg_wr(reg_wr),
+        	.reg_ms(reg_ms_tunnel_value6),
+
+		.app_mem_rd(tunnel_value_rd),
+		.app_mem_raddr(tunnel_value_raddr),
+
+        	.mem_ack(tunnel_value6_mem_ack),
+        	.mem_rdata(tunnel_value6_mem_rdata),
+
+		.app_mem_ack(),
+		.app_mem_rdata(tunnel_value_rdata[VALUE_NBITS-1:WM_NBITS*6])
 );
 
 

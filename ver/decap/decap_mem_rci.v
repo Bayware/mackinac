@@ -76,6 +76,9 @@ wire [`PIO_RANGE] rci_value3_mem_rdata;
 wire rci_value4_mem_ack;
 wire [`PIO_RANGE] rci_value4_mem_rdata;
 
+wire rci_value7_mem_ack;
+wire [`PIO_RANGE] rci_value7_mem_rdata;
+
 wire [`PIO_ADDR_MSB-2:0] reg_addr_dw = reg_addr[`PIO_ADDR_MSB:2];
 
 wire reg_ms_rci_hash_table0 = reg_ms_rci_hash_table&~reg_addr_dw[DEPTH_NBITS];
@@ -87,7 +90,11 @@ wire reg_ms_rci_value0 = reg_ms_rci_value&reg_addr_qw[2:0]==0;
 wire reg_ms_rci_value1 = reg_ms_rci_value&reg_addr_qw[2:0]==1;
 wire reg_ms_rci_value2 = reg_ms_rci_value&reg_addr_qw[2:0]==2;
 wire reg_ms_rci_value3 = reg_ms_rci_value&reg_addr_qw[2:0]==3;
-wire reg_ms_rci_value4 = reg_ms_rci_value&reg_addr_qw[2:0]==4;
+wire reg_ms_rci_value4 = reg_ms_rci_value&reg_addr_qw[2:0]==4&~reg_addr[2];
+wire reg_ms_rci_value7 = reg_ms_rci_value&(reg_addr_qw[2:0]==4&reg_addr[2]|
+						reg_addr_qw[2:0]==5|
+						reg_addr_qw[2:0]==6|
+						reg_addr_qw[2:0]==7);
 
 wire [`PIO_RANGE] rci_value_reg_addr = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr[2:0]};
 wire [`PIO_RANGE] rci_value_reg_addr1 = {reg_addr[`PIO_ADDR_MSB:0+6], reg_addr[1:0]};
@@ -114,9 +121,18 @@ always @(*) begin
 			rci_value_mem_ack = rci_value3_mem_ack;
 			rci_value_mem_rdata = rci_value3_mem_rdata;
 		end
+		3'h4: begin
+			if(~reg_addr[2]) begin
+				rci_value_mem_ack = rci_value4_mem_ack;
+				rci_value_mem_rdata = rci_value4_mem_rdata;
+			end else begin
+				rci_value_mem_ack = rci_value7_mem_ack;
+				rci_value_mem_rdata = rci_value7_mem_rdata;
+			end
+		end
 		default: begin
-			rci_value_mem_ack = rci_value4_mem_ack;
-			rci_value_mem_rdata = rci_value4_mem_rdata;
+			rci_value_mem_ack = rci_value7_mem_ack;
+			rci_value_mem_rdata = rci_value7_mem_rdata;
 		end
 	endcase
 end
@@ -125,6 +141,21 @@ end
 
 
 /***************************** PROGRAM BODY **********************************/
+
+pio_no_mem u_pio_no_mem0(
+
+		.clk(clk),
+		.`RESET_SIG(`RESET_SIG),
+
+		.clk_div(clk_div),
+
+        	.reg_rd(reg_rd),
+        	.reg_wr(reg_wr),
+        	.reg_ms(reg_ms_rci_value7),
+
+        	.mem_ack(rci_value7_mem_ack),
+        	.mem_rdata(rci_value7_mem_rdata)
+);
 
 pio_mem #(BUCKET_NBITS, DEPTH_NBITS) u_pio_mem0(
 		.clk(clk),

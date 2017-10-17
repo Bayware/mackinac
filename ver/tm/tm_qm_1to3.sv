@@ -562,7 +562,7 @@ sfifo_sch_pkt_desc #(3) u_sfifo_sch_pkt_desc_1(
 		.ncount(),
 		.count(),
 		.full(),
-		.empty(lat_fifo_empty),
+		.empty(),
 		.fullm1(),
 		.emptyp2(),
 		.dout(lat_fifo_enq_pkt_desc)       

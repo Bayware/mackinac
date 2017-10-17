@@ -52,19 +52,19 @@ output logic irl_lh_eop
 /***************************** LOCAL VARIABLES *******************************/
 
 logic limiting_profile_cir_ack; 
-wire [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_cir_rdata  /* synthesis keep = 1 */;
+wire [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_cir_rdata  /* synthesis DONT_TOUCH */;
 
 logic limiting_profile_eir_ack; 
-wire [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_eir_rdata  /* synthesis keep = 1 */;
+wire [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_eir_rdata  /* synthesis DONT_TOUCH */;
 
 logic fill_tb_src_ack; 
-wire [`FILL_TB_NBITS-1:0] fill_tb_src_rdata  /* synthesis keep = 1 */;
+wire [`FILL_TB_NBITS-1:0] fill_tb_src_rdata  /* synthesis DONT_TOUCH */;
 
 logic eir_tb_ack; 
-wire [`EIR_NBITS+2-1:0] eir_tb_rdata  /* synthesis keep = 1 */;
+wire [`EIR_NBITS+2-1:0] eir_tb_rdata  /* synthesis DONT_TOUCH */;
 
 logic token_bucket_ack; 
-wire [BUCKET_NBITS-1:0] token_bucket_rdata  /* synthesis keep = 1 */;
+wire [BUCKET_NBITS-1:0] token_bucket_rdata  /* synthesis DONT_TOUCH */;
 
 logic limiting_profile_cir_rd; 
 logic [`LIMITER_NBITS-1:0] limiting_profile_cir_raddr;

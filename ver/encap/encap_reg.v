@@ -31,7 +31,7 @@ output [47:0] in_mac_da,
 output [47:0] mac_sa,
 output [63:0] ipsec_iv,
 output reg [31:0] gre_header,
-output reg [23:0] flow_label,
+output reg [19:0] flow_label,
 output reg [15:0] identification,
 output reg [7:0] ttl,
 output reg [7:0] dscp_ecn

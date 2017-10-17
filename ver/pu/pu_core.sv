@@ -350,7 +350,7 @@ flop_rst_en #(1) u_flop_rst_en_9(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(exec_up
 
 flop_rst_en #(PC_NBITS) u_pc(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(update_pc), .din(next_pc), .dout(pc));
 
-logic [WIDTH_NBITS-1:0] ram_inst0, ram_inst1, ram_inst2, ram_inst3, ram_inst /* synthesis keep = 1 */;
+logic [WIDTH_NBITS-1:0] ram_inst0, ram_inst1, ram_inst2, ram_inst3, ram_inst /* synthesis DONT_TOUCH */;
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_0(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS-1:0]), .dout(ram_inst0));
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_1(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS*2-1:WIDTH_NBITS*1]), .dout(ram_inst1));
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_2(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS*3-1:WIDTH_NBITS*2]), .dout(ram_inst2));
@@ -426,7 +426,11 @@ pu_rf #(WIDTH_NBITS, RF_DEPTH_NBITS) u_pu_rf(.clk(clk), .wr(wb_en), .raddr0(dec_
 
 wire inst_16b = ~fetch_fifo_inst_32b;
 
-wire dec_fifo_wr_en = ~stall_pipeline&~fetch_fifo_empty;
+logic en_load_delay;
+logic load_use_delay_en_d1;
+wire load_use_delay_en = en_load_delay&dec_cmd_d1.load&((dec_cmd.use_rs1&(dec_cmd_d1.rd==dec_cmd.rs1))|(dec_cmd.use_rs2&(dec_cmd_d1.rd==dec_cmd.rs2)))&~load_use_delay_en_d1;
+flop_rst #(1) u_flop_rst_113(.clk(clk), .`RESET_SIG(`RESET_SIG), .din({load_use_delay_en}), .dout({load_use_delay_en_d1}));
+wire dec_fifo_wr_en = ~(load_use_delay_en|load_use_delay_en_d1)&~stall_pipeline&~fetch_fifo_empty;
 assign fetch_fifo_rd = dec_fifo_wr_en;
 
 logic dec_dec_flag;
@@ -439,8 +443,10 @@ assign dec_update_pc = dec_fifo_wr_en&end_program&dec_valid;
 
 wire dec_fifo_wr = dec_fifo_wr_en&dec_valid&~(dec_update_pc&~end_program);
 
+flop_rst_en #(1) u_flop_rst_en_131(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(dec_fifo_wr), .din(1'b1), .dout({en_load_delay}));
+
 dec_type dec_cmd_d1;
-always @(posedge clk) dec_cmd_d1 <= dec_fifo_wr?dec_cmd:dec_cmd_d1;
+always @(clk) dec_cmd_d1 <= dec_fifo_wr?dec_cmd:dec_cmd_d1;
 
 logic [`TID_NBITS-1:0] dec_fifo_tid;
 logic [`FID_NBITS-1:0] dec_fifo_fid;
@@ -457,20 +463,50 @@ sfifo1f #(2+`TID_NBITS+`FID_NBITS+3+PC_NBITS) u_sfifo1f_3(.clk(clk), .`RESET_SIG
 /* execution */
 
 logic mem_wb_en;
+logic [RF_DEPTH_NBITS-1:0] mem_wb_addr_p1;
 logic [WIDTH_NBITS-1:0] mem_wb_data;
-logic [RF_DEPTH_NBITS-1:0] mem_wb_addr;
 
 logic io_wb_en;
+logic [RF_DEPTH_NBITS-1:0] io_wb_addr_p1;
 logic [WIDTH_NBITS-1:0] io_wb_data;
-logic [RF_DEPTH_NBITS-1:0] io_wb_addr;
 
-wire [WIDTH_NBITS-1:0] mrf_data0 = dec_cmd_d1.rs1==0?0:
-				mem_wb_en&(dec_cmd_d1.rs1==mem_wb_addr)?mem_wb_data:
-				io_wb_en&(dec_cmd_d1.rs1==io_wb_addr)?io_wb_data:rf_data0;
+logic wb_en0;
+logic [RF_DEPTH_NBITS-1:0] wb_addr0_p1;
+logic [WIDTH_NBITS-1:0] wb_data0;
 
-wire [WIDTH_NBITS-1:0] mrf_data1 = dec_cmd_d1.rs2==0?0:
-				mem_wb_en&(dec_cmd_d1.rs2==mem_wb_addr)?mem_wb_data:
-				io_wb_en&(dec_cmd_d1.rs2==io_wb_addr)?io_wb_data:rf_data1;
+wire rs1_eq0_p1 = dec_cmd.rs1==0;
+logic rs1_eq0;
+
+wire mem_wb_addr_cmp1_p1 = (dec_cmd.rs1==mem_wb_addr_p1);
+logic mem_wb_addr_cmp1;
+
+wire io_wb_addr_cmp1_p1 = (dec_cmd.rs1==io_wb_addr_p1);
+logic io_wb_addr_cmp1;
+
+wire wb_addr0_cmp1_p1 = (dec_cmd.rs1==wb_addr0_p1);
+logic wb_addr0_cmp1;
+
+wire rs2_eq0_p1 = dec_cmd.rs2==0;
+logic rs2_eq0;
+
+wire mem_wb_addr_cmp2_p1 = (dec_cmd.rs2==mem_wb_addr_p1);
+logic mem_wb_addr_cmp2;
+
+wire io_wb_addr_cmp2_p1 = (dec_cmd.rs2==io_wb_addr_p1);
+logic io_wb_addr_cmp2;
+
+wire wb_addr0_cmp2_p1 = (dec_cmd.rs2==wb_addr0_p1);
+logic wb_addr0_cmp2;
+
+flop_rst #(8) u_flop_rst_79(.clk(clk), .`RESET_SIG(`RESET_SIG), .din({rs1_eq0_p1, rs2_eq0_p1, mem_wb_addr_cmp1_p1, io_wb_addr_cmp1_p1, wb_addr0_cmp1_p1, mem_wb_addr_cmp2_p1, io_wb_addr_cmp2_p1, wb_addr0_cmp2_p1}), .dout({rs1_eq0, rs2_eq0, mem_wb_addr_cmp1, io_wb_addr_cmp1, wb_addr0_cmp1, mem_wb_addr_cmp2, io_wb_addr_cmp2, wb_addr0_cmp2}));
+
+wire [WIDTH_NBITS-1:0] mrf_data0 = mem_wb_en&mem_wb_addr_cmp1?mem_wb_data:
+				io_wb_en&io_wb_addr_cmp1?io_wb_data:
+				wb_en0&wb_addr0_cmp1?wb_data0:rs1_eq0?0:rf_data0;
+
+wire [WIDTH_NBITS-1:0] mrf_data1 = mem_wb_en&mem_wb_addr_cmp2?mem_wb_data:
+				io_wb_en&io_wb_addr_cmp2?io_wb_data:
+				wb_en0&wb_addr0_cmp2?wb_data0:rs2_eq0?0:rf_data1;
 
 logic [WIDTH_NBITS-1:0] alu_out;
 pu_alu u_pu_alu(.use_imm(dec_cmd_d1.use_imm), .imm(dec_cmd_d1.imm), .rs1(mrf_data0), .rs2(mrf_data1), .funct3(dec_cmd_d1.funct3), .funct5(dec_cmd_d1.funct5), .alu(alu_out));
@@ -531,8 +567,8 @@ sfifo1f #(3+`TID_NBITS+`FID_NBITS) u_sfifo1f_4(.clk(clk), .`RESET_SIG(`RESET_SIG
 wire mem_fifo_wr_en = ~stall_pipeline&~exec_fifo_empty;
 
 assign mem_wb_en = exec_cmd_d1.wb_en&mem_fifo_wr_en;
+assign mem_wb_addr_p1 = exec_cmd.wb_addr;
 assign mem_wb_data = exec_cmd_d1.wb_data;
-assign mem_wb_addr = exec_cmd_d1.wb_addr;
 
 wire load_mem00 = (exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_RAS_MEM);
 wire ram_wr00 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_RAS_MEM);
@@ -548,22 +584,22 @@ wire [3:0] ram_we00 = ram_we;
 wire [HOP_MEM_DEPTH_NBITS-1-1:0] ram_waddr00 = exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_LSB_RANGE];
 wire [WIDTH_NBITS-1:0] ram_wdata00 = exec_cmd_d1.mem_wdata;
 wire [HOP_MEM_DEPTH_NBITS-1-1:0] ram_raddr00 = ram_waddr00;
-logic [WIDTH_NBITS-1:0] ram_rdata00 /* synthesis keep = 1 */;
+logic [WIDTH_NBITS-1:0] ram_rdata00 /* synthesis DONT_TOUCH */;
 
 logic [HOP_MEM_DEPTH_NBITS-1:0] ram_raddr01;
-logic [WIDTH_NBITS-1:0] ram_rdata01 /* synthesis keep = 1 */;
+logic [WIDTH_NBITS-1:0] ram_rdata01 /* synthesis DONT_TOUCH */;
 
 ram_dual_we_bram #(WIDTH_NBITS/4, HOP_MEM_DEPTH_NBITS) u_ram_dual_we_bram(.clka(clk), .wea({(4){ram_wr00}}), .addra(~ram_wr00?{exec_fifo_buf_sel, ram_raddr00}:{exec_fifo_buf_sel, ram_waddr00}), .dina(ram_wdata00), .douta(ram_rdata00), .clkb(clk), .web({(4){ram_wr01}}), .addrb(~ram_wr01?ram_raddr01:ram_waddr01), .dinb(ram_wdata01), .doutb(ram_rdata01));
 
 wire load_mem10 = (exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM);
 wire ram_wr10_0 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b00);
-logic [WIDTH_NBITS-1:0] ram_rdata10_0 /* synthesis keep = 1 */;
+logic [WIDTH_NBITS-1:0] ram_rdata10_0 /* synthesis DONT_TOUCH */;
 wire ram_wr10_1 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b01);
-logic [WIDTH_NBITS-1:0] ram_rdata10_1 /* synthesis keep = 1 */;
+logic [WIDTH_NBITS-1:0] ram_rdata10_1 /* synthesis DONT_TOUCH */;
 wire ram_wr10_2 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b10);
-logic [WIDTH_NBITS-1:0] ram_rdata10_2 /* synthesis keep = 1 */;
+logic [WIDTH_NBITS-1:0] ram_rdata10_2 /* synthesis DONT_TOUCH */;
 wire ram_wr10_3 = ~exec_fifo_end_program&exec_cmd_d1.mem_wr&(exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_PD_MEM)&(exec_cmd_d1.mem_addr[1:0]==2'b11);
-logic [WIDTH_NBITS-1:0] ram_rdata10_3 /* synthesis keep = 1 */;
+logic [WIDTH_NBITS-1:0] ram_rdata10_3 /* synthesis DONT_TOUCH */;
 wire [PD_DEPTH_NBITS-1:0] ram_waddr10 = exec_cmd_d1.mem_addr[`PU_MEM_DEPTH_LSB_RANGE];
 wire [WIDTH_NBITS-1:0] ram_wdata10 = exec_cmd_d1.mem_wdata;
 wire [PD_DEPTH_NBITS-1:0] ram_raddr10 = ram_waddr10;
@@ -577,7 +613,7 @@ wire ram_wr11 = en_pd_wr;
 wire [PD_DEPTH_NBITS:0] ram_waddr11 = {wr_pd_buf_sel, pd_wr_addr_lsb};
 wire [`DATA_PATH_NBITS-1:0] ram_wdata11 = piarb_pu_inst_data;
 logic [PD_DEPTH_NBITS:0] ram_raddr11;
-logic [`DATA_PATH_NBITS-1:0] ram_rdata11 /* synthesis keep = 1 */;
+logic [`DATA_PATH_NBITS-1:0] ram_rdata11 /* synthesis DONT_TOUCH */;
 
 ram_dual_we_bram #(WIDTH_NBITS/4, PD_DEPTH_NBITS+1) u_ram_dual_we_bram_4(.clka(clk), .wea(ram_we10_0), .addra(~|ram_we10_0?{exec_fifo_buf_sel, ram_raddr10}:{exec_fifo_buf_sel, ram_waddr10}), .dina(ram_wdata10), .douta(ram_rdata10_0), .clkb(clk), .web({(4){ram_wr11}}), .addrb(~ram_wr11?ram_raddr11:ram_waddr11), .dinb(ram_wdata11[WIDTH_NBITS*1-1:WIDTH_NBITS*0]), .doutb(ram_rdata11[WIDTH_NBITS*1-1:WIDTH_NBITS*0]));
 ram_dual_we_bram #(WIDTH_NBITS/4, PD_DEPTH_NBITS+1) u_ram_dual_we_bram_5(.clka(clk), .wea(ram_we10_1), .addra(~|ram_we10_1?{exec_fifo_buf_sel, ram_raddr10}:{exec_fifo_buf_sel, ram_waddr10}), .dina(ram_wdata10), .douta(ram_rdata10_1), .clkb(clk), .web({(4){ram_wr11}}), .addrb(~ram_wr11?ram_raddr11:ram_waddr11), .dinb(ram_wdata11[WIDTH_NBITS*2-1:WIDTH_NBITS*1]), .doutb(ram_rdata11[WIDTH_NBITS*2-1:WIDTH_NBITS*1]));
@@ -650,9 +686,9 @@ assign wb_cmd.wb_data = exec_cmd_d2.load?ram_rdata1:exec_cmd_d2.wb_data;
 
 wire io_fifo_wr = mem_fifo_rd&wb_cmd.wb_en;
 
-assign io_wb_en = io_fifo_wr;
-assign io_wb_data = wb_cmd.wb_data;
-assign io_wb_addr = wb_cmd.wb_addr;
+assign io_wb_en = io_fifo_wr&exec_cmd_d2.wb_en;
+assign io_wb_addr_p1 = exec_cmd_d1.wb_addr;
+assign io_wb_data = exec_cmd_d2.wb_data;
 
 wire n_stall_pipeline = io_req?1'b1:io_ack?1'b0:stall_pipeline;
 
@@ -673,9 +709,12 @@ sfifo1f #(1) u_sfifo1f_7(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(io_fifo_wr), .d
 /* write back */
 
 assign wb_en0 = ~io_fifo_empty&wb_cmd_d1.wb_en;
+assign wb_addr0_p1 = wb_cmd.wb_addr;
+assign wb_data0 = io_rdata_fifo_empty?wb_cmd_d1.wb_data:io_rdata;
+
 assign wb_en = init_wr|wb_en0;
 assign wb_addr = init_wr?init_addr[RF_DEPTH_NBITS-1:0]:wb_cmd_d1.wb_addr;
-assign wb_data = init_wr?0:io_rdata_fifo_empty?wb_cmd_d1.wb_data:io_rdata;
+assign wb_data = init_wr?0:wb_data0;
 
 assign io_fifo_rd = wb_en0;
 assign io_rdata_fifo_rd = io_fifo_rd&~io_rdata_fifo_empty;
@@ -759,7 +798,7 @@ sfifo2f1 #(1) u_sfifo2f1_13(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(pu_done_fifo
 localparam RAS_RAM_DEPTH_NBITS = `PU_ASA_TS_NBITS;
 localparam RAS_RAM_DEPTH = `PU_ASA_TS;
 
-localparam PD_RAM_DEPTH_NBITS = 5;
+localparam PD_RAM_DEPTH_NBITS = PD_DEPTH_NBITS;
 
 typedef enum {
 IDLE,
@@ -800,7 +839,7 @@ wire buf_sel_fifo_rd = pu_done_fifo_wr;
 sfifo2f1 #(2) u_sfifo2f1_14(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(buf_sel_fifo_wr), .din({exec_fifo_buf_sel, exec_fifo_fid_sel}), .dout({rd_buf_sel, rd_fid_sel}), .rd(buf_sel_fifo_rd), .full(), .empty(buf_sel_fifo_empty), .count(), .fullm1(), .emptyp2());
 
 assign ram_raddr01 = {rd_buf_sel, {(HOP_MEM_DEPTH_NBITS-RAS_RAM_DEPTH_NBITS-4){1'b0}}, 4'h1, 1'b0, ras_rd_cnt};
-assign ram_raddr11 = {rd_buf_sel, {(HOP_MEM_DEPTH_NBITS-PD_RAM_DEPTH_NBITS){1'b0}}, pd_rd_cnt};
+assign ram_raddr11 = {rd_buf_sel, pd_rd_cnt};
 
 logic reset_pd_rd_d1;
 assign rd_pd_len_fifo_rd = reset_pd_rd_d1;
@@ -825,7 +864,7 @@ always @(posedge clk) begin
 	ras_fifo_din <= ras_rd_st?ram_rdata01:ras_fifo_din;
         last_ras_rd_cnt_d1 <= last_ras_rd_cnt;
 	ras_fifo_eop_in <= last_ras_rd_cnt_d1;
-	pd_fifo_din <= pd_rd_st?ram_rdata11:pd_fifo_din;
+	pd_fifo_din <= pd_rd_st_d1?ram_rdata11:pd_fifo_din;
 	pd_fifo_sop_in <= pd_rd_cnt==0;
         last_pd_rd_cnt_d1 <= last_pd_rd_cnt;
 	pd_fifo_eop_in <= last_pd_rd_cnt;

@@ -67,10 +67,10 @@ reg [`THIRD_LVL_QUEUE_ID_NBITS-1:0] pkt_desc_conn_group_id_d1;
 reg [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] pkt_desc_port_queue_id_d1;
 enq_pkt_desc_type pkt_desc_rdata_d1;
 
-wire [`SECOND_LVL_QUEUE_ID_NBITS-1:0] pkt_desc_conn_id  /* synthesis keep = 1 */;
-wire [`THIRD_LVL_QUEUE_ID_NBITS-1:0] pkt_desc_conn_group_id  /* synthesis keep = 1 */;
-wire [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] pkt_desc_port_queue_id  /* synthesis keep = 1 */;
-enq_pkt_desc_type pkt_desc_rdata  /* synthesis keep = 1 */;
+wire [`SECOND_LVL_QUEUE_ID_NBITS-1:0] pkt_desc_conn_id  /* synthesis DONT_TOUCH */;
+wire [`THIRD_LVL_QUEUE_ID_NBITS-1:0] pkt_desc_conn_group_id  /* synthesis DONT_TOUCH */;
+wire [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] pkt_desc_port_queue_id  /* synthesis DONT_TOUCH */;
+enq_pkt_desc_type pkt_desc_rdata  /* synthesis DONT_TOUCH */;
 
 wire [`PKT_DESC_DEPTH_NBITS-1:0] prefetch_fifo_dout;
 wire prefetch_fifo_full, prefetch_fifo_fullm1;
@@ -203,7 +203,7 @@ sfifo2f_fo #(`PKT_DESC_DEPTH_NBITS, 2) u_sfifo2f_fo_0(
 
 /***************************** MEMORY ***************************************/
 ext_pkt_desc_type ram_din;
-ext_pkt_desc_type ram_dout /* synthesis keep = 1 */;
+ext_pkt_desc_type ram_dout /* synthesis DONT_TOUCH */;
 assign ram_din.conn_id = wr_pkt_desc_conn_id_d1;
 assign ram_din.conn_group_id = wr_pkt_desc_conn_group_id_d1;
 assign ram_din.port_queue_id = wr_pkt_desc_port_queue_id_d1;

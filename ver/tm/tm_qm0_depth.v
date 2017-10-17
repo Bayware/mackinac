@@ -79,7 +79,7 @@ wire ram_queue_wr_p1 = (deq_req_d2)|(enq_lat_fifo_rd0_d1);
 
 wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_queue_raddr = deq_req_d1?deq_qid_d1:lat_enq_qid;
  
-wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_queue_depth /* synthesis keep = 1 */;
+wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ram_queue_depth /* synthesis DONT_TOUCH */;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

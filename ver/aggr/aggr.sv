@@ -831,13 +831,13 @@ always @(posedge clk) begin
 
         hold_register_rdata_d1 <= hold_register_rdata;
 
-        port_buf_pointer0 <= port_prefetch_fifo_rd[0]?prefetch_fifo_buf_pointer_d1:port_buf_pointer0;
-        port_buf_pointer1 <= port_prefetch_fifo_rd[1]?prefetch_fifo_buf_pointer_d1:port_buf_pointer1;
-        port_buf_pointer2 <= port_prefetch_fifo_rd[2]?prefetch_fifo_buf_pointer_d1:port_buf_pointer2;
-        port_buf_pointer3 <= port_prefetch_fifo_rd[3]?prefetch_fifo_buf_pointer_d1:port_buf_pointer3;
-        port_buf_pointer4 <= port_prefetch_fifo_rd[4]?prefetch_fifo_buf_pointer_d1:port_buf_pointer4;
-        port_buf_pointer5 <= port_prefetch_fifo_rd[5]?prefetch_fifo_buf_pointer_d1:port_buf_pointer5;
-        port_buf_pointer6 <= port_prefetch_fifo_rd[6]?prefetch_fifo_buf_pointer_d1:port_buf_pointer6;
+        port_buf_pointer0 <= port_prefetch_fifo_rd[0]?prefetch_fifo_buf_pointer:port_buf_pointer0;
+        port_buf_pointer1 <= port_prefetch_fifo_rd[1]?prefetch_fifo_buf_pointer:port_buf_pointer1;
+        port_buf_pointer2 <= port_prefetch_fifo_rd[2]?prefetch_fifo_buf_pointer:port_buf_pointer2;
+        port_buf_pointer3 <= port_prefetch_fifo_rd[3]?prefetch_fifo_buf_pointer:port_buf_pointer3;
+        port_buf_pointer4 <= port_prefetch_fifo_rd[4]?prefetch_fifo_buf_pointer:port_buf_pointer4;
+        port_buf_pointer5 <= port_prefetch_fifo_rd[5]?prefetch_fifo_buf_pointer:port_buf_pointer5;
+        port_buf_pointer6 <= port_prefetch_fifo_rd[6]?prefetch_fifo_buf_pointer:port_buf_pointer6;
 
         sel_port_buf_pointer_d1 <= sel_port_buf_pointer;
         sel_port_buf_pointer_d2 <= sel_port_buf_pointer_d1;

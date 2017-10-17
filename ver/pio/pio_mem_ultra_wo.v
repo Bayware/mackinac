@@ -106,7 +106,7 @@ always @(`CLK_RST)
 	end
 
 /***************************** MEMORY ***************************************/
-ram_1r1w #(WIDTH, DEPTH_NBITS) u_ram_1r1w(
+ram_1r1w_ultra #(WIDTH, DEPTH_NBITS) u_ram_1r1w_ultra(
 		.clk(clk),
 		.wr(ram_wr),
 		.raddr(ram_raddr),

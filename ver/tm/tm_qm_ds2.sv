@@ -20,37 +20,37 @@ input head_wr,
 input [QUEUE_ID_NBITS-1:0] head_raddr,
 input [QUEUE_ID_NBITS-1:0] head_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] head_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] head_rdata  /* synthesis keep = 1 */,
+output [QUEUE_ENTRIES_NBITS-1:0] head_rdata  /* synthesis DONT_TOUCH */,
 
 input tail_wr,
 input [QUEUE_ID_NBITS-1:0] tail_raddr,
 input [QUEUE_ID_NBITS-1:0] tail_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] tail_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] tail_rdata  /* synthesis keep = 1 */,
+output [QUEUE_ENTRIES_NBITS-1:0] tail_rdata  /* synthesis DONT_TOUCH */,
 
 input depth_wr,
 input [QUEUE_ID_NBITS-1:0] depth_raddr,
 input [QUEUE_ID_NBITS-1:0] depth_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] depth_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] depth_rdata  /* synthesis keep = 1 */,
+output [QUEUE_ENTRIES_NBITS-1:0] depth_rdata  /* synthesis DONT_TOUCH */,
 
 input depth1_wr,
 input [QUEUE_ID_NBITS-1:0] depth1_raddr,
 input [QUEUE_ID_NBITS-1:0] depth1_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] depth1_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] depth1_rdata  /* synthesis keep = 1 */,
+output [QUEUE_ENTRIES_NBITS-1:0] depth1_rdata  /* synthesis DONT_TOUCH */,
 
 input ll_wr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_raddr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] ll_rdata  /* synthesis keep = 1 */,
+output [QUEUE_ENTRIES_NBITS-1:0] ll_rdata  /* synthesis DONT_TOUCH */,
 
 input pkt_desc_wr,
 input [QUEUE_ENTRIES_NBITS-1:0] pkt_desc_raddr,
 input [QUEUE_ENTRIES_NBITS-1:0] pkt_desc_waddr,
 input sch_pkt_desc_type pkt_desc_wdata,
-output sch_pkt_desc_type pkt_desc_rdata  /* synthesis keep = 1 */
+output sch_pkt_desc_type pkt_desc_rdata  /* synthesis DONT_TOUCH */
 );
 
 /***************************** MEMORY ***************************************/

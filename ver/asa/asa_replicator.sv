@@ -325,7 +325,7 @@ sfifo_ram_pf_enq_pkt_desc #(IN_FIFO_DEPTH_NBITS) u_sfifo_ram_pf_enq_pkt_desc_1(
 
 		.count(),
 		.full(),
-		.empty(in_fifo_empty),
+		.empty(),
 		.dout(in_fifo_asa_rep_enq_desc));				
 
 sfifo1f #(`SCI_VEC_NBITS+`PRI_NBITS+`TID_NBITS) u_sfifo1f(
@@ -371,8 +371,8 @@ sfifo_enq_pkt_desc #(1) u_sfifo_enq_pkt_desc_2(
 
 		.ncount(),
 		.count(),
-		.full(out_fifo_full),
-		.empty(out_fifo_empty),
+		.full(),
+		.empty(),
 		.fullm1(),
 		.emptyp2(),
 		.dout(p_rep_enq_desc));

@@ -91,7 +91,8 @@ typedef struct {
 	logic [`FOURTH_LVL_QUEUE_ID_NBITS-1:0] port_queue_id;
 	enq_pkt_desc_type enq_pkt_desc;
 
-} ext_pkt_desc_type; 
+} ext_pkt_desc_type;
+
 
 typedef struct { 
 
@@ -114,6 +115,8 @@ typedef struct {
 
 typedef struct { 
 
+	logic [`ENQ_ED_CMD_PTR_LOC_NBITS-1:0] ptr_loc;
+	logic [`ENQ_ED_CMD_PD_LOC_NBITS-1:0] pd_loc;
 	logic [`DOMAIN_ID_NBITS-1:0] domain_id;
 	logic [`HEADER_LENGTH_NBITS-1:0] hdr_len;
 	logic [`BUF_PTR_NBITS-1:0] buf_ptr;

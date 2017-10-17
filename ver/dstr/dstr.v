@@ -83,6 +83,7 @@ reg [`PORT_ID_RANGE] ed_dstr_port_id_d1;
 reg ed_dstr_sop_d1;
 reg ed_dstr_eop_d1;
 reg [`RCI_NBITS-1:0] ed_dstr_rci_d1;
+reg [`PACKET_LENGTH_NBITS-1:0] ed_dstr_pkt_len_d1;	
 reg [`DATA_PATH_VB_RANGE] ed_dstr_valid_bytes_d1;	
 
 reg [`NUM_OF_PORTS-1:0] wr_reg_file;
@@ -226,29 +227,29 @@ wire [`NUM_OF_PORTS-1:0] event_fifo_empty;
 wire [`NUM_OF_PORTS-1:0] event_fifo_sop;
 wire [`NUM_OF_PORTS-1:0] event_fifo_eop;
 
-wire [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes0;
-wire [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes1;
-wire [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes2;
-wire [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes3;
-wire [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes4;
-wire [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes5;
-wire [`DATA_PATH_VB_RANGE] event_fifo_valid_bytes6;
+wire [`DATA_PATH_VB_NBITS:0] event_fifo_valid_bytes0;
+wire [`DATA_PATH_VB_NBITS:0] event_fifo_valid_bytes1;
+wire [`DATA_PATH_VB_NBITS:0] event_fifo_valid_bytes2;
+wire [`DATA_PATH_VB_NBITS:0] event_fifo_valid_bytes3;
+wire [`DATA_PATH_VB_NBITS:0] event_fifo_valid_bytes4;
+wire [`DATA_PATH_VB_NBITS:0] event_fifo_valid_bytes5;
+wire [`DATA_PATH_VB_NBITS:0] event_fifo_valid_bytes6;
 
-wire [`RCI_NBITS-1:0] event_fifo_rci0;
-wire [`RCI_NBITS-1:0] event_fifo_rci1;
-wire [`RCI_NBITS-1:0] event_fifo_rci2;
-wire [`RCI_NBITS-1:0] event_fifo_rci3;
-wire [`RCI_NBITS-1:0] event_fifo_rci4;
-wire [`RCI_NBITS-1:0] event_fifo_rci5;
-wire [`RCI_NBITS-1:0] event_fifo_rci6;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] event_fifo_rci0;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] event_fifo_rci1;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] event_fifo_rci2;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] event_fifo_rci3;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] event_fifo_rci4;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] event_fifo_rci5;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] event_fifo_rci6;
 
-wire [`RCI_NBITS-1:0] latency_fifo_rci0;
-wire [`RCI_NBITS-1:0] latency_fifo_rci1;
-wire [`RCI_NBITS-1:0] latency_fifo_rci2;
-wire [`RCI_NBITS-1:0] latency_fifo_rci3;
-wire [`RCI_NBITS-1:0] latency_fifo_rci4;
-wire [`RCI_NBITS-1:0] latency_fifo_rci5;
-wire [`RCI_NBITS-1:0] latency_fifo_rci6;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] latency_fifo_rci0;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] latency_fifo_rci1;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] latency_fifo_rci2;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] latency_fifo_rci3;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] latency_fifo_rci4;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] latency_fifo_rci5;
+wire [`PACKET_LENGTH_NBITS+`RCI_NBITS-1:0] latency_fifo_rci6;
 
 wire [`DATA_PATH_RANGE] hold_register_rdata;
 
@@ -290,6 +291,7 @@ assign hold_fifo_rd[3] = ~hold_fifo_empty[3]&(hold_fifo_port_id3==0?disable_rci[
 
 wire [`NUM_OF_PORTS-1:0] latency_fifo_rd = set_en_rci;
 
+wire [`DATA_PATH_VB_NBITS:0] med_dstr_valid_bytes_d1 = ed_dstr_valid_bytes_d1==0?(1<<`DATA_PATH_VB_NBITS):ed_dstr_valid_bytes_d1;	
 /***************************** NON REGISTERED OUTPUTS ************************/
 
 /***************************** REGISTERED OUTPUTS ****************************/
@@ -340,7 +342,7 @@ always @(`CLK_RST)
 
 always @(posedge clk) begin
 
-		p_dstr_enc_packet_data0 <= transpose(rot_data[(`PORT_BUS_NBITS*4)-1:(`PORT_BUS_NBITS*3)]);
+		p_dstr_enc_packet_data0 <= transpose(rot_data[(`PORT_BUS_NBITS*2)-1:(`PORT_BUS_NBITS*1)]);
 		p_dstr_enc_sop0 <= rd_port_sop_d2[0];
 		p_dstr_enc_eop0 <= rd_port_eop_d2[0];
 		p_dstr_enc_valid_bytes0 <= dstr_enc_valid_bytes0_p1;
@@ -350,7 +352,7 @@ always @(posedge clk) begin
 		p_dstr_enc_eop1 <= rd_port_eop_d2[1];
 		p_dstr_enc_valid_bytes1 <= dstr_enc_valid_bytes1_p1;
 
-		p_dstr_enc_packet_data2 <= transpose(rot_data[(`PORT_BUS_NBITS*2)-1:(`PORT_BUS_NBITS*1)]);
+		p_dstr_enc_packet_data2 <= transpose(rot_data[(`PORT_BUS_NBITS*4)-1:(`PORT_BUS_NBITS*3)]);
 		p_dstr_enc_sop2 <= rd_port_en_d2[2]?rd_port_sop_d2[2]:rd_port_sop_d2[3];
 		p_dstr_enc_eop2 <= rd_port_en_d2[2]?rd_port_eop_d2[2]:rd_port_eop_d2[3];
 		p_dstr_enc_valid_bytes2 <= rd_port_en_d2[2]?dstr_enc_valid_bytes2_p1:dstr_enc_valid_bytes3_p1;
@@ -451,6 +453,7 @@ always @(posedge clk) begin
 		ed_dstr_sop_d1 <= ed_dstr_sop;
 		ed_dstr_eop_d1 <= ed_dstr_eop;
 		ed_dstr_rci_d1 <= {ed_dstr_rci};
+		ed_dstr_pkt_len_d1 <= {ed_dstr_pkt_len};
 		ed_dstr_valid_bytes_d1 <= ed_dstr_valid_bytes;
 
 		case (ed_dstr_port_id)
@@ -623,11 +626,11 @@ port_scheduler u_port_scheduler(
 	);
 /***************************** FIFO ***************************************/
 
-sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_0(
+sfifo2f_fo #(`PACKET_LENGTH_NBITS+`RCI_NBITS+`DATA_PATH_VB_NBITS+1+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({ed_dstr_rci_d1, ed_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
+		.din({ed_dstr_pkt_len_d1, ed_dstr_rci_d1, med_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
 		.rd(event_fifo_rd[0]),
 		.wr(wr_reg_file[0]),
 
@@ -639,11 +642,11 @@ sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2
 		.emptyp2(),
 		.dout({event_fifo_rci0, event_fifo_valid_bytes0, event_fifo_eop[0], event_fifo_sop[0]})       
 	);
-sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_1(
+sfifo2f_fo #(`PACKET_LENGTH_NBITS+`RCI_NBITS+`DATA_PATH_VB_NBITS+1+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({ed_dstr_rci_d1, ed_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
+		.din({ed_dstr_pkt_len_d1, ed_dstr_rci_d1, med_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
 		.rd(event_fifo_rd[1]),
 		.wr(wr_reg_file[1]),
 
@@ -655,11 +658,11 @@ sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2
 		.emptyp2(),
 		.dout({event_fifo_rci1, event_fifo_valid_bytes1, event_fifo_eop[1], event_fifo_sop[1]})       
 	);
-sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_2(
+sfifo2f_fo #(`PACKET_LENGTH_NBITS+`RCI_NBITS+`DATA_PATH_VB_NBITS+1+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_2(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({ed_dstr_rci_d1, ed_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
+		.din({ed_dstr_pkt_len_d1, ed_dstr_rci_d1, med_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
 		.rd(event_fifo_rd[2]),
 		.wr(wr_reg_file[2]),
 
@@ -671,11 +674,11 @@ sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2
 		.emptyp2(),
 		.dout({event_fifo_rci2, event_fifo_valid_bytes2, event_fifo_eop[2], event_fifo_sop[2]})       
 	);
-sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_3(
+sfifo2f_fo #(`PACKET_LENGTH_NBITS+`RCI_NBITS+`DATA_PATH_VB_NBITS+1+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_3(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({ed_dstr_rci_d1, ed_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
+		.din({ed_dstr_pkt_len_d1, ed_dstr_rci_d1, med_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
 		.rd(event_fifo_rd[3]),
 		.wr(wr_reg_file[3]),
 
@@ -687,11 +690,11 @@ sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2
 		.emptyp2(),
 		.dout({event_fifo_rci3, event_fifo_valid_bytes3, event_fifo_eop[3], event_fifo_sop[3]})       
 	);
-sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_4(
+sfifo2f_fo #(`PACKET_LENGTH_NBITS+`RCI_NBITS+`DATA_PATH_VB_NBITS+1+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_4(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({ed_dstr_rci_d1, ed_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
+		.din({ed_dstr_pkt_len_d1, ed_dstr_rci_d1, med_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
 		.rd(event_fifo_rd[4]),
 		.wr(wr_reg_file[4]),
 
@@ -703,11 +706,11 @@ sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2
 		.emptyp2(),
 		.dout({event_fifo_rci4, event_fifo_valid_bytes4, event_fifo_eop[4], event_fifo_sop[4]})       
 	);
-sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_5(
+sfifo2f_fo #(`PACKET_LENGTH_NBITS+`RCI_NBITS+`DATA_PATH_VB_NBITS+1+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_5(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({ed_dstr_rci_d1, ed_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
+		.din({ed_dstr_pkt_len_d1, ed_dstr_rci_d1, med_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
 		.rd(event_fifo_rd[5]),
 		.wr(wr_reg_file[5]),
 
@@ -719,11 +722,11 @@ sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2
 		.emptyp2(),
 		.dout({event_fifo_rci5, event_fifo_valid_bytes5, event_fifo_eop[5], event_fifo_sop[5]})       
 	);
-sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_6(
+sfifo2f_fo #(`PACKET_LENGTH_NBITS+`RCI_NBITS+`DATA_PATH_VB_NBITS+1+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2f_fo_6(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({ed_dstr_rci_d1, ed_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
+		.din({ed_dstr_pkt_len_d1, ed_dstr_rci_d1, med_dstr_valid_bytes_d1, ed_dstr_eop_d1, ed_dstr_sop_d1}),				
 		.rd(event_fifo_rd[6]),
 		.wr(wr_reg_file[6]),
 
@@ -736,7 +739,7 @@ sfifo2f_fo #(`RCI_NBITS+`DATA_PATH_VB_NBITS+2,  EVENT_FIFO_DEPTH_NBITS) u_sfifo2
 		.dout({event_fifo_rci6, event_fifo_valid_bytes6, event_fifo_eop[6], event_fifo_sop[6]})       
 	);
 
-sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_70(
+sfifo2f1 #(`PACKET_LENGTH_NBITS+`RCI_NBITS, 2) u_sfifo2f1_70(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -752,7 +755,7 @@ sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_70(
 		.dout({latency_fifo_rci0})       
 	);
 
-sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_71(
+sfifo2f1 #(`PACKET_LENGTH_NBITS+`RCI_NBITS, 2) u_sfifo2f1_71(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -768,7 +771,7 @@ sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_71(
 		.dout({latency_fifo_rci1})       
 	);
 
-sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_72(
+sfifo2f1 #(`PACKET_LENGTH_NBITS+`RCI_NBITS, 2) u_sfifo2f1_72(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -784,7 +787,7 @@ sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_72(
 		.dout({latency_fifo_rci2})       
 	);
 
-sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_73(
+sfifo2f1 #(`PACKET_LENGTH_NBITS+`RCI_NBITS, 2) u_sfifo2f1_73(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -800,7 +803,7 @@ sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_73(
 		.dout({latency_fifo_rci3})       
 	);
 
-sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_74(
+sfifo2f1 #(`PACKET_LENGTH_NBITS+`RCI_NBITS, 2) u_sfifo2f1_74(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -816,7 +819,7 @@ sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_74(
 		.dout({latency_fifo_rci4})       
 	);
 
-sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_75(
+sfifo2f1 #(`PACKET_LENGTH_NBITS+`RCI_NBITS, 2) u_sfifo2f1_75(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -832,7 +835,7 @@ sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_75(
 		.dout({latency_fifo_rci5})       
 	);
 
-sfifo2f1 #(`RCI_NBITS, 2) u_sfifo2f1_76(
+sfifo2f1 #(`PACKET_LENGTH_NBITS+`RCI_NBITS, 2) u_sfifo2f1_76(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

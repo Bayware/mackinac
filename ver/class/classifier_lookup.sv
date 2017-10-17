@@ -603,7 +603,7 @@ sfifo_aggr_par #(4) u_sfifo_aggr_par(
         .ncount(),
         .count(),
         .full(),
-        .empty(in_fifo_empty),
+        .empty(),
         .fullm1(),
         .emptyp2(),
         .dout(in_fifo_meta_data)               

@@ -27,7 +27,7 @@ typedef struct {
 
 typedef struct { 
 
-	logic [`SERIAL_NUM_NBITS-1:0] sn;
+	logic [`SEQUENCE_NUMBER_NBITS-1:0] sn;
 	logic [`SPI_NBITS-1:0] spi;
 	logic [`MAC_NBITS-1:0] mac;
 	logic [`VLAN_NBITS-1:0] vlan;

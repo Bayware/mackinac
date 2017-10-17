@@ -118,7 +118,7 @@ wire rd_start = ~raddr_fifo_empty&~wr_start;
 
 wire raddr_fifo_rd = rd_start;
 
-assign wr_start = ~waddr_fifo_empty&~wdata_fifo_empty&~rd_start;
+assign wr_start = ~waddr_fifo_empty&~wdata_fifo_empty;
 
 wire waddr_fifo_rd = wr_start;
 wire wdata_fifo_rd = wr_start;

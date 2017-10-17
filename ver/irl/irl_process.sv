@@ -557,7 +557,7 @@ sfifo_cla_irl #(3) u_sfifo_cla_irl(
         .ncount(),
         .count(),
         .full(),
-        .empty(in_fifo_empty),
+        .empty(),
         .fullm1(),
         .emptyp2(),
         .dout(in_fifo_meta_data)               

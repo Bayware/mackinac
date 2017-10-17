@@ -206,22 +206,22 @@ wire encr_ring_out_sos4;
 wire encr_ring_out_valid4;
 
 wire tunnel_hash_table0_ack; 
-wire [RCI_BUCKET_NBITS-1:0] tunnel_hash_table0_rdata  /* synthesis keep = 1 */;
+wire [RCI_BUCKET_NBITS-1:0] tunnel_hash_table0_rdata  /* synthesis DONT_TOUCH */;
 
 wire tunnel_hash_table1_ack; 
-wire [RCI_BUCKET_NBITS-1:0] tunnel_hash_table1_rdata  /* synthesis keep = 1 */;
+wire [RCI_BUCKET_NBITS-1:0] tunnel_hash_table1_rdata  /* synthesis DONT_TOUCH */;
 
 wire tunnel_value_ack; 
-wire [`TUNNEL_VALUE_NBITS-1:0] tunnel_value_rdata  /* synthesis keep = 1 */;
+wire [`TUNNEL_VALUE_NBITS-1:0] tunnel_value_rdata  /* synthesis DONT_TOUCH */;
 
 wire ekey_hash_table0_ack; 
-wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata  /* synthesis keep = 1 */;
+wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata  /* synthesis DONT_TOUCH */;
 
 wire ekey_hash_table1_ack; 
-wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata  /* synthesis keep = 1 */;
+wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata  /* synthesis DONT_TOUCH */;
 
 wire ekey_value_ack; 
-wire [EKEY_VALUE_NBITS-1:0] ekey_value_rdata  /* synthesis keep = 1 */;
+wire [EKEY_VALUE_NBITS-1:0] ekey_value_rdata  /* synthesis DONT_TOUCH */;
 
 wire tunnel_hash_table0_rd; 
 wire [RCI_DEPTH_NBITS-1:0] tunnel_hash_table0_raddr;
@@ -251,7 +251,7 @@ wire [47:0] in_mac_da;
 wire [47:0] mac_sa;
 wire [63:0] ipsec_iv;
 wire [31:0] gre_header;
-wire [23:0] flow_label;
+wire [19:0] flow_label;
 wire [15:0] identification;
 wire [7:0] ttl;
 wire [7:0] dscp_ecn;
@@ -694,10 +694,10 @@ encap_port #(.ENCRYPTOR_ID(3)) u_encap_port_3(
     .clk_mac(clk_mac), 
 
     .dstr_enc_data_valid(dstr_enc_data_valid2&dstr_enc_port_id2),
-    .dstr_enc_packet_data(dstr_enc_packet_data3),
-    .dstr_enc_sop(dstr_enc_sop3),
-    .dstr_enc_eop(dstr_enc_eop3),
-    .dstr_enc_valid_bytes(dstr_enc_valid_bytes3),
+    .dstr_enc_packet_data(dstr_enc_packet_data2),
+    .dstr_enc_sop(dstr_enc_sop2),
+    .dstr_enc_eop(dstr_enc_eop2),
+    .dstr_enc_valid_bytes(dstr_enc_valid_bytes2),
  
     .encr_ring_in_data(encr_ring_out_data2),
     .encr_ring_in_sof(encr_ring_out_sof2),

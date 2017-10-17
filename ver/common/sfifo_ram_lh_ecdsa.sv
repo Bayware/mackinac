@@ -84,14 +84,45 @@ sfifo_ctrl #(DEPTH_NBITS, DEPTH, DEPTH-1, 0) u_sfifo_ctrl(
                 .wptr                   (wptr)
 );
 
+localparam WIDTH = `LH_ECDSA_META_NBITS;
 (* ram_style = "ultra" *)
-lh_ecdsa_meta_type mem_d[DEPTH-1:0];
+logic [WIDTH-1:0] mem_d[DEPTH-1:0];
+
+logic [WIDTH-1:0] dout0;
+
+wire [WIDTH-1:0] din0 = {
+			din.traffic_class, 
+			din.hdr_len, 
+			din.buf_ptr, 
+			din.len,
+			din.port, 
+			din.rci, 
+			din.fid, 
+			din.tid, 
+			din.type1, 
+			din.type3, 
+			din.discard
+			}; 
+
+assign {
+			dout.traffic_class, 
+			dout.hdr_len, 
+			dout.buf_ptr, 
+			dout.len,
+			dout.port, 
+			dout.rci, 
+			dout.fid, 
+			dout.tid, 
+			dout.type1, 
+			dout.type3, 
+			dout.discard
+			} = dout0; 
 
 always @(posedge clk) 
-	if(wen1) mem_d[wptr] <= din;
+	if(wen1) mem_d[wptr] <= din0;
 
 always @(posedge clk)
-	dout <= mem_d[rptr];
+	dout0 <= mem_d[rptr];
 
 /***************************** DIAGNOSTICS *********************************/
 
