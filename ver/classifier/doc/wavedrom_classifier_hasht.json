@@ -1,0 +1,15 @@
+{signal: [
+  {name: 'clk', wave: 'p.....................'},
+  {name: 'key_start', wave:'010.10.'},
+  {name: 'key', wave: 'x======x', data:[ '0', '1', '2', '0','1','2']},
+  {name: 'key_start_q', wave:'0.10.10.'},
+  {name: 'key_q', wave: 'xx======'},
+  {name: 'key_a_vld', wave:'0.10.10.'},
+  {name: 'key_a', wave: 'xx======', data:[ '0', '1', '2', '0','1','2']},
+  {name: 'data_in', wave: 'xx======', data:[ '0', '1', '2', '0','1','2']},
+  {name: 'crc_in', wave: 'xx======', data: ['0xF','CY0','CY1','0xF','CY0','CY1']},
+  {name: 'next_crc', wave: 'xxx==3==3', data: ['CY0', 'CY1', 'CY2','CY0', 'CY1', 'CY2']},
+  {name: 'crc_final', wave: 'xxxxx3xxx3x'}
+  ],
+ config: { hscale: 1 }
+}

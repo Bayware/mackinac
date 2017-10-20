@@ -1,0 +1,27 @@
+{signal: [
+  {name: 'clk', wave: 'p.....................'},
+  {name: 'key_in', wave: 'x===x'},
+  {name: 'key_in_q', wave: 'xx===x'},
+  {name: 'crc_out', wave: 'xxx===x', data: ['st1', 'st2', 'final']},
+  {name: 'hash_a_vld', wave:'0.....10'},
+  {name: 'h1(k)', wave:'xxxxxx=x', data: ['h1(k)']},
+  {name: 'hash_a_vld', wave:'0......10'},
+  {name: 't_hasht_addr', wave:'xxxxxxx=x', data: ['bkt1']},
+  {name: 't_hasht_dout', wave:'xxxxxxxxxx=x'},
+  {name: 't_hasht_dout_q', wave:'xxxxxxxxxxx=x'},
+  {name: 'slot_matches_q', wave:'xxxxxxxxxxxx=...x'},
+  {name: 'pkt_strobe', wave:'0............10..'},
+  {name: 'vlm_rd_vld', wave:'0............1...0'},
+  {name: 'vlm_rd_addr', wave:'xxxxxxxxxxxxx====x'},
+  {name: 'vlm_dout', wave:'xxxxxxxxxxxxxxxx====x'},
+  {name: 'vlm_dout_q', wave:'xxxxxxxxxxxxxxxxx====x'},
+  {name: 'key_comp0', wave:'xxxxxxxxxxxxxxxxxx=...x'},
+  {name: 'key_comp1', wave:'xxxxxxxxxxxxxxxxxxx=..x'},
+  {name: 'key_comp2', wave:'xxxxxxxxxxxxxxxxxxxx=.x'},
+  {name: 'key_comp3', wave:'xxxxxxxxxxxxxxxxxxxxx=x'},
+  {name: 'hit_miss', wave:'xxxxxxxxxxxxxxxxxxxxxx3x'},
+  {name: 'lookup_err', wave:'xxxxxxxxxxxxxxxxxxxxxx4x'}
+  ],
+ config: { hscale: 1 },
+ head: {text: ['tspan', 'CLASSIFIER TOP', {class:'info h3'}]}
+}
