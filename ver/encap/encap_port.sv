@@ -1278,7 +1278,7 @@ encap_ip u_encap_ip (
 );
 
 
-sfifo2f_ram_pf #(PBUS_NBITS+PBUS_VB_NBITS+2, IN_FIFO_DEPTH_NBITS) u_sfifo2f_ram_pf_0(
+sfifo2f_bram_pf #(PBUS_NBITS+PBUS_VB_NBITS+2, IN_FIFO_DEPTH_NBITS) u_sfifo2f_bram_pf_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1393,7 +1393,7 @@ sfifo2f_fo #(LEN_NBITS+3+RING_NBITS) u_sfifo2f_fo_6(
         .dout({result_fifo_pkt_len, result_fifo_ipv4, result_fifo_ipsec, result_fifo_vlan_tagged, result_fifo_mac_da, result_fifo_vlan, result_fifo_spi, result_fifo_sn})       
     );
 
-sfifo2f_ram_pf #(PBUS_NBITS+PBUS_VB_NBITS+2, OUT_FIFO_DEPTH_NBITS) u_sfifo2f_ram_pf_7(
+sfifo2f_bram_pf #(PBUS_NBITS+PBUS_VB_NBITS+2, OUT_FIFO_DEPTH_NBITS) u_sfifo2f_bram_pf_7(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 

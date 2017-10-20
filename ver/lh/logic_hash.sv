@@ -398,7 +398,7 @@ logic_hash_gen u_logic_hash_gen(
 		.lh_data(lh_data)
 );
 
-sfifo2f_fo #(1+`DATA_PATH_NBITS+2, 6) u_sfifo2f_fo_0(
+sfifo2f_bram_pf #(1+`DATA_PATH_NBITS+2, 6) u_sfifo2f_bram_pf_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -406,12 +406,9 @@ sfifo2f_fo #(1+`DATA_PATH_NBITS+2, 6) u_sfifo2f_fo_0(
         .rd(in_fifo_rd),
         .wr(in_fifo_wr),
 
-        .ncount(),
         .count(),
         .full(),
         .empty(in_fifo_empty),
-        .fullm1(),
-        .emptyp2(),
         .dout({in_fifo_type1, in_fifo_data, in_fifo_sop, in_fifo_eop})               
     );
 
@@ -432,7 +429,7 @@ sfifo_irl_lh #(6) u_sfifo_irl_lh_0(
         .dout(in_fifo_meta_data)               
     );
 
-sfifo2f_fo #(`DATA_PATH_NBITS+2, 6) u_sfifo2f_fo_1(
+sfifo2f_bram_pf #(`DATA_PATH_NBITS+2, 6) u_sfifo2f_bram_pf_1(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -440,12 +437,9 @@ sfifo2f_fo #(`DATA_PATH_NBITS+2, 6) u_sfifo2f_fo_1(
         .rd(lat_fifo_rd),
         .wr(lat_fifo_wr),
 
-        .ncount(),
         .count(),
         .full(),
         .empty(lat_fifo_empty),
-        .fullm1(),
-        .emptyp2(),
         .dout({lat_fifo_data, lat_fifo_sop, lat_fifo_eop})               
     );
 

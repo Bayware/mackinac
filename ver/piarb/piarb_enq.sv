@@ -532,6 +532,8 @@ always @(`CLK_RST)
 				buf_rd_st <= IDLE;
 			else 
 				buf_rd_st <= BUF_QUEUE_CHECK;
+		default: 
+				buf_rd_st <= IDLE;
 	endcase
 
         enq_req_p1 <= type1_fid_fifo_rd&~type3&~in_discard;
@@ -574,7 +576,7 @@ always @(`CLK_RST)
 
 /***************************** FIFO ***************************************/
 
-sfifo2f_2f1 #(DATA_NBITS+2, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_0(
+sfifo2f_bram_pf #(DATA_NBITS+2, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_bram_pf_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -582,16 +584,13 @@ sfifo2f_2f1 #(DATA_NBITS+2, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_0(
         .rd(buf_fifo_rd),
         .wr(pp_pu_hop_valid_d1&~pp_pu_meta_data_d1.type3),
 
-        .ncount(buf_fifo_ncount),
-        .count(),
+        .count(buf_fifo_ncount),
         .full(),
         .empty(buf_fifo_empty),
-        .fullm1(),
-        .emptyp2(),
         .dout({buf_fifo_data, buf_fifo_sop, buf_fifo_eop})       
     );
 
-sfifo2f_fo #(INST_DATA_NBITS+2+`DATA_PATH_VB_NBITS+1+1, INST_BUF_FIFO_DEPTH_NBITS) u_sfifo2f_fo_4(
+sfifo2f_bram_pf #(INST_DATA_NBITS+2+`DATA_PATH_VB_NBITS+1+1, INST_BUF_FIFO_DEPTH_NBITS) u_sfifo2f_bram_pf_4(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -599,16 +598,13 @@ sfifo2f_fo #(INST_DATA_NBITS+2+`DATA_PATH_VB_NBITS+1+1, INST_BUF_FIFO_DEPTH_NBIT
         .rd(inst_buf_fifo_rd),
         .wr(pp_pu_valid_d1),
 
-        .ncount(inst_buf_fifo_ncount),
-        .count(),
+        .count(inst_buf_fifo_ncount),
         .full(),
         .empty(inst_buf_fifo_empty),
-        .fullm1(),
-        .emptyp2(),
         .dout({inst_buf_fifo_data, inst_buf_fifo_sop, inst_buf_fifo_eop, inst_buf_fifo_valid_bytes, inst_buf_fifo_inst_pd})       
     );
 
-sfifo2f_fo #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_41(
+sfifo2f_bram_pf #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_bram_pf_41(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -616,16 +612,13 @@ sfifo2f_fo #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_41(
         .rd(type1_fid_fifo_wr),
         .wr(pp_pu_valid_d1&pp_pu_sop_d1&pp_pu_inst_pd_d1),
 
-        .ncount(),
         .count(),
         .full(),
         .empty(),
-        .fullm1(),
-        .emptyp2(),
         .dout({pinst_meta_fifo_pd_loc})       
     );
 
-sfifo2f_fo #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_42(
+sfifo2f_bram_pf #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_bram_pf_42(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -633,12 +626,9 @@ sfifo2f_fo #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_42(
         .rd(type1_fid_fifo_wr),
         .wr(pp_pu_valid_d3&pp_pu_sop_d3&pp_pu_inst_pd_d3),
 
-        .ncount(),
         .count(),
         .full(),
         .empty(),
-        .fullm1(),
-        .emptyp2(),
         .dout({pinst_meta_fifo_pd_len})       
     );
 

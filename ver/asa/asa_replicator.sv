@@ -244,7 +244,7 @@ always @(`CLK_RST)
 
 /***************************** FIFO ***************************************/
 
-sfifo2f_ram_pf #(`SCI_VEC_NBITS+`PRI_NBITS+`TID_NBITS, IN_FIFO_DEPTH_NBITS) u_sfifo2f_ram_pf_0(
+sfifo2f_bram_pf #(`SCI_VEC_NBITS+`PRI_NBITS+`TID_NBITS, IN_FIFO_DEPTH_NBITS) u_sfifo2f_bram_pf_0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -257,7 +257,7 @@ sfifo2f_ram_pf #(`SCI_VEC_NBITS+`PRI_NBITS+`TID_NBITS, IN_FIFO_DEPTH_NBITS) u_sf
 		.empty(p_in_fifo_empty),
 		.dout({p_in_fifo_asa_rep_enq_vec, p_in_fifo_asa_rep_enq_pri, p_in_fifo_asa_rep_enq_tid}));				
 
-sfifo_ram_pf_enq_pkt_desc #(IN_FIFO_DEPTH_NBITS) u_sfifo_ram_pf_enq_pkt_desc_0(
+sfifo_bram_pf_enq_pkt_desc #(IN_FIFO_DEPTH_NBITS) u_sfifo_bram_pf_enq_pkt_desc_0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -315,7 +315,7 @@ sfifo2f_ram_pf #(`SCI_NBITS+1+`SCI_VEC_NBITS+`PRI_NBITS+`TID_NBITS, IN_FIFO_DEPT
 		.empty(in_fifo_empty),
 		.dout({in_fifo_rep_count, in_fifo_asa_rep_enq_vec, in_fifo_asa_rep_enq_pri, in_fifo_asa_rep_enq_tid}));				
 
-sfifo_ram_pf_enq_pkt_desc #(IN_FIFO_DEPTH_NBITS) u_sfifo_ram_pf_enq_pkt_desc_1(
+sfifo_bram_pf_enq_pkt_desc #(IN_FIFO_DEPTH_NBITS) u_sfifo_bram_pf_enq_pkt_desc_1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 

@@ -72,7 +72,7 @@ always @(*)
 		ram_wdata_l[i] = tag_lookup_status_valid?tag_lookup_status:tag_lookup_result;
 		ram_wdata_h[i] = tag_lookup_status_valid?0:tag_lookup_result;
 
-		ram_raddr[i] = io_cmd_d1[i].addr;
+		ram_raddr[i] = io_cmd_d1[i].addr[DEPTH_NBITS-1:0];
 	end
 
 always @(posedge clk) 

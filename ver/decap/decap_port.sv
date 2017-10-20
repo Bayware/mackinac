@@ -531,7 +531,7 @@ sfifo2f_fo #(3+`RCI_NBITS, 2) u_sfifo2f_fo_4(
         .dout({rci_fifo_ipsec, rci_fifo_l2_gre, rci_fifo_valid, rci_fifo_rci})       
     );
 
-sfifo2f_ram_pf #(PBUS_NBITS+PBUS_VB_NBITS+2, OUT_FIFO_DEPTH_NBITS) u_sfifo2f_ram_pf(
+sfifo2f_bram_pf #(PBUS_NBITS+PBUS_VB_NBITS+2, OUT_FIFO_DEPTH_NBITS) u_sfifo2f_bram_pf(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 

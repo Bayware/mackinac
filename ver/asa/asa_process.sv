@@ -70,8 +70,8 @@ logic [`FLOW_POLICY2_NBITS-1:0] ecdsa_asa_fp_wdata_d1;
 
 wire [`TID_NBITS-1:0] tid = asa_proc_meta.tid;
 wire [`TID_NBITS-1:0] tid_d2 = asa_proc_meta_d2.tid;
-wire [`TID_NBITS-1:0] fid = asa_proc_meta.fid;
-wire [`TID_NBITS-1:0] fid_d2 = asa_proc_meta_d2.fid;
+wire [`FID_NBITS-1:0] fid = asa_proc_meta.fid;
+wire [`FID_NBITS-1:0] fid_d2 = asa_proc_meta_d2.fid;
 
 wire fp_rd = asa_proc_valid;
 wire [`FID_NBITS-1:0] fp_raddr = fid;				
@@ -88,7 +88,7 @@ wire [`TID_NBITS-1:0] ta_raddr = tid;
 logic [`SCI_VEC_NBITS-1:0] ta_rdata /* synthesis DONT_TOUCH */;				
 logic [`SCI_VEC_NBITS-1:0] ta_rdata_d1;				
 
-wire [`SCI_VEC_NBITS-1:0] in_rci_bit_vec_p1 = bit_vec_gen({1'b0, asa_proc_meta_d1.rci});
+wire [`SCI_VEC_NBITS-1:0] in_rci_bit_vec_p1 = bit_vec_gen({1'b0, asa_proc_meta_d1.rci[`SCI_NBITS-1:0]});
 logic [`SCI_VEC_NBITS-1:0] in_rci_mask;
 
 wire [`SCI_VEC_NBITS-1:0] flow_bit_vec0 = bit_vec_gen(asa_proc_ras_d1[(1+`SCI_NBITS)*1+`RAS_FLAG_NBITS-1:(1+`SCI_NBITS)*0+`RAS_FLAG_NBITS]);

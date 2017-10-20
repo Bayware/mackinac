@@ -387,7 +387,7 @@ sfifo_lh_pp #(1) u_sfifo_lh_pp(
         .dout(lh_pp_meta_fifo_data)       
     );
 
-sfifo2f_fo #(1+1+`DATA_PATH_NBITS, `PP_PU_FIFO_DEPTH_NBITS) u_sfifo2f_fo0(
+sfifo2f_bram_pf #(1+1+`DATA_PATH_NBITS, `PP_PU_FIFO_DEPTH_NBITS) u_sfifo2f_bram_pf_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -395,12 +395,9 @@ sfifo2f_fo #(1+1+`DATA_PATH_NBITS, `PP_PU_FIFO_DEPTH_NBITS) u_sfifo2f_fo0(
         .rd(lh_pp_fifo_rd),
         .wr(lh_pp_valid_d1),
 
-        .ncount(),
         .count(),
         .full(),
         .empty(lh_pp_fifo_empty),
-        .fullm1(),
-        .emptyp2(),
         .dout({lh_pp_fifo_sop, lh_pp_fifo_eop, lh_pp_fifo_data})       
 );
 
