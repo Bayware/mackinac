@@ -129,18 +129,18 @@ always @(*) begin
   case (c_st)
     PREV_START: 
       if(~hop_fifo_empty) begin
-        hop_fifo_rd = 1'b1;
         if(initial_hop) n_st = CUR_START;
-        else
+	else begin
+          hop_fifo_rd = 1'b1;
           case (hop_fifo_type)
             START_PROCESS, END_THREAD: begin
               n_st = FIND_END_PROCESS;
-              reset_process_lev = 1'b1;
             end
             default: begin
               n_st = CUR_START;
             end
           endcase
+	end
       end
     FIND_END_PROCESS: 
       if(~hop_fifo_empty) begin
@@ -156,33 +156,42 @@ always @(*) begin
         endcase
       end
     CUR_START: 
-      if(~hop_fifo_empty)
+      if(~hop_fifo_empty) begin
+        hop_fifo_rd = 1'b1;
 	if (dummy_hop)
-          hop_fifo_rd = 1'b1;
+          n_st = CUR_START;
         else
           case (hop_fifo_type)
             START_PROCESS, START_PROCESS_THREAD: begin
-              n_st = FIND_RCI_MATCH;
-              reset_process_lev = 1'b1;
+              	inc_process_lev = 1'b1;
+        	if(hop_fifo_rci==pp_meta_fifo_rci) begin
+          		n_st = NXT_START;
+          		pp_pu_fifo_wr = 1'b1;
+  			pp_pu_fifo_sop = 1'b1;
+		end else begin 
+              		n_st = FIND_RCI_MATCH;
+      		end
             end
             default: begin
-              hop_fifo_rd = 1'b1;
               pp_pu_fifo_wr = 1'b1;
               pp_pu_fifo_sop = 1'b1;
               n_st = NXT_START;
             end
           endcase
+      end
     FIND_RCI_MATCH: 
       if(~hop_fifo_empty) begin
         hop_fifo_rd = 1'b1;
-        if(process_lev=={(`PROC_LEV_NBITS){1'b0}}&&hop_fifo_rci==pp_meta_fifo_rci) begin
+        if(process_lev==1&&hop_fifo_rci==pp_meta_fifo_rci) begin
           n_st = NXT_START;
           pp_pu_fifo_wr = 1'b1;
+  	  pp_pu_fifo_sop = 1'b1;
         end else 
           case (hop_fifo_type)
             END_PROCESS, END_THREAD_PROCESS: 
               if(process_lev=={(`PROC_LEV_NBITS){1'b0}}) begin
                 n_st = PREV_START;
+                reset_process_lev = 1'b1;
                 inc_rptr = 1'b1;
                 pp_pu_fifo_wr = 1'b1;
                 pp_pu_fifo_eop = 1'b1;
@@ -217,6 +226,7 @@ always @(*) begin
             end
             default: begin
               n_st = PREV_START;
+              reset_process_lev = 1'b1;
               inc_rptr = 1'b1;
               pp_pu_fifo_eop = 1'b1;
             end
@@ -231,6 +241,7 @@ always @(*) begin
           END_THREAD_PROCESS: 
             if(process_lev=={(`PROC_LEV_NBITS){1'b0}}) begin
               n_st = PREV_START;
+              reset_process_lev = 1'b1;
               inc_rptr = 1'b1;
               pp_pu_fifo_wr = 1'b1;
               pp_pu_fifo_eop = 1'b1;
@@ -240,6 +251,7 @@ always @(*) begin
           END_PROCESS: 
             if(process_lev=={(`PROC_LEV_NBITS){1'b0}}) begin
               n_st = PREV_START;
+              reset_process_lev = 1'b1;
               inc_rptr = 1'b1;
               pp_pu_fifo_wr = 1'b1;
               pp_pu_fifo_eop = 1'b1;
@@ -252,6 +264,7 @@ always @(*) begin
           START_THREAD: 
             if(process_lev=={(`PROC_LEV_NBITS){1'b0}}&&dummy_hop) begin
               n_st = PREV_START;
+              reset_process_lev = 1'b1;
               inc_rptr = 1'b1;
               pp_pu_fifo_wr = 1'b1;
               pp_pu_fifo_eop = 1'b1;

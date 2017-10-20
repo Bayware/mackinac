@@ -1,4 +1,5 @@
 //===========================================================================
+//
 // ===========================================================================================
 // $File:$
 // $Revision:$
@@ -143,7 +144,7 @@ always @(posedge clk) begin
 	        flow_key_waddr_d1 <= flow_key_waddr;
 	        flow_key_wdata_d1 <= flow_key_wdata;
 	        flow_etime_waddr <= asa_classifier_valid_d1?asa_classifier_fid_d1:flow_fifo_fid;
-	        flow_etime_wdata <= asa_classifier_valid_d1?current_time_d1:flow_fifo_etime;
+	        flow_etime_wdata <= asa_classifier_valid_d1?current_time_d1[`REAL_TIME_NBITS-1:`REAL_TIME_NBITS-`EXP_TIME_NBITS]:flow_fifo_etime;
 end
 
 always @(`CLK_RST) 

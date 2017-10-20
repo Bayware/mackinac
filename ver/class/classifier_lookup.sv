@@ -142,13 +142,18 @@ logic aggr_par_eop_d1;
 logic [9:0] data_cnt;
 
 logic [4:1] flow_hash_table0_ack_d;
-logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table0_rdata_sv;
+logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table0_rdata_d1;
 
 logic flow_hash_table1_ack_d1;
+logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table1_rdata_d1;
+
+logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table0_rdata_sv;
 logic [FLOW_BUCKET_NBITS-1:0] flow_hash_table1_rdata_sv;
 
 logic flow_key_ack_d1; 
 logic flow_key_ack_d2; 
+
+logic [1:0] flow_key_ack_cnt; 
 
 logic [FLOW_KEY_NBITS-1:0] flow_key_rdata_d1;
 
@@ -156,9 +161,12 @@ logic flow_etime_ack_d1;
 logic [`EXP_TIME_NBITS-1:0] flow_etime_rdata_d1;
 
 logic [4:1] topic_hash_table0_ack_d;
-logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table0_rdata_sv;
+logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table0_rdata_d1;
 
 logic topic_hash_table1_ack_d1;
+logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table1_rdata_d1;
+
+logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table0_rdata_sv;
 logic [TOPIC_BUCKET_NBITS-1:0] topic_hash_table1_rdata_sv;
 
 logic topic_key_ack_d1; 
@@ -209,8 +217,6 @@ wire topic_hash_compare = lat_fifo_topic_key==topic_key_rdata_d1[`TOPIC_VALUE_KE
 
 logic [3:0] flow_compare_valid;
 logic [3:0] topic_compare_valid;
-logic [3:0] flow_entry_valid;
-logic [3:0] topic_entry_valid;
 
 logic type1;
 logic type3;
@@ -218,20 +224,36 @@ logic lf2_type1;
 logic lf2_type3;
 logic [3:0] lf2_flow_compare_valid;
 logic [3:0] lf2_topic_compare_valid;
-logic [3:0] lf2_flow_entry_valid;
-logic [3:0] lf2_topic_entry_valid;
 
 wire flow_hash_valid = flow_etime_rdata_d1>current_time_d1[`REAL_TIME_NBITS-1:`REAL_TIME_NBITS-1-`EXP_TIME_NBITS+1];
 wire topic_hash_valid = topic_etime_rdata_d1>current_time_d1[`REAL_TIME_NBITS-1:`REAL_TIME_NBITS-1-`EXP_TIME_NBITS+1];
+
+wire [`TID_NBITS-1:0] ntid0 = topic_hash_table0_rdata_d1[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
+wire [`TID_NBITS-1:0] ntid1 = topic_hash_table0_rdata_d1[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
+wire [`TID_NBITS-1:0] ntid2 = topic_hash_table1_rdata_d1[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
+wire [`TID_NBITS-1:0] ntid3 = topic_hash_table1_rdata_d1[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
+
+logic [FLOW_VALUE_DEPTH_NBITS-1:0] aging_fifo_fid;
+
+wire [TOPIC_VALUE_DEPTH_NBITS-1:0] n_topic_key_raddr = topic_hash_table0_ack_d[1]?ntid0:
+							topic_hash_table0_ack_d[2]?ntid1:
+							topic_hash_table0_ack_d[3]?ntid2:
+							topic_hash_table0_ack_d[4]?ntid3:aging_fifo_fid;
 
 wire [`TID_NBITS-1:0] tid0 = topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
 wire [`TID_NBITS-1:0] tid1 = topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
 wire [`TID_NBITS-1:0] tid2 = topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
 wire [`TID_NBITS-1:0] tid3 = topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
 
-wire [TOPIC_VALUE_DEPTH_NBITS-1:0] n_topic_key_raddr = topic_hash_table0_ack_d[1]?tid0:
-							topic_hash_table0_ack_d[2]?tid1:
-							topic_hash_table0_ack_d[3]?tid2:tid3;
+wire [3:0] flow_entry_valid = {flow_hash_table1_rdata_sv[FLOW_BUCKET_NBITS-1], 
+					flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS-1], 
+					flow_hash_table0_rdata_sv[FLOW_BUCKET_NBITS-1], 
+					flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS-1]};
+
+wire [3:0] topic_entry_valid = {topic_hash_table1_rdata_sv[TOPIC_BUCKET_NBITS-1], 
+					topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS-1], 
+					topic_hash_table0_rdata_sv[TOPIC_BUCKET_NBITS-1], 
+					topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS-1]};
 
 logic ip_da_ready;
 logic ip_da_ready_d1;
@@ -262,27 +284,30 @@ wire n_flow_key_rd = |flow_hash_table0_ack_d;
 wire n_flow_etime_rd = |flow_hash_table0_ack_d|~aging_fifo_empty;
 wire aging_fifo_rd = ~(|flow_hash_table0_ack_d)&~aging_fifo_empty;
 
+wire [`FID_NBITS-1:0] nfid0 = flow_hash_table0_rdata_d1[FLOW_ENTRY_NBITS*1-1:FLOW_ENTRY_NBITS*0+FLOW_HASH_NBITS];
+wire [`FID_NBITS-1:0] nfid1 = flow_hash_table0_rdata_d1[FLOW_ENTRY_NBITS*2-1:FLOW_ENTRY_NBITS*1+FLOW_HASH_NBITS];
+wire [`FID_NBITS-1:0] nfid2 = flow_hash_table1_rdata_d1[FLOW_ENTRY_NBITS*1-1:FLOW_ENTRY_NBITS*0+FLOW_HASH_NBITS];
+wire [`FID_NBITS-1:0] nfid3 = flow_hash_table1_rdata_d1[FLOW_ENTRY_NBITS*2-1:FLOW_ENTRY_NBITS*1+FLOW_HASH_NBITS];
+
+wire [FLOW_VALUE_DEPTH_NBITS-1:0] n_flow_key_raddr = flow_hash_table0_ack_d[1]?nfid0:
+							flow_hash_table0_ack_d[2]?nfid1:
+							flow_hash_table0_ack_d[3]?nfid2:
+							flow_hash_table0_ack_d[4]?nfid3:aging_fifo_fid;
+
 wire [`FID_NBITS-1:0] fid0 = flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS*1-1:FLOW_ENTRY_NBITS*0+FLOW_HASH_NBITS];
 wire [`FID_NBITS-1:0] fid1 = flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS*2-1:FLOW_ENTRY_NBITS*1+FLOW_HASH_NBITS];
 wire [`FID_NBITS-1:0] fid2 = flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS*1-1:FLOW_ENTRY_NBITS*0+FLOW_HASH_NBITS];
 wire [`FID_NBITS-1:0] fid3 = flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS*2-1:FLOW_ENTRY_NBITS*1+FLOW_HASH_NBITS];
 
-logic [FLOW_VALUE_DEPTH_NBITS-1:0] aging_fifo_fid;
-
-wire [FLOW_VALUE_DEPTH_NBITS-1:0] n_flow_key_raddr = flow_hash_table0_ack_d[1]?fid0:
-							flow_hash_table0_ack_d[2]?fid1:
-							flow_hash_table0_ack_d[3]?fid2:
-							flow_hash_table0_ack_d[4]?fid3:aging_fifo_fid;
-
 wire lookup_done = flow_key_ack_d2&~flow_key_ack_d1;
 wire lat_fifo_rd = lookup_done;
 wire lat_fifo1_rd = lookup_done;
 
-wire en_flow_supervisor = lf2_flow_compare_valid==0&lf2_flow_entry_valid==4'hf&~in_fifo_discard;
-wire en_topic_supervisor = lf2_topic_compare_valid==0&lf2_topic_entry_valid==4'hf&~in_fifo_discard;
+wire en_flow_supervisor = lf2_flow_compare_valid==0&flow_entry_valid==4'hf&~in_fifo_discard;
+wire en_topic_supervisor = lf2_topic_compare_valid==0&topic_entry_valid==4'hf&~in_fifo_discard;
 
-wire flow_will_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid!=4'hf;
-wire topic_will_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid!=4'hf;
+wire flow_will_wr = lf2_flow_compare_valid==0&flow_entry_valid!=4'hf;
+wire topic_will_wr = lf2_topic_compare_valid==0&topic_entry_valid!=4'hf;
 
 logic flow_freeb_empty;
 logic [`FID_NBITS-1:0] flow_free_entry;
@@ -305,13 +330,13 @@ wire en_discard = set_en_flow_discard|en_flow_discard|set_en_topic_discard|en_to
 
 wire en_flow_wr = lf2_type1&~lf2_type3&~mflow_freeb_empty&(~topic_will_wr|~mtopic_freeb_empty);
 wire en_flow_key_wr = flow_will_wr&en_flow_wr;
-wire en_flow_hash0_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid[1:0]!=2'h3&en_flow_wr;
-wire en_flow_hash1_wr = lf2_flow_compare_valid==0&lf2_flow_entry_valid[3:2]!=2'h3&lf2_flow_entry_valid[1:0]==2'h3&en_flow_wr;
+wire en_flow_hash0_wr = lf2_flow_compare_valid==0&flow_entry_valid[1:0]!=2'h3&en_flow_wr;
+wire en_flow_hash1_wr = lf2_flow_compare_valid==0&flow_entry_valid[3:2]!=2'h3&flow_entry_valid[1:0]==2'h3&en_flow_wr;
 
 wire en_topic_wr = lf2_type1&~lf2_type3&~mtopic_freeb_empty&(~flow_will_wr|~mflow_freeb_empty);
 wire en_topic_key_wr = topic_will_wr&en_topic_wr;
-wire en_topic_hash0_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid[1:0]!=2'h3&en_topic_wr;
-wire en_topic_hash1_wr = lf2_topic_compare_valid==0&lf2_topic_entry_valid[3:2]!=2'h3&lf2_topic_entry_valid[1:0]==2'h3&en_topic_wr;
+wire en_topic_hash0_wr = lf2_topic_compare_valid==0&topic_entry_valid[1:0]!=2'h3&en_topic_wr;
+wire en_topic_hash1_wr = lf2_topic_compare_valid==0&topic_entry_valid[3:2]!=2'h3&topic_entry_valid[1:0]==2'h3&en_topic_wr;
 
 wire [`FID_NBITS-1:0] fid = en_flow_key_wr?lf2_flow_free_entry:lf2_flow_compare_valid[0]?fid0:lf2_flow_compare_valid[1]?fid1:lf2_flow_compare_valid[2]?fid2:fid3;
 wire [`TID_NBITS-1:0] tid = en_topic_key_wr?lf2_topic_free_entry:lf2_topic_compare_valid[0]?tid0:lf2_topic_compare_valid[1]?tid1:lf2_topic_compare_valid[2]?tid2:tid3;
@@ -319,10 +344,10 @@ wire [`TID_NBITS-1:0] tid = en_topic_key_wr?lf2_topic_free_entry:lf2_topic_compa
 logic [FLOW_VALUE_DEPTH_NBITS-1:0] aging_lat_fifo_fid;
 logic aging_lat_fifo_sel;
 
-wire flow_rel_buf_valid = flow_etime_ack_d1&~flow_hash_valid&aging_lat_fifo_sel;
+wire flow_rel_buf_valid = flow_etime_ack_d1&(flow_entry_valid[flow_key_ack_cnt]&~flow_hash_valid)&aging_lat_fifo_sel;
 wire [FLOW_VALUE_DEPTH_NBITS-1:0] flow_rel_buf_ptr = aging_lat_fifo_fid;
 
-wire topic_rel_buf_valid = flow_etime_ack_d1&~topic_hash_valid&aging_lat_fifo_sel;
+wire topic_rel_buf_valid = flow_etime_ack_d1&(topic_entry_valid[flow_key_ack_cnt]&~topic_hash_valid)&aging_lat_fifo_sel;
 wire [TOPIC_VALUE_DEPTH_NBITS-1:0] topic_rel_buf_ptr = aging_lat_fifo_fid[TOPIC_VALUE_DEPTH_NBITS-1:0];
 
 wire flow_key_wr_p1 = in_fifo_rd_1st&en_flow_key_wr;
@@ -342,8 +367,8 @@ always @(posedge clk) begin
 		flow_hash_table0_waddr <= lat_fifo1_flow_hash0;
 		flow_hash_table1_waddr <= lat_fifo1_flow_hash1;
 
-		flow_hash_table0_wdata <= lf2_flow_entry_valid[1]?{flow_free_entry, lat_fifo1_flow_hash1, flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS-1:0]}:{flow_hash_table0_rdata_sv[FLOW_BUCKET_NBITS-1:FLOW_ENTRY_NBITS], flow_free_entry, lat_fifo1_flow_hash1};
-		flow_hash_table1_wdata <= lf2_flow_entry_valid[3]?{flow_free_entry, lat_fifo1_flow_hash0, flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS-1:0]}:{flow_hash_table1_rdata_sv[FLOW_BUCKET_NBITS-1:FLOW_ENTRY_NBITS], flow_free_entry, lat_fifo1_flow_hash0};
+		flow_hash_table0_wdata <= flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS-1]?{1'b1, flow_free_entry, lat_fifo1_flow_hash1, flow_hash_table0_rdata_sv[FLOW_ENTRY_NBITS-1:0]}:{flow_hash_table0_rdata_sv[FLOW_BUCKET_NBITS-1:FLOW_ENTRY_NBITS], 1'b1, flow_free_entry, lat_fifo1_flow_hash1};
+		flow_hash_table1_wdata <= flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS-1]?{flow_free_entry, lat_fifo1_flow_hash0, flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS-1:0]}:{flow_hash_table1_rdata_sv[FLOW_BUCKET_NBITS-1:FLOW_ENTRY_NBITS], flow_free_entry, lat_fifo1_flow_hash0};
 
 		flow_key_raddr <= n_flow_key_raddr;
 		flow_etime_raddr <= n_flow_key_raddr;
@@ -357,8 +382,8 @@ always @(posedge clk) begin
 		topic_hash_table0_waddr <= lat_fifo1_topic_hash0;
 		topic_hash_table1_waddr <= lat_fifo1_topic_hash1;
 
-		topic_hash_table0_wdata <= lf2_topic_entry_valid[1]?{topic_free_entry, lat_fifo1_topic_hash1, topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS-1:0]}:{topic_hash_table0_rdata_sv[TOPIC_BUCKET_NBITS-1:TOPIC_ENTRY_NBITS], topic_free_entry, lat_fifo1_topic_hash1};
-		topic_hash_table1_wdata <= lf2_topic_entry_valid[3]?{topic_free_entry, lat_fifo1_topic_hash0, topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS-1:0]}:{topic_hash_table1_rdata_sv[TOPIC_BUCKET_NBITS-1:TOPIC_ENTRY_NBITS], topic_free_entry, lat_fifo1_topic_hash0};
+		topic_hash_table0_wdata <= topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS-1]?{1'b1, topic_free_entry, lat_fifo1_topic_hash1, topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS-1:0]}:{topic_hash_table0_rdata_sv[TOPIC_BUCKET_NBITS-1:TOPIC_ENTRY_NBITS], 1'b1, topic_free_entry, lat_fifo1_topic_hash1};
+		topic_hash_table1_wdata <= topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS-1]?{1'b1, topic_free_entry, lat_fifo1_topic_hash0, topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS-1:0]}:{topic_hash_table1_rdata_sv[TOPIC_BUCKET_NBITS-1:TOPIC_ENTRY_NBITS], 1'b1, topic_free_entry, lat_fifo1_topic_hash0};
 
 
 		topic_key_raddr <= n_topic_key_raddr;
@@ -426,7 +451,7 @@ always @(`CLK_RST)
 		topic_hash_table0_rd <= ip_da_ready_d2;
 		topic_hash_table1_rd <= ip_da_ready_d2;
 		topic_hash_table0_wr <= in_fifo_rd_1st&en_topic_hash0_wr;
-		topic_hash_table1_wr <= in_fifo_rd_1st&en_topic_hash0_wr;
+		topic_hash_table1_wr <= in_fifo_rd_1st&en_topic_hash1_wr;
 		topic_key_rd <= n_flow_key_rd;
 		topic_etime_rd <= n_flow_etime_rd;
 		topic_key_wr <= topic_key_wr_p1;
@@ -461,16 +486,20 @@ always @(posedge clk) begin
 
 		data_sv <= aggr_par_hdr_valid_d1?aggr_par_hdr_data_d1[63:0]:data_sv;
 
+		flow_hash_table0_rdata_d1 <= flow_hash_table0_ack?flow_hash_table0_rdata:flow_hash_table0_rdata_d1;
+		flow_hash_table1_rdata_d1 <= flow_hash_table1_ack?flow_hash_table1_rdata:flow_hash_table1_rdata_d1;
+
+		topic_hash_table0_rdata_d1 <= topic_hash_table0_ack?topic_hash_table0_rdata:topic_hash_table0_rdata_d1;
+		topic_hash_table1_rdata_d1 <= topic_hash_table1_ack?topic_hash_table1_rdata:topic_hash_table1_rdata_d1;
+
 		flow_key_rdata_d1 <= flow_key_rdata;
 		flow_etime_rdata_d1 <= flow_etime_rdata;
 
 		topic_key_rdata_d1 <= topic_key_rdata;
 		topic_etime_rdata_d1 <= topic_etime_rdata;
 
-		flow_entry_valid <= flow_key_ack_d1?{flow_hash_valid, flow_entry_valid[3:1]}:flow_entry_valid;
-		flow_compare_valid <= flow_key_ack_d1?{(flow_hash_valid&flow_hash_compare), flow_compare_valid[3:1]}:flow_compare_valid;
-		topic_entry_valid <= flow_key_ack_d1?{topic_hash_valid, topic_entry_valid[3:1]}:topic_entry_valid;
-		topic_compare_valid <= flow_key_ack_d1?{(topic_hash_valid&topic_hash_compare), topic_compare_valid[3:1]}:topic_compare_valid;
+		flow_compare_valid <= flow_key_ack_d1?{(flow_entry_valid[flow_key_ack_cnt]&flow_hash_valid&flow_hash_compare), flow_compare_valid[3:1]}:flow_compare_valid;
+		topic_compare_valid <= flow_key_ack_d1?{(topic_entry_valid[flow_key_ack_cnt]&topic_hash_valid&topic_hash_compare), topic_compare_valid[3:1]}:topic_compare_valid;
 end
 
 always @(`CLK_RST) 
@@ -505,6 +534,8 @@ always @(`CLK_RST)
 		aging_ctr <= 0;
 		aging_fid <= 0;
 
+		flow_key_ack_cnt <= 0;
+
     	end else begin
 		aggr_par_hdr_valid_d1 <= aggr_par_hdr_valid;
 		aggr_par_eop_d2 <= en_aggr_par_eop_d2&aggr_par_eop_d1;
@@ -535,6 +566,8 @@ always @(`CLK_RST)
 
 		aging_ctr <= aging_en?0:aging_ctr+1;
 		aging_fid <= aging_en?aging_fid+1:aging_fid;
+
+		flow_key_ack_cnt <= flow_key_ack_d1?flow_key_ack_cnt+1:flow_key_ack_cnt;
     	end
 
 hash #(FLOW_KEY_NBITS, FLOW_HASH_NBITS) u_hash_0(
@@ -676,11 +709,11 @@ sfifo2f_fo #(1+FLOW_VALUE_DEPTH_NBITS, 2) u_sfifo2f_fo_5(
         .dout({aging_lat_fifo_sel, aging_lat_fifo_fid})
     );
 
-sfifo2f_fo #(2+4+4+4+4+`FID_NBITS+`TID_NBITS, 2) u_sfifo2f_fo_3(
+sfifo2f_fo #(2+4+4+`FID_NBITS+`TID_NBITS, 2) u_sfifo2f_fo_3(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
-        .din({lat_fifo_type1, lat_fifo_type3, flow_entry_valid, flow_compare_valid, topic_entry_valid, topic_compare_valid, flow_free_entry, topic_free_entry}),
+        .din({lat_fifo_type1, lat_fifo_type3, flow_compare_valid, topic_compare_valid, flow_free_entry, topic_free_entry}),
         .rd(lat_fifo2_rd),
         .wr(lookup_done),
 
@@ -690,7 +723,7 @@ sfifo2f_fo #(2+4+4+4+4+`FID_NBITS+`TID_NBITS, 2) u_sfifo2f_fo_3(
         .empty(),
         .fullm1(),
         .emptyp2(),
-        .dout({lf2_type1, lf2_type3, lf2_flow_entry_valid, lf2_flow_compare_valid, lf2_topic_entry_valid, lf2_topic_compare_valid, lf2_flow_free_entry, lf2_topic_free_entry})
+        .dout({lf2_type1, lf2_type3, lf2_flow_compare_valid, lf2_topic_compare_valid, lf2_flow_free_entry, lf2_topic_free_entry})
     );
 
 sfifo2f_fo #(FLOW_VALUE_DEPTH_NBITS, 4) u_sfifo2f_fo_4(

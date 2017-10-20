@@ -186,7 +186,7 @@ always @(`CLK_RST)
 
 /***************************** FIFO ***************************************/
 
-sfifo2f_fo #(RC_NBITS+`PORT_ID_NBITS+BPTR_NBITS+LEN_NBITS, 8) u_sfifo2f_fo(
+sfifo2f_bram_pf #(RC_NBITS+`PORT_ID_NBITS+BPTR_NBITS+LEN_NBITS, 8) u_sfifo2f_ram_pf(
     .clk(clk),
     .`RESET_SIG(`RESET_SIG),
 
@@ -194,12 +194,9 @@ sfifo2f_fo #(RC_NBITS+`PORT_ID_NBITS+BPTR_NBITS+LEN_NBITS, 8) u_sfifo2f_fo(
     .rd(fifo_rd),
     .wr(asa_em_read_count_valid_d2),
 
-	.ncount(),
 	.count(),
 	.full(),
 	.empty(fifo_empty),
-	.fullm1(),
-	.emptyp2(),
     .dout({fifo_read_count, fifo_port_id, fifo_buf_ptr, fifo_pd_length})       
 );
 

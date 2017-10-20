@@ -27,7 +27,7 @@ output logic gnt
 //
 reg [INPUT_NBITS-1:0] arb;		 
 
-reg [INPUT_NBITS:0] n_arb;
+reg [INPUT_NBITS-1:0] n_arb;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 assign sel = arb;

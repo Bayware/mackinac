@@ -1207,7 +1207,7 @@ resource_manager u_resource_manager(
 
 /***************************** FIFO ***************************************/
 
-sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_0(
+sfifo2f_fo #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_fo_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1224,7 +1224,7 @@ sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_
         .dout({buf_fifo_packet_data0, buf_fifo_sop[0], buf_fifo_eop[0], buf_fifo_valid_bytes0, buf_fifo_error[0], buf_fifo_rci0})       
     );
 
-sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_1(
+sfifo2f_fo #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_fo_1(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1241,7 +1241,7 @@ sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_
         .dout({buf_fifo_packet_data1, buf_fifo_sop[1], buf_fifo_eop[1], buf_fifo_valid_bytes1, buf_fifo_error[1], buf_fifo_rci1})       
     );
 
-sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_2(
+sfifo2f_fo #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_fo_2(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1258,7 +1258,7 @@ sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_
         .dout({buf_fifo_packet_data2, buf_fifo_sop[2], buf_fifo_eop[2], buf_fifo_valid_bytes2, buf_fifo_error[2], buf_fifo_rci2})       
     );
 
-sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_3(
+sfifo2f_fo #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_fo_3(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1275,7 +1275,7 @@ sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_
         .dout({buf_fifo_packet_data3, buf_fifo_sop[3], buf_fifo_eop[3], buf_fifo_valid_bytes3, buf_fifo_error[3], buf_fifo_rci3})       
     );
 
-sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_4(
+sfifo2f_fo #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_fo_4(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1292,7 +1292,7 @@ sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_
         .dout({buf_fifo_packet_data4, buf_fifo_sop[4], buf_fifo_eop[4], buf_fifo_valid_bytes4, buf_fifo_error[4], buf_fifo_rci4})       
     );
 
-sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_5(
+sfifo2f_fo #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_fo_5(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1309,7 +1309,7 @@ sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1+`RCI_NBITS, BUF_FIFO_DEPTH_
         .dout({buf_fifo_packet_data5, buf_fifo_sop[5], buf_fifo_eop[5], buf_fifo_valid_bytes5, buf_fifo_error[5], buf_fifo_rci5})       
     );
 
-sfifo2f_2f1 #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_2f1_6(
+sfifo2f_fo #(`PORT_BUS_NBITS+2+`PORT_BUS_VB_NBITS+1, BUF_FIFO_DEPTH_NBITS) u_sfifo2f_fo_6(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
@@ -1545,7 +1545,7 @@ sfifo2f1 #(`HEADER_LENGTH_NBITS) u_sfifo2f1_76(
         .dout(hdr_len_fifo_rdata6)       
     );
 
-sfifo2f_fo #(`BUF_PTR_NBITS, PREFETCH_FIFO_DEPTH_NBITS) u_sfifo2f_fo_5(
+sfifo2f_fo #(`BUF_PTR_NBITS, PREFETCH_FIFO_DEPTH_NBITS) u_sfifo2f_fo_51(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 

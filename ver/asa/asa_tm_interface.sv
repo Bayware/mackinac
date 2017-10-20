@@ -685,7 +685,7 @@ sfifo2f_fo #(`READ_COUNT_NBITS+`PACKET_ID_NBITS, 5) u_sfifo2f_fo_21(
 		.dout({save_fifo_final_read_count1, save_fifo_packet_id1}));
 
 
-sfifo2f_fo #(1+`PACKET_ID_NBITS+`PORT_ID_NBITS+`READ_COUNT_NBITS+`BUF_PTR_NBITS+`PACKET_LENGTH_NBITS+`EM_BUF_PTR_NBITS+LEN_NBITS, LAT_FIFO_DEPTH_BITS) u_sfifo2f_fo_3(
+sfifo2f_bram_pf #(1+`PACKET_ID_NBITS+`PORT_ID_NBITS+`READ_COUNT_NBITS+`BUF_PTR_NBITS+`PACKET_LENGTH_NBITS+`EM_BUF_PTR_NBITS+LEN_NBITS, LAT_FIFO_DEPTH_BITS) u_sfifo2f_bram_pf_3(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
@@ -693,12 +693,9 @@ sfifo2f_fo #(1+`PACKET_ID_NBITS+`PORT_ID_NBITS+`READ_COUNT_NBITS+`BUF_PTR_NBITS+
 		.rd(lat_fifo_rd3),
 		.wr(lat_fifo_wr3),
 
-		.ncount(),
 		.count(lat_fifo_count),
 		.full(),
 		.empty(lat_fifo_empty3),
-		.fullm1(),
-		.emptyp2(),
 		.dout({lat_fifo_ucast, lat_fifo_packet_id, lat_fifo_src_port_id, lat_fifo_final_read_count, lat_fifo_buf_ptr, lat_fifo_packet_length, lat_fifo_em_buf_ptr, lat_fifo_em_len}));
 
 /***************************** MEMORY ***************************************/
