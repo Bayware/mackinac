@@ -1,0 +1,20 @@
+{signal: [
+  {name: 'clk', wave: 'p.....................'},
+  {name: 'key_vld', wave:'010.10..'},
+  {name: 'key_in', wave: 'x333444x', data:['A', 'B', 'C', 'D', 'E', 'F']},
+  {name: 'key_vld_q', wave:'0.10.10..'},
+  {name: 'key_vld_qq', wave:'0..10.10..'},
+  {name: 'key_vld_qqq', wave:'0...10.10..'},
+  {name: 'key_vld_qqqq', wave:'0....10.10..'},
+  {name: 'key_in', wave: 'xx333444x', data:['A', 'B', 'C', 'D', 'E', 'F']},
+  {name: 'key_hi', wave:'xxx3..4..x', data:['A', 'D']},
+  {name: 'key_mi', wave:'xxxx3..4..x', data:['B', 'E']},
+  {name: 'key_full_q', wave:'xxxxx3xx4x', data:['ABC','DEF']},
+  ['FIFO',
+   {name: 'fifo_push', wave:'0....10.10.'},
+   {name: 'fifo_datain', wave:'xxxxx3xx4xx', data:[ 'ABD', 'DEF']}]
+ ],
+ config: { hscale: 1 },
+ head: {text: ['tspan', 'KEY COLLECT', {class:'info h3'}]}
+}
+

@@ -59,9 +59,20 @@ module classifier
 localparam HT_AWIDTH = $clog2( ITEMS / 2 / 4 * 2 );
 localparam HT_DWIDTH = 128;
 localparam VT_DWIDTH = $ceil( KEY_LEN / 64 );
+localparam KEY_FIFO_DEPTH = 32;
+localparam OFTCAM_DEPTH = 8;
+localparam OFTCAM_BASE = 2**15;
+
+logic [ KEY_LEN - 1:0 ] data_out_key_a;
+logic [ KEY_LEN - 1:0 ] lu_key_full_q;
 
 logic [ BUS_WIDTH - 1:0 ] lu_key_q;
+logic [ BUS_WIDTH - 1:0 ] lu_key_hi;
+logic [ BUS_WIDTH - 1:0 ] lu_key_mid;
 logic lu_vld_q;
+logic lu_vld_qq;
+logic lu_vld_qqq;
+logic lu_vld_qqqq;
 logic [ HT_AWIDTH - 1:0 ] ht_t1_addrq_q;
 logic [ HT_AWIDTH - 1:0 ] ht_t1_addrq_qq;
 logic [ HT_AWIDTH - 1:0 ] ht_t1_addrq_qqq;
@@ -86,23 +97,75 @@ logic [ VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a_q;
 // =======================================================================
 // Combinational Logic
 
+assign lu_push_key_a = lu_vld_qqqq;
+
+// hbkt signal is high once per clock cycle and kicks off the value memory
+// read cycle; use here to also pop original key from FIFO and maybe it's
+// read around the time needed by value memory output; key also goes into
+// overflow tcam
+// FIXME:  need to line up key exiting FIFO and when it's needed in oftcam
+// and value memory
+assign pop_key_a = hbkt_cmp_pkt_strobe_a;
+
 // =======================================================================
 // Registered Logic
 
 // Register:  lu_key_q
 // Register:  lu_vld_q
-always @( posedge clk )
+// Register:  lu_vld_qq
+// Register:  lu_vld_qqq
+// Register:  lu_vld_qqqq
+always_ff @( posedge clk )
     if ( !rst_n )
     begin
         lu_key_q <= { BUS_WIDTH{ 1'b0 } };
         lu_vld_q <= 1'b0;
+        lu_vld_qq <= 1'b0;
+        lu_vld_qqq <= 1'b0;
+        lu_vld_qqqq <= 1'b0;
     end
 
     else
     begin
         lu_key_q <= lu_key;
         lu_vld_q <= lu_vld;
+        lu_vld_qq <= lu_vld_q;
+        lu_vld_qqq <= lu_vld_qq;
+        lu_vld_qqqq <= lu_vld_qqq;
     end
+
+// Register:  lu_key_hi
+//
+// Aids in widening out the key for single-cycle push into FIFO.
+
+always_ff @( posedge clk )
+    if ( !rst_n )
+        lu_key_hi <= { BUS_WIDTH{ 1'b0 } };
+
+    else if ( lu_vld_q )
+        lu_key_hi <= lu_key_q;
+
+// Register:  lu_key_mid
+//
+// Aids in widening out the key for single-cycle push into FIFO.
+
+always_ff @( posedge clk )
+    if ( !rst_n )
+        lu_key_mid <= { BUS_WIDTH{ 1'b0 } };
+
+    else if ( lu_vld_qq )
+        lu_key_mid <= lu_key_q;
+
+// Register:  lu_key_full_q
+//
+// Full-width key for lookup port A.
+
+always_ff @( posedge clk )
+    if ( !rst_n )
+        lu_key_full_q <= { KEY_LEN{ 1'b0 } };
+
+    else if ( lu_vld_qqq )
+        lu_key_full_q <= { lu_key_hi, lu_key_mid, lu_key_q[ BUS_WIDTH - 1:BUS_WIDTH - 20 ] };
 
 // Register:  ht_t1_addra_q
 // Register:  ht_t2_addra_q
@@ -281,21 +344,81 @@ u_class_key_comp_a
     .pkt_hbkt_err( hbkt_cmp_pkt_err_a ),
     .pkt_hbkt_hit_miss( hbkt_cmp_hit_miss_a ),
     .val_ptr( hbkt_cmp_ptr_a_q ),
-    .key_orig(),
+    .key_orig(  ),
     .value_mem_dout_q( value_mem_douta_q ),
 
     // OF TCAM
-    // FIXME:  NOT IMPLEMENTED YET
-    .of_tcam_vld( 1'b0 ),
-    .of_tcam_err( 1'b0 ),
-    .of_tcam_hit_miss( 1'b0 ),
-    .tcam_ptr( { VT_AWIDTH{ 1'b0 } },
+    .of_tcam_vld( oftcam_rslt_vld ),
+    .of_tcam_err( oftcam_rst_err ),
+    .of_tcam_hit_miss( oftcam_rslt_hit_miss ),
+    .tcam_ptr( oftcam_rslt_vid },
 
     // final
     .final_vld( lu_done ),
     .final_err( lu_err ),
     .final_hit_miss( lu_hit_miss ),
     .final_ptr( lu_vid )
+);
+
+// Module:  fifo_sync
+//
+// The "a" port stores keys in this FIFO during the lookup process.  The FIFO
+// is popped at such a time as the key can be used to lookup in the overflow
+// TCAM and then used to compare against the keys coming out of the value
+// memory to determine final match status.
+
+fifo_sync
+#(
+    .DWIDTH( KEY_LEN ),
+    .DEPTH( KEY_FIFO_DEPTH ),
+    .HEADROOM( 6 )
+)
+u_fifo_sync_key_a
+(
+    .clk( clk ),
+    .rst_n( rst_n ),
+    
+    .push( lu_push_key_a ),
+    .data_in( lu_key_full_q ),
+    .full(),
+    .alFull(),
+    
+    .pop( pop_key_a ),
+    .vld( vld_key_a ),
+    .data_out( data_out_key_a ),
+    .empty( empty_key_a )
+);
+
+// Module:  class_oftcam
+//
+// Holds n entries deep.  Uses FFs to do simultaneous compare and return VID
+// from base offset.
+
+class_oftcam
+#(
+    .DEPTH( OFTCAM_DEPTH ),
+    .KEY_LEN( KEY_LEN )
+)
+u_class_oftcam
+(
+    .clk( clk ),
+    .rst_n( rst_n ),
+
+    .key_vld( vld_key_a ),
+    .key( data_out_key_a  ),
+
+    .base_vid( OFTCAM_BASE ),
+    .rslt_vld( oftcam_rslt_vld ),
+    .rslt_vid( oftcam_rslt_vid ),
+    .rslt_hit_miss( oftcam_rslt_hit_miss ),
+    .rslt_err( oftcam_rslt_err ),
+
+    .pio_oftcam_rd(),
+    .pio_oftcam_wr(),
+    .pio_oftcam_addr(),
+    .pio_oftcam_wrdata(),
+    .oftcam_pio_ack(),
+    .oftcam_pio_rddata()
 );
 
 // =======================================================================

@@ -401,7 +401,7 @@ always_ff @( posedge clk )
 // Returns the first set bit starting with the least-significant bit.  Format
 // for return is { vld, location[ 2:0 ] }
 
-function automatic logic [ 2:0 ] ffs( input logic [ 7:0 ] vector );
+function automatic logic [ 3:0 ] ffs( input logic [ 7:0 ] vector );
 
     logic vld;
     logic [ 2:0 ] location;
