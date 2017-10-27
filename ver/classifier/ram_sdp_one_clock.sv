@@ -15,7 +15,7 @@ module ram_sdp_one_clock
 
     input logic [ AWIDTH - 1:0 ] addra,
     input logic [ AWIDTH - 1:0 ] addrb,
-    input logic [ WIDTH - 1:0 ] dia,
+    input logic [ DWIDTH - 1:0 ] dia,
 
     output logic [ DWIDTH - 1:0 ] dob
 );

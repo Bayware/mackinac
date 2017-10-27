@@ -27,7 +27,7 @@ module class_oftcam
     input logic [ KEY_LEN - 1:0 ] key,
 
     // static software register
-    input logic [ VID_WIDTH - 1:0 ] base_vid;
+    input logic [ VID_WIDTH - 1:0 ] base_vid,
 
     output logic rslt_vld,
     output logic rslt_vid,
@@ -55,6 +55,8 @@ logic [ KEY_LEN - 1:0 ] tcam [ DEPTH ];
 
 logic [ VID_WIDTH - 1:0 ] ffs_low_bit;
 logic [ CNT_WIDTH - 1:0 ] cnt;
+logic hit_miss;
+logic err;
 
 logic key_vld_q;
 logic key_vld_qq;
@@ -157,7 +159,7 @@ always_ff @( posedge clk )
         oftcam_pio_rddata <= '0;
 
     else if ( pio_oftcam_rd )
-        oftcam_pio_rddata <= tcam[ pio_oftcam_addr
+        oftcam_pio_rddata <= tcam[ pio_oftcam_addr ];
 
 // =======================================================================
 // Functions

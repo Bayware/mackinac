@@ -43,7 +43,7 @@ logic [15:0] newcrc;
 // =======================================================================
 // Combinational Logic
 
-assign d = Data;
+assign d = data;
 assign c = crc;
 
 always_comb

@@ -23,16 +23,16 @@ module class_hbkt_cmp
     input logic [ HASH_WIDTH - 1:0 ] h2k,
 
     // flopped hash table output
-    input logic ht_vld;
-    input logic [ 127:0 ] ht_t1_data;
-    input logic [ 127:0 ] ht_t2_data;
+    input logic ht_vld,
+    input logic [ 127:0 ] ht_t1_data,
+    input logic [ 127:0 ] ht_t2_data,
 
     // each lookup in main data path consumes four clock cycles
     // strobe is valid on first cycle only; hit_miss indicates validity
-    output logic pkt_strobe;
-    output logic pkt_err;
-    output logic ptr_hit_miss;
-    output logic [ PTR_WIDTH - 1:0 ] ptr;
+    output logic pkt_strobe,
+    output logic pkt_err,
+    output logic ptr_hit_miss,
+    output logic [ PTR_WIDTH - 1:0 ] ptr
 );
 
 // =======================================================================
@@ -46,11 +46,11 @@ logic [ PTR_WIDTH - 1:0 ] t1_ptrs [ 4 ];
 logic [ HASH_WIDTH - 1:0 ] t2_hashes [ 4 ];
 logic [ PTR_WIDTH - 1:0 ] t2_ptrs [ 4 ];
 
-logic [ PTR_WIDTH ] all_ptrs_q[ 8 ];
-logic [ PTR_WIDTH ] all_ptrs_qq[ 8 ];
-logic [ PTR_WIDTH ] all_ptrs_qqq[ 8 ];
-logic [ PTR_WIDTH ] all_ptrs_qqqq[ 8 ];
-logic [ PTR_WIDTH ] all_ptrs_qqqqq[ 8 ];
+logic [ PTR_WIDTH - 1:0 ] all_ptrs_q[ 8 ];
+logic [ PTR_WIDTH - 1:0 ] all_ptrs_qq[ 8 ];
+logic [ PTR_WIDTH - 1:0 ] all_ptrs_qqq[ 8 ];
+logic [ PTR_WIDTH - 1:0 ] all_ptrs_qqqq[ 8 ];
+logic [ PTR_WIDTH - 1:0 ] all_ptrs_qqqqq[ 8 ];
 
 // { t2w3, t2w2, t2w1, t2w0, t1w3, t1w2, t1w1, t1w0 }
 logic [ 7:0 ] match_vector_q;
@@ -185,25 +185,25 @@ always_ff @( posedge clk )
 always_ff @( posedge clk )
     if ( !rst_n )
     begin
-        ptr <= { PTR_WIDTH{ 1'b0 } };
+        ptr <= '0;
         ptr_hit_miss <= 1'b0;
     end
 
     else if ( ht_vld_qq && hit_miss_0_q )
     begin
-        ptr <= all_ptrs_qq[ winner_0_q )
+        ptr <= all_ptrs_qq[ winner_0_q ];
         ptr_hit_miss <= 1'b1;
     end
 
     else if ( ht_vld_qqq && hit_miss_1_q )
     begin
-        ptr <= all_ptrs_qqq[ winner_1_q )
+        ptr <= all_ptrs_qqq[ winner_1_q ];
         ptr_hit_miss <= 1'b1;
     end
 
     else if ( ht_vld_qqqq && hit_miss_2_q )
     begin
-        ptr <= all_ptrs_qqqq[ winner_2_q )
+        ptr <= all_ptrs_qqqq[ winner_2_q ];
         ptr_hit_miss <= 1'b1;
     end
 
@@ -215,7 +215,7 @@ always_ff @( posedge clk )
 
     else
     begin
-        ptr <= { PTR_WIDTH{ 1'b0 } };
+        ptr <= '0;
         ptr_hit_miss <= 1'b0;
     end
 

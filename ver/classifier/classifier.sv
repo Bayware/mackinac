@@ -13,40 +13,11 @@
 /*                                                                           */
 
 module classifier
-#(
-    parameter KEY_LEN = 276,
-    parameter ITEMS = 32768,
-    parameter BUS_WIDTH = 128,
-
-    localparam VT_AWIDTH = $clog2( ITEMS )
-)
 (
     input logic clk,
     input logic rst_n,
 
-    // data path lookup
-    input logic lu_vld,
-    input logic [ BUS_WIDTH - 1:0 ] lu_key,
-    output logic lu_done,
-    output logic lu_hit_miss,
-    output logic [ VT_AWIDTH - 1:0 ] lu_vid,
-    output logic lu_err,
-
-    // data path insert
-    input logic ins_vld,
-    input logic [ BUS_WIDTH - 1:0 ] ins_key,
-    output logic ins_done,
-    output logic ins_hit_miss,
-    output logic [ VT_AWIDTH - 1:0 ] ins_vid,
-    output logic ins_err,
-
-    // data path remove
-    input logic rm_vld,
-    input logic [ BUS_WIDTH - 1:0 ] rm_key,
-    output logic rm_done,
-    output logic rm_hit_miss,
-    output logic [ VT_AWIDTH - 1:0 ] rm_vid,
-    output logic rm_err
+    class_intf.class_ing clsmp
 );
 
 // =======================================================================
@@ -56,43 +27,55 @@ module classifier
 // what are required in order to avoid collissions i.e., for 32k IDs, we
 // only need 32k / 2 hash tables / 4 slots per table = 4k buckets; instead,
 // use 8k buckets (13-bit address)
-localparam HT_AWIDTH = $clog2( ITEMS / 2 / 4 * 2 );
+localparam HT_AWIDTH = $clog2( clsmp.ITEMS / 2 / 4 * 2 );
 localparam HT_DWIDTH = 128;
-localparam VT_DWIDTH = $ceil( KEY_LEN / 64 );
+localparam VT_DWIDTH = $ceil( clsmp.KEY_LEN / 64 );
 localparam KEY_FIFO_DEPTH = 32;
 localparam OFTCAM_DEPTH = 8;
-localparam OFTCAM_BASE = 2**15;
+localparam [ clsmp.VT_AWIDTH - 1:0 ] OFTCAM_BASE = 2**15;
 
-logic [ KEY_LEN - 1:0 ] data_out_key_a;
-logic [ KEY_LEN - 1:0 ] lu_key_full_q;
+logic [ clsmp.KEY_LEN - 1:0 ] data_out_key_a;
+logic [ clsmp.KEY_LEN - 1:0 ] lu_key_full_q;
 
-logic [ BUS_WIDTH - 1:0 ] lu_key_q;
-logic [ BUS_WIDTH - 1:0 ] lu_key_hi;
-logic [ BUS_WIDTH - 1:0 ] lu_key_mid;
+logic [ clsmp.BUS_WIDTH - 1:0 ] lu_key_q;
+logic [ clsmp.BUS_WIDTH - 1:0 ] lu_key_hi;
+logic [ clsmp.BUS_WIDTH - 1:0 ] lu_key_mid;
 logic lu_vld_q;
 logic lu_vld_qq;
 logic lu_vld_qqq;
 logic lu_vld_qqqq;
-logic [ HT_AWIDTH - 1:0 ] ht_t1_addrq_q;
-logic [ HT_AWIDTH - 1:0 ] ht_t1_addrq_qq;
-logic [ HT_AWIDTH - 1:0 ] ht_t1_addrq_qqq;
-logic [ HT_AWIDTH - 1:0 ] ht_t1_addrq_qqqq;
-logic [ HT_AWIDTH - 1:0 ] ht_t2_addrq_q;
-logic [ HT_AWIDTH - 1:0 ] ht_t2_addrq_qq;
-logic [ HT_AWIDTH - 1:0 ] ht_t2_addrq_qqq;
-logic [ HT_AWIDTH - 1:0 ] ht_t2_addrq_qqqq;
+logic [ HT_AWIDTH - 1:0 ] ht_t1_addra_q;
+logic [ HT_AWIDTH - 1:0 ] ht_t1_addra_qq;
+logic [ HT_AWIDTH - 1:0 ] ht_t1_addra_qqq;
+logic [ HT_AWIDTH - 1:0 ] ht_t1_addra_qqqq;
+logic [ HT_AWIDTH - 1:0 ] ht_t2_addra_q;
+logic [ HT_AWIDTH - 1:0 ] ht_t2_addra_qq;
+logic [ HT_AWIDTH - 1:0 ] ht_t2_addra_qqq;
+logic [ HT_AWIDTH - 1:0 ] ht_t2_addra_qqqq;
 logic hash_a_vld;
+logic hash_a_vld_q;
+logic hash_a_vld_qq;
+logic hash_a_vld_qqq;
+logic hash_a_vld_qqqq;
 logic hash_b_vld;
-logic [ HT_AWIDTH ] h1k_a;
-logic [ HT_AWIDTH ] h2k_a;
-logic [ HT_AWIDTH ] h1k_b;
-logic [ HT_AWIDTH ] h2k_b;
+logic [ HT_AWIDTH - 1:0 ] h1k_a;
+logic [ HT_AWIDTH - 1:0 ] h2k_a;
+logic [ HT_AWIDTH - 1:0 ] h1k_b;
+logic [ HT_AWIDTH - 1:0 ] h2k_b;
 
 logic hbkt_cmp_pkt_strobe_a;
 logic hbkt_cmp_pkt_err_a;
 logic hbkt_cmp_hit_miss_a;
-logic [ VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a;
-logic [ VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a_q;
+logic [ clsmp.VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a;
+logic [ clsmp.VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a_q;
+
+logic [ HT_DWIDTH - 1:0 ] ht_t1_douta_q;
+logic [ HT_DWIDTH - 1:0 ] ht_t2_douta_q;
+logic [ HT_DWIDTH - 1:0 ] ht_t1_douta;
+logic [ HT_DWIDTH - 1:0 ] ht_t2_douta;
+
+logic [ VT_DWIDTH - 1:0 ] val_mem_douta;
+logic [ VT_DWIDTH - 1:0 ] val_mem_douta_q;
 
 // =======================================================================
 // Combinational Logic
@@ -118,7 +101,7 @@ assign pop_key_a = hbkt_cmp_pkt_strobe_a;
 always_ff @( posedge clk )
     if ( !rst_n )
     begin
-        lu_key_q <= { BUS_WIDTH{ 1'b0 } };
+        lu_key_q <= '0;
         lu_vld_q <= 1'b0;
         lu_vld_qq <= 1'b0;
         lu_vld_qqq <= 1'b0;
@@ -127,8 +110,8 @@ always_ff @( posedge clk )
 
     else
     begin
-        lu_key_q <= lu_key;
-        lu_vld_q <= lu_vld;
+        lu_key_q <= clsmp.lu_key;
+        lu_vld_q <= clsmp.lu_vld;
         lu_vld_qq <= lu_vld_q;
         lu_vld_qqq <= lu_vld_qq;
         lu_vld_qqqq <= lu_vld_qqq;
@@ -140,7 +123,7 @@ always_ff @( posedge clk )
 
 always_ff @( posedge clk )
     if ( !rst_n )
-        lu_key_hi <= { BUS_WIDTH{ 1'b0 } };
+        lu_key_hi <= '0;
 
     else if ( lu_vld_q )
         lu_key_hi <= lu_key_q;
@@ -151,7 +134,7 @@ always_ff @( posedge clk )
 
 always_ff @( posedge clk )
     if ( !rst_n )
-        lu_key_mid <= { BUS_WIDTH{ 1'b0 } };
+        lu_key_mid <= '0;
 
     else if ( lu_vld_qq )
         lu_key_mid <= lu_key_q;
@@ -162,10 +145,10 @@ always_ff @( posedge clk )
 
 always_ff @( posedge clk )
     if ( !rst_n )
-        lu_key_full_q <= { KEY_LEN{ 1'b0 } };
+        lu_key_full_q <= '0;
 
     else if ( lu_vld_qqq )
-        lu_key_full_q <= { lu_key_hi, lu_key_mid, lu_key_q[ BUS_WIDTH - 1:BUS_WIDTH - 20 ] };
+        lu_key_full_q <= { lu_key_hi, lu_key_mid, lu_key_q[ clsmp.BUS_WIDTH - 1:clsmp.BUS_WIDTH - 20 ] };
 
 // Register:  ht_t1_addra_q
 // Register:  ht_t2_addra_q
@@ -177,8 +160,8 @@ always_ff @( posedge clk )
 always @( posedge clk )
     if ( !rst_n )
     begin
-        ht_t1_addra_q <= { HT_ADDR_WIDTH{ 1'b0 } };
-        ht_t2_addra_q <= { HT_ADDR_WIDTH{ 1'b0 } };
+        ht_t1_addra_q <= '0;
+        ht_t2_addra_q <= '0;
     end
 
     else if ( hash_a_vld )
@@ -236,12 +219,12 @@ always @( posedge clk )
 always_ff @( posedge clk )
     if ( !rst_n )
     begin
-        ht_t2_addra_qq <= { HT_ADDR_WIDTH{ 1'b0 } };
-        ht_t2_addra_qqq <= { HT_ADDR_WIDTH{ 1'b0 } };
-        ht_t2_addra_qqqq <= { HT_ADDR_WIDTH{ 1'b0 } };
-        ht_t1_addra_qq <= { HT_ADDR_WIDTH{ 1'b0 } };
-        ht_t1_addra_qqq <= { HT_ADDR_WIDTH{ 1'b0 } };
-        ht_t1_addra_qqqq <= { HT_ADDR_WIDTH{ 1'b0 } };
+        ht_t2_addra_qq <= '0;
+        ht_t2_addra_qqq <= '0;
+        ht_t2_addra_qqqq <= '0;
+        ht_t1_addra_qq <= '0;
+        ht_t1_addra_qqq <= '0;
+        ht_t1_addra_qqqq <= '0;
     end
 
     else
@@ -254,10 +237,10 @@ always_ff @( posedge clk )
         ht_t1_addra_qqqq <= ht_t1_addra_qqq;
     end
 
-// Register:  value_mem_douta_q
+// Register:  val_mem_douta_q
 
 always_ff @( posedge clk )
-    value_mem_douta_q <= value_mem_douta;
+    val_mem_douta_q <= val_mem_douta;
 
 // Register:  hbkt_cmp_ptr_a_q
 //
@@ -266,7 +249,7 @@ always_ff @( posedge clk )
 // if arbitration for this port is necessary.)
 always_ff @( posedge clk )
     if ( !rst_n )
-        hbkt_cmp_ptr_a_q <= { VT_AWIDTH{ 1'b0 } };
+        hbkt_cmp_ptr_a_q <= '0;
 
     else
         hbkt_cmp_ptr_a_q <= hbkt_cmp_ptr_a;
@@ -277,7 +260,7 @@ always_ff @( posedge clk )
 // calculates hashes:  2 hashes for port A and 2 hashes for port B
 class_hash_top
 #(
-    .BUS_WIDTH( BUS_WIDTH ),
+    .BUS_WIDTH( clsmp.BUS_WIDTH ),
     .HASH_WIDTH( HT_AWIDTH )
 )
 u_class_hash_top
@@ -304,7 +287,7 @@ u_class_hash_top
 class_hbkt_cmp
 #(
     .HASH_WIDTH( HT_AWIDTH ),
-    .PTR_WIDTH( VT_AWIDTH )
+    .PTR_WIDTH( clsmp.VT_AWIDTH )
 )
 u_class_hbkt_cmp_a
 (
@@ -329,10 +312,10 @@ u_class_hbkt_cmp_a
     .ptr( hbkt_cmp_ptr_a )
 );
 
-class_key_comp u_class_key_comp_a(
+class_key_comp
 #(
-    .KEY_LEN( KEY_LEN ),
-    .VT_AWIDTH( VT_AWIDTH )
+    .KEY_LEN( clsmp.KEY_LEN ),
+    .VT_AWIDTH( clsmp.VT_AWIDTH )
 )
 u_class_key_comp_a
 (
@@ -345,19 +328,19 @@ u_class_key_comp_a
     .pkt_hbkt_hit_miss( hbkt_cmp_hit_miss_a ),
     .val_ptr( hbkt_cmp_ptr_a_q ),
     .key_orig(  ),
-    .value_mem_dout_q( value_mem_douta_q ),
+    .val_mem_dout_q( val_mem_douta_q ),
 
     // OF TCAM
     .of_tcam_vld( oftcam_rslt_vld ),
-    .of_tcam_err( oftcam_rst_err ),
+    .of_tcam_err( oftcam_rslt_err ),
     .of_tcam_hit_miss( oftcam_rslt_hit_miss ),
-    .tcam_ptr( oftcam_rslt_vid },
+    .tcam_ptr( oftcam_rslt_vid ),
 
     // final
-    .final_vld( lu_done ),
-    .final_err( lu_err ),
-    .final_hit_miss( lu_hit_miss ),
-    .final_ptr( lu_vid )
+    .final_vld( clsmp.lu_done ),
+    .final_err( clsmp.lu_err ),
+    .final_hit_miss( clsmp.lu_hit_miss ),
+    .final_ptr( clsmp.lu_vid )
 );
 
 // Module:  fifo_sync
@@ -369,7 +352,7 @@ u_class_key_comp_a
 
 fifo_sync
 #(
-    .DWIDTH( KEY_LEN ),
+    .DWIDTH( clsmp.KEY_LEN ),
     .DEPTH( KEY_FIFO_DEPTH ),
     .HEADROOM( 6 )
 )
@@ -397,7 +380,7 @@ u_fifo_sync_key_a
 class_oftcam
 #(
     .DEPTH( OFTCAM_DEPTH ),
-    .KEY_LEN( KEY_LEN )
+    .KEY_LEN( clsmp.KEY_LEN )
 )
 u_class_oftcam
 (
@@ -432,26 +415,26 @@ xilinx_ultraram_true_dual_port
 )
 u_hashtable_t1
 (
-    clk( clk ),   
+    .clk( clk ),   
 
     // main data path lookup
-    rsta( ~rst_n ),   
-    wea( 1'b0 ),    
-    regcea( 1'b1 ), 
-    mem_ena( 1'b1 ),
-    dina( { HT_DWIDTH{ 1'b0 } } ), 
-    addra( ht_t1_addra_q ),
-    douta( ht_t1_douta ),
+    .rsta( ~rst_n ),   
+    .wea( 1'b0 ),    
+    .regcea( 1'b1 ), 
+    .mem_ena( 1'b1 ),
+    .dina( { HT_DWIDTH{ 1'b0 } } ), 
+    .addra( ht_t1_addra_q ),
+    .douta( ht_t1_douta ),
 
     // insert, remove, s/w
     // FIXME:  update for port B behavior
-    rstb( ~rst_n ),   
-    web( 1'b0 ),    
-    regceb( 1'b1 ), 
-    mem_enb( 1'b1 ),
-    dinb( { HT_DWIDTH{ 1'b0 } } ), 
-    addrb( { HT_AWIDTH{ 1'b0 } } ),
-    doutb()
+    .rstb( ~rst_n ),   
+    .web( 1'b0 ),    
+    .regceb( 1'b1 ), 
+    .mem_enb( 1'b1 ),
+    .dinb( { HT_DWIDTH{ 1'b0 } } ), 
+    .addrb( { HT_AWIDTH{ 1'b0 } } ),
+    .doutb()
 );
 
 xilinx_ultraram_true_dual_port
@@ -462,56 +445,56 @@ xilinx_ultraram_true_dual_port
 )
 u_hashtable_t2
 (
-    clk( clk ),   
+    .clk( clk ),   
 
     // main data path lookup
-    rsta( ~rst_n ),
-    wea( 1'b0 ),
-    regcea( 1'b1 ),
-    mem_ena( 1'b1 ),
-    dina( { HT_DWIDTH{ 1'b0 } } ),
-    addra( ht_t2_addra_q ),
-    douta( ht_t2_douta ),
+    .rsta( ~rst_n ),
+    .wea( 1'b0 ),
+    .regcea( 1'b1 ),
+    .mem_ena( 1'b1 ),
+    .dina( { HT_DWIDTH{ 1'b0 } } ),
+    .addra( ht_t2_addra_q ),
+    .douta( ht_t2_douta ),
 
     // insert, remove, s/w
     // FIXME:  update for port B behavior
-    rstb( ~rst_n ),
-    web( 1'b0 ),
-    regceb( 1'b1 ),
-    mem_enb( 1'b1 ),
-    dinb( { HT_DWIDTH{ 1'b0 } } ),
-    addrb( { HT_AWIDTH{ 1'b0 } } ),
-    doutb()
+    .rstb( ~rst_n ),
+    .web( 1'b0 ),
+    .regceb( 1'b1 ),
+    .mem_enb( 1'b1 ),
+    .dinb( { HT_DWIDTH{ 1'b0 } } ),
+    .addrb( { HT_AWIDTH{ 1'b0 } } ),
+    .doutb()
 );
 
 xilinx_ultraram_true_dual_port
 #(
-    .AWIDTH( VT_AWIDTH ),
+    .AWIDTH( clsmp.VT_AWIDTH ),
     .DWIDTH( VT_DWIDTH ),
     .NBPIPE( 3 )
 )
 u_value_mem
 (
-    clk( clk ),
+    .clk( clk ),
 
     // main data path lookup:  read only
-    rsta( ~rst_n ),
-    wea( 1'b0 ),
-    regcea( 1'b1 ),
-    mem_ena( 1'b1 ),
-    dina( { VT_DWIDTH{ 1'b0 } } ),
-    addra( hbkt_cmp_ptr_a_q ),
-    douta( value_mem_douta ),
+    .rsta( ~rst_n ),
+    .wea( 1'b0 ),
+    .regcea( 1'b1 ),
+    .mem_ena( 1'b1 ),
+    .dina( { VT_DWIDTH{ 1'b0 } } ),
+    .addra( hbkt_cmp_ptr_a_q ),
+    .douta( value_mem_douta ),
 
     // insert, remove, s/w
     // FIXME:  update for port B behavior
-    rstb( ~rst_n ),
-    web( 1'b0 ),
-    regceb( 1'b1 ),
-    mem_enb( 1'b1 ),
-    dinb( { VT_DWIDTH{ 1'b0 } } ),
-    addrb( { VT_AWIDTH{ 1'b0 } } ),
-    doutb()
+    .rstb( ~rst_n ),
+    .web( 1'b0 ),
+    .regceb( 1'b1 ),
+    .mem_enb( 1'b1 ),
+    .dinb( { VT_DWIDTH{ 1'b0 } } ),
+    .addrb( { clsmp.VT_AWIDTH{ 1'b0 } } ),
+    .doutb()
 );
 
 endmodule

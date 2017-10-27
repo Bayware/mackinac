@@ -144,8 +144,8 @@ crc16_d128_mod u_crc16_d128_a
     .clk( clk ),
     .rst_n( rst_n ),
 
-    .data( key_a )
-    .crc( crc_a_2 )
+    .data( key_a ),
+    .crc( crc_a_2 ),
     .next_crc( next_crc_a_2 )
 );
 
@@ -155,8 +155,8 @@ crc32_d128_mod u_crc32_d128_b
     .clk( clk ),
     .rst_n( rst_n ),
 
-    .data( key_b )
-    .crc( crc_b_1 )
+    .data( key_b ),
+    .crc( crc_b_1 ),
     .next_crc( next_crc_b_1 )
 );
 
@@ -166,8 +166,8 @@ crc16_d128_mod u_crc16_d128_b
     .clk( clk ),
     .rst_n( rst_n ),
 
-    .data( key_b )
-    .crc( crc_b_2 )
+    .data( key_b ),
+    .crc( crc_b_2 ),
     .next_crc( next_crc_b_2 )
 );
 

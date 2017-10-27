@@ -10,7 +10,7 @@
 //   TID.  Supports one of the two value mem ports only.
 /*                                                                           */
 
-module class_key_comp(
+module class_key_comp
 #(
     parameter KEY_LEN = 276,
     parameter VT_AWIDTH = 15
@@ -25,7 +25,7 @@ module class_key_comp(
     input logic pkt_hbkt_hit_miss,
     input logic [ VT_AWIDTH - 1:0 ] val_ptr,
     input logic [ KEY_LEN - 1:0 ] key_orig,
-    input logic [ KEY_LEN - 1:0 ] value_mem_dout_q,
+    input logic [ KEY_LEN - 1:0 ] val_mem_dout_q,
 
     // OF TCAM
     input logic of_tcam_vld,
@@ -46,6 +46,8 @@ module class_key_comp(
 logic [ VT_AWIDTH - 1:0 ] val_ptr_aligned;
 logic rd_vld_aligned;
 
+logic [ KEY_LEN - 1:0 ] key_orig_q;
+
 logic pkt_strobe_aligned;
 logic pkt_strobe_aligned_q;
 logic pkt_strobe_aligned_qq;
@@ -62,10 +64,10 @@ logic pkt_hbkt_hit_miss_qq;
 logic pkt_hbkt_hit_miss_qqq;
 logic pkt_hbkt_hit_miss_qqqq;
 
-logic [ VT_AWIDTH - 1:0 ] val_ptr_q;
-logic [ VT_AWIDTH - 1:0 ] val_ptr_qq;
-logic [ VT_AWIDTH - 1:0 ] val_ptr_qqq;
-logic [ VT_AWIDTH - 1:0 ] val_ptr_qqqq;
+logic [ VT_AWIDTH - 1:0 ] val_ptr_aligned_q;
+logic [ VT_AWIDTH - 1:0 ] val_ptr_aligned_qq;
+logic [ VT_AWIDTH - 1:0 ] val_ptr_aligned_qqq;
+logic [ VT_AWIDTH - 1:0 ] val_ptr_aligned_qqqq;
 
 logic cmp_q;
 logic cmp_running_q;
@@ -76,7 +78,7 @@ logic cmp_running_q;
 // these align to rd_data_q from value memory
 assign pkt_strobe_aligned = pkt_strobe_qqqq;
 assign rd_vld_aligned = pkt_hbkt_hit_miss_qqqq;
-assign val_ptr_aligned = val_ptr_qqqq;
+assign val_ptr_aligned = val_ptr_aligned_qqqq;
 
 assign final_vld = pkt_strobe_aligned_qqqq;
 assign final_hit_miss = cmp_running_q;
@@ -103,10 +105,10 @@ always_ff @( posedge clk )
         pkt_hbkt_hit_miss_qqq <= 1'b0;
         pkt_hbkt_hit_miss_qqqq <= 1'b0;
 
-        val_ptr_q <= { VT_AWIDTH{ 1'b0 } };
-        val_ptr_qq <= { VT_AWIDTH{ 1'b0 } };
-        val_ptr_qqq <= { VT_AWIDTH{ 1'b0 } };
-        val_ptr_qqqq <= { VT_AWIDTH{ 1'b0 } };
+        val_ptr_aligned_q <= '0;
+        val_ptr_aligned_qq <= '0;
+        val_ptr_aligned_qqq <= '0;
+        val_ptr_aligned_qqqq <= '0;
     end
 
     else
@@ -121,10 +123,10 @@ always_ff @( posedge clk )
         pkt_hbkt_hit_miss_qqq <= pkt_hbkt_hit_miss_qq;
         pkt_hbkt_hit_miss_qqqq <= pkt_hbkt_hit_miss_qqq;
 
-        val_ptr_q <= val_ptr;
-        val_ptr_qq <= val_ptr_q;
-        val_ptr_qqq <= val_ptr_qq;
-        val_ptr_qqqq <= val_ptr_qqq;
+        val_ptr_aligned_q <= val_ptr;
+        val_ptr_aligned_qq <= val_ptr_aligned_q;
+        val_ptr_aligned_qqq <= val_ptr_aligned_qq;
+        val_ptr_aligned_qqqq <= val_ptr_aligned_qqq;
     end
 
 // Register:  pkt_strobe_aligned_qqqqq
@@ -145,6 +147,14 @@ always_ff @( posedge clk )
         pkt_strobe_aligned_qqq <= pkt_strobe_aligned_qq;
         pkt_strobe_aligned_qqqq <= pkt_strobe_aligned_qqq;
     end
+
+// Register:  key_orig_q
+always_ff @( posedge clk )
+    if ( !rst_n )
+        key_orig_q <= '0;
+
+    else
+        key_orig_q <= key_orig;
 
 // Register:  cmp_q
 //
