@@ -59,6 +59,7 @@ reg [1:0] pp_id1;
 reg      pp_valid1;
 reg [`DATA_PATH_RANGE] pp_data1;
 reg pp_eop1;
+reg [`CHUNK_LEN_NBITS-1:0] pp_len1;
 reg      pp_meta_valid1;
 reg [`PP_META_RCI_RANGE] pp_meta_rci1;
 
@@ -66,6 +67,7 @@ reg [1:0] pp_id2;
 reg      pp_valid2;
 reg [`DATA_PATH_RANGE] pp_data2;
 reg pp_eop2;
+reg [`CHUNK_LEN_NBITS-1:0] pp_len2;
 reg      pp_meta_valid2;
 reg [`PP_META_RCI_RANGE] pp_meta_rci2;
 
@@ -73,6 +75,7 @@ reg [1:0] pp_id3;
 reg      pp_valid3;
 reg [`DATA_PATH_RANGE] pp_data3;
 reg pp_eop3;
+reg [`CHUNK_LEN_NBITS-1:0] pp_len3;
 reg      pp_meta_valid3;
 reg [`PP_META_RCI_RANGE] pp_meta_rci3;
 
@@ -84,12 +87,14 @@ reg pp_meta_valid;
 reg pp_valid0;
 reg [`DATA_PATH_RANGE] pp_data0;
 reg pp_eop0;
+reg [`CHUNK_LEN_NBITS-1:0] pp_len0;
 reg pp_meta_valid0;
 reg [`PP_META_RCI_RANGE] pp_meta_rci0;
 pp_meta_type pp_meta_data;
 reg [31:0] pp_creation_time;
 reg [`CHUNK_LEN_NBITS-1:0] pp_loc;
 
+reg     p_pp_pu_hop_error;
 reg     pp_pu_hop_error;
 
 pp_piarb_meta_type pp_pu_meta_data_p1;
@@ -100,6 +105,7 @@ wire pp_valid0_p1;
 wire [`DATA_PATH_RANGE] pp_data0_p1;
 wire pp_sop0_p1;
 wire pp_eop0_p1;
+reg [`CHUNK_LEN_NBITS-1:0] pp_len0_p1;
 wire pp_meta_valid0_p1;
 wire [`PP_META_RCI_RANGE] pp_meta_rci0_p1;
 pp_meta_type pp_meta_data_p1;
@@ -163,37 +169,36 @@ assign pp_pu_meta_data_p1.rci = pp_meta_fifo_data.rci;
 assign pp_pu_meta_data_p1.fid_sel = pp_meta_fifo_data.fid_sel;
 assign pp_pu_meta_data_p1.fid = pp_meta_fifo_data.fid;
 assign pp_pu_meta_data_p1.tid = pp_meta_fifo_data.tid;
-assign pp_pu_meta_data_p1.type1 = pp_meta_fifo_data.type1;
-assign pp_pu_meta_data_p1.type3 = pp_meta_fifo_data.type3;
+assign pp_pu_meta_data_p1.type1 = pp_meta_fifo_data.type1&~p_pp_pu_hop_error;
+assign pp_pu_meta_data_p1.type3 = pp_meta_fifo_data.type3|p_pp_pu_hop_error;
 assign pp_pu_meta_data_p1.creation_time = pp_meta_fifo_creation_time;
-assign pp_pu_meta_data_p1.discard = out_discard|pp_pu_hop_error;
+assign pp_pu_meta_data_p1.discard = out_discard|p_pp_pu_hop_error;
 
 /**************************************************************************/
 
-always @(*) 
-  if (no_pp) begin
-	    pp_pu_hop_error = 1'b0;
-  end else begin
+always @* 
+  if (no_pp) 
+	    p_pp_pu_hop_error = 1'b0;
+  else 
     case (fifo_pp_id)
 	2'b00: begin
-	    pp_pu_hop_error = pp_pu_hop_error0;
+	    p_pp_pu_hop_error = pp_pu_hop_error0;
 	end
 	2'b01: begin
-	    pp_pu_hop_error = pp_pu_hop_error1;
+	    p_pp_pu_hop_error = pp_pu_hop_error1;
 	end
 	2'b10: begin
-	    pp_pu_hop_error = pp_pu_hop_error2;
+	    p_pp_pu_hop_error = pp_pu_hop_error2;
 	end
 	default: begin
-	    pp_pu_hop_error = pp_pu_hop_error3;
+	    p_pp_pu_hop_error = pp_pu_hop_error3;
 	end
     endcase
-  end
-
 
 always @(posedge clk) begin
   pp_pu_meta_data <= pp_pu_meta_data_p1;
   pp_pu_pp_loc <= pp_meta_fifo_pp_loc;
+  pp_pu_hop_error <= p_pp_pu_hop_error;
   if (no_pp) begin
 	    pp_pu_hop_sop <= 1'b1;
 	    pp_pu_hop_eop <= 1'b1;
@@ -259,6 +264,7 @@ always @(posedge clk) begin
 
     pp_data0 <= pp_data0_p1;
     pp_eop0 <= pp_eop0_p1;
+    pp_len0 <= pp_len0_p1;
     pp_meta_rci0 <= pp_meta_rci0_p1;
 
     pp_meta_data <= pp_meta_data_p1;
@@ -269,6 +275,7 @@ always @(posedge clk) begin
     pp_valid1 <= pp_valid0;
     pp_data1 <= pp_data0;
     pp_eop1 <= pp_eop0;
+    pp_len1 <= pp_len0;
     pp_meta_valid1 <= pp_meta_valid0;
     pp_meta_rci1 <= pp_meta_rci0;
 
@@ -276,6 +283,7 @@ always @(posedge clk) begin
     pp_valid2 <= pp_valid1;
     pp_data2 <= pp_data1;
     pp_eop2 <= pp_eop1;
+    pp_len2 <= pp_len1;
     pp_meta_valid2 <= pp_meta_valid1;
     pp_meta_rci2 <= pp_meta_rci1;
 
@@ -283,6 +291,7 @@ always @(posedge clk) begin
     pp_valid3 <= pp_valid2;
     pp_data3 <= pp_data2;
     pp_eop3 <= pp_eop2;
+    pp_len3 <= pp_len2;
     pp_meta_valid3 <= pp_meta_valid2;
     pp_meta_rci3 <= pp_meta_rci2;
 
@@ -359,11 +368,14 @@ pp_front_end u_pp_front_end(
         .lh_pp_meta_data(lh_pp_meta_data),
 
         .pp_pu_hop_valid(pp_pu_hop_valid),
+        .pp_pu_hop_sop(pp_pu_hop_sop),
         .pp_pu_hop_eop(pp_pu_hop_eop),
+        .pp_pu_hop_error(pp_pu_hop_error),
         .pp_pu_hop_type3(pp_pu_meta_data.type3),
 
         .pu_pp_buf_fifo_rd(pu_pp_buf_fifo_rd),
         .pu_pp_inst_buf_fifo_count(pu_pp_inst_buf_fifo_count),
+
 
         .pp_ecdsa_ready(pp_ecdsa_ready),
 
@@ -371,6 +383,7 @@ pp_front_end u_pp_front_end(
         .pp_data0(pp_data0_p1),
         .pp_sop0(pp_sop0_p1),
         .pp_eop0(pp_eop0_p1),
+        .pp_len0(pp_len0_p1),
         .pp_meta_valid0(pp_meta_valid0_p1),
         .pp_meta_rci0(pp_meta_rci0_p1),
         .pp_meta_data(pp_meta_data_p1),
@@ -395,6 +408,7 @@ pp_top #(0) u_pp_top_0(
     pp_valid0,
     pp_data0,
     pp_eop0,
+    pp_len0,
     pp_id0,
 
     pp_meta_valid0,
@@ -418,6 +432,7 @@ pp_top #(1) u_pp_top_1(
     pp_valid1,
     pp_data1,
     pp_eop1,
+    pp_len1,
     pp_id1,
 
     pp_meta_valid1,
@@ -441,6 +456,7 @@ pp_top #(2) u_pp_top_2(
     pp_valid2,
     pp_data2,
     pp_eop2,
+    pp_len2,
     pp_id2,
 
     pp_meta_valid2,
@@ -464,6 +480,7 @@ pp_top #(3) u_pp_top_3(
     pp_valid3,
     pp_data3,
     pp_eop3,
+    pp_len3,
     pp_id3,
 
     pp_meta_valid3,

@@ -9,6 +9,7 @@ module pp_top
    input      pp_valid,
    input [`DATA_PATH_RANGE] pp_data,
    input pp_eop,
+   input [`CHUNK_LEN_NBITS-1:0] pp_len,
    input [1:0] pp_id,
 
    input      pp_meta_valid,
@@ -47,10 +48,11 @@ wire [`DATA_PATH_RANGE] ram_rdata0;
 wire path_parser_ready0;
 
 wire ram_rd0;
-wire [`PATH_CHUNK_ADDR_RANGE] ram_raddr0;
+wire [`PATH_CHUNK_DEPTH_NBITS-1:0] ram_raddr0;
 
 wire hop_fifo_reset0;
 wire hop_fifo_wr0;
+wire hop_fifo_eop0;
 wire [`HOP_INFO_RANGE] hop_fifo_wdata0;
 
 wire hop_fifo_full1;
@@ -61,10 +63,11 @@ wire [`DATA_PATH_RANGE] ram_rdata1;
 wire path_parser_ready1;
 
 wire ram_rd1;
-wire [`PATH_CHUNK_ADDR_RANGE] ram_raddr1;
+wire [`PATH_CHUNK_DEPTH_NBITS-1:0] ram_raddr1;
 
 wire hop_fifo_reset1;
 wire hop_fifo_wr1;
+wire hop_fifo_eop1;
 wire [`HOP_INFO_RANGE] hop_fifo_wdata1;
    
 wire wen = pp_valid&(pp_id==PP_ID);
@@ -74,7 +77,7 @@ wire n_pp_ready = rd_ptr?path_parser_ready1:path_parser_ready0;
 wire inc_rd_ptr = n_pp_ready&~pp_ready;
 
 wire ram_rd = rd_ptr?ram_rd1:ram_rd0;
-wire [`PATH_CHUNK_ADDR_RANGE] ram_raddr = rd_ptr?ram_raddr1:ram_raddr0;
+wire [`PATH_CHUNK_DEPTH_NBITS-1:0] ram_raddr = rd_ptr?ram_raddr1:ram_raddr0;
 
 /**************************************************************************/
 always @(`CLK_RST) 
@@ -108,7 +111,7 @@ always @(`CLK_RST)
 ram_1r1w_ultra #(`DATA_PATH_NBITS, `PATH_CHUNK_DEPTH_NBITS+1) u_ram_1r1w_ultra(
         .clk(clk),
         .wr(wen),
-        .raddr(ram_raddr),
+        .raddr({rd_ptr, ram_raddr}),
         .waddr({wr_ptr, ram_waddr}),
         .din(pp_data),
         .dout(ram_rdata));
@@ -116,6 +119,7 @@ ram_1r1w_ultra #(`DATA_PATH_NBITS, `PATH_CHUNK_DEPTH_NBITS+1) u_ram_1r1w_ultra(
 pp_rd_ctrl #(PP_ID, 0) u_pp_rd_ctrl0(
     pp_valid,
     pp_eop,
+    pp_len,
     pp_id,
 
     rd_ptr,
@@ -133,6 +137,7 @@ pp_rd_ctrl #(PP_ID, 0) u_pp_rd_ctrl0(
     hop_fifo_reset0,
     hop_fifo_wr0,
     hop_fifo_wdata0,
+    hop_fifo_eop0,
    
     clk,
     `RESET_SIG
@@ -141,6 +146,7 @@ pp_rd_ctrl #(PP_ID, 0) u_pp_rd_ctrl0(
 pp_rd_ctrl #(PP_ID, 1) u_pp_rd_ctrl1(
     pp_valid,
     pp_eop,
+    pp_len,
     pp_id,
 
     rd_ptr,
@@ -158,6 +164,7 @@ pp_rd_ctrl #(PP_ID, 1) u_pp_rd_ctrl1(
     hop_fifo_reset1,
     hop_fifo_wr1,
     hop_fifo_wdata1,
+    hop_fifo_eop1,
    
     clk,
     `RESET_SIG
@@ -169,9 +176,11 @@ pp_sm u_pp_sm(
     hop_fifo_reset0,
     hop_fifo_wr0,
     hop_fifo_wdata0,
+    hop_fifo_eop0,
     hop_fifo_reset1,
     hop_fifo_wr1,
     hop_fifo_wdata1,
+    hop_fifo_eop1,
 
     pp_meta_valid_g,
     pp_meta_rci,

@@ -1243,8 +1243,8 @@ wire [SCH_NBITS-1:0] deq_addr_d2 = event_fifo_rd_ptr_raddr_d2;
 
 // d2: event_fifo_count write required for both enq and deq
 
-wire men_enq_into_event_fifo_d2 = en_enq_into_event_fifo_d2&~(re_enq_drop_disable_deq_d2&re_enq_drop_d2);
-wire men_deq_from_event_fifo_d2 = en_deq_from_event_fifo_d2&enable_deq_d2;
+wire men_enq_into_event_fifo_d2 = en_enq_into_event_fifo_d2/*&~(re_enq_drop_disable_deq_d2&re_enq_drop_d2)*/;
+wire men_deq_from_event_fifo_d2 = en_deq_from_event_fifo_d2/*&enable_deq_d2*/;
 
 wire dis_enq_wr1 = (enq_addr_d2==deq_addr_d1)&en_deq_from_event_fifo_d1;
 wire dis_enq_wr = dis_enq_wr1|dis_deq_wr1_d1;
@@ -1427,7 +1427,7 @@ assign event_fifo_wdata_p1 = {en_enq_into_event_fifo_f1_d2,
 											en_enq_into_event_fifo_qid_d2};
 
 	// d2: push into scheduler event FIFO (note not queue event FIFO)
-	assign push = re_enq_drop_disable_deq_d2&re_enq_drop_d2|event_fifo_empty&en_enq_into_event_fifo_d2|event_fifo_emptyp2&en_deq_from_event_fifo_d2;
+	assign push = /*re_enq_drop_disable_deq_d2&re_enq_drop_d2|*/event_fifo_empty&en_enq_into_event_fifo_d2|event_fifo_emptyp2&en_deq_from_event_fifo_d2;
 	wire [1+`PORT_ID_NBITS+1+SCH_NBITS-1:0] push_data = {lat_fifo_rd22_d2, en_event_fifo_dst_port_d2,
 														(en_enq_into_event_fifo_d2?enq_en_pri_sch_d2:deq_en_pri_sch_d2), 
 														event_fifo_count_waddr_p1};

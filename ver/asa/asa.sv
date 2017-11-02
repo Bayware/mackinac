@@ -270,6 +270,7 @@ asa_replicator u_asa_replicator(
 		.tset_wdata(tset_wdata),
 
     		.discard_req(discard_req),        
+    		.discard_pd_update(discard_pd_update),
     		.discard_info(discard_info),
     		.discard_em_buf_ptr(discard_em_buf_ptr),
     		.discard_em_len(discard_em_len),
@@ -289,6 +290,7 @@ asa_tm_interface u_asa_tm_interface(
 		.`RESET_SIG(`RESET_SIG),
 
 		.discard_req(discard_req),
+    		.discard_pd_update(discard_pd_update),
 		.discard_packet_length(discard_packet_length),
 		.discard_src_port(discard_src_port),
 		.discard_buf_ptr(discard_buf_ptr),

@@ -32,6 +32,7 @@ input [`TID_NBITS+`SCI_NBITS-1:0] tset_waddr,
 input [`SUB_EXP_TIME_NBITS-1:0] tset_wdata,
 
 output logic discard_req,
+output logic discard_pd_update,
 output discard_info_type discard_info,
 output logic [`EM_BUF_PTR_NBITS-1:0] discard_em_buf_ptr,
 output logic [LEN_NBITS-1:0] discard_em_len,
@@ -76,6 +77,7 @@ assign discard_info_set.buf_ptr = asa_rep_enq_desc_d1.buf_ptr;
 assign discard_info_set.src_port = asa_rep_enq_desc_d1.src_port;
 wire [`EM_BUF_PTR_NBITS-1:0] discard_buf_ptr_set = asa_rep_enq_desc_d1.ed_cmd.pd_buf_ptr;
 wire [LEN_NBITS-1:0] discard_len_set = asa_rep_enq_desc_d1.ed_cmd.pd_len;
+wire discard_pd_update_set = asa_rep_enq_desc_d1.ed_cmd.pd_update;
 
 logic p_in_fifo_empty;
 logic [`SCI_VEC_NBITS-1:0] p_in_fifo_asa_rep_enq_vec;
@@ -179,8 +181,10 @@ assign discard_fifo_wdata.buf_ptr = p_rep_enq_desc.buf_ptr;
 assign discard_fifo_wdata.src_port = p_rep_enq_desc.src_port;
 wire [`EM_BUF_PTR_NBITS-1:0] discard_fifo_wbuf_ptr = p_rep_enq_desc.ed_cmd.pd_buf_ptr;
 wire [LEN_NBITS-1:0] discard_fifo_wlen = p_rep_enq_desc.ed_cmd.pd_len;
+wire discard_fifo_wpd_update = p_rep_enq_desc.ed_cmd.pd_update;
 logic [`EM_BUF_PTR_NBITS-1:0] discard_fifo_rbuf_ptr;
 logic [LEN_NBITS-1:0] discard_fifo_rlen;
+logic discard_fifo_rpd_update; 
 
 logic discard_fifo_empty;
 discard_info_type discard_fifo_rdata;
@@ -197,6 +201,7 @@ always @(posedge clk) begin
 		discard_info <= discard_set?discard_info_set:discard_fifo_rdata;
 		discard_em_buf_ptr <= discard_set?discard_buf_ptr_set:discard_fifo_rbuf_ptr;
 		discard_em_len <= discard_set?discard_len_set:discard_fifo_rlen;
+		discard_pd_update <= discard_set?discard_pd_update_set:discard_fifo_rpd_update;
 end
 
 always @(`CLK_RST) 
@@ -270,11 +275,11 @@ sfifo_bram_pf_enq_pkt_desc #(IN_FIFO_DEPTH_NBITS) u_sfifo_bram_pf_enq_pkt_desc_0
 		.empty(),
 		.dout(p_in_fifo_asa_rep_enq_desc));				
 
-sfifo2f_fo #(LEN_NBITS+`EM_BUF_PTR_NBITS, 4) u_sfifo2f_fo_1(
+sfifo2f_fo #(1+LEN_NBITS+`EM_BUF_PTR_NBITS, 4) u_sfifo2f_fo_1(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({discard_fifo_wbuf_ptr, discard_fifo_wlen}),				
+		.din({discard_fifo_wpd_update, discard_fifo_wbuf_ptr, discard_fifo_wlen}),				
 		.rd(discard_fifo_rd),
 		.wr(discard_fifo_wr),
 
@@ -284,7 +289,7 @@ sfifo2f_fo #(LEN_NBITS+`EM_BUF_PTR_NBITS, 4) u_sfifo2f_fo_1(
 		.empty(discard_fifo_empty),
 		.fullm1(),
 		.emptyp2(),
-		.dout({discard_fifo_rbuf_ptr, discard_fifo_rlen}));				
+		.dout({discard_fifo_rpd_update, discard_fifo_rbuf_ptr, discard_fifo_rlen}));				
 
 sfifo_discard_info #(4) u_sfifo_discard_info(
 		.clk(clk),

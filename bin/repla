@@ -1,0 +1,14 @@
+
+echo "awk 'BEGIN {n=1}\\"
+echo "/^/ && ( n < 36 ) {\\"
+
+sed "s/\"/doublequote/g" $1 | awk 'BEGIN {}\
+/^/ {\
+print "print \"" $0 "\""       ;\
+next}\
+END {}' | sed "s/::\`i/\" n \"/g" | sed "s/\*\./asteriskanddot/g" | sed "s/\./dotonly/g"
+
+echo "n=n+1; next}\\"
+echo "END {}' \$1 | sed \"s/asteriskanddot/\*\./g\" | sed \"s/dotonly/\./g\" | sed \"s/doublequote/\\\"/g\" "
+
+# use repla template.v

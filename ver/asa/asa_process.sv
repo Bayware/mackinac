@@ -149,7 +149,7 @@ wire update_default_type = ras_ufdast[2];
 
 wire [`FLOW_POLICY2_MASKON_RANGE] flow_maskon = fp_rdata_d1[`FLOW_POLICY2_MASKON];
 
-wire domain_discard = asa_proc_meta_d2.type1&(asa_proc_meta_d2.domain_id!=fp_rdata_d1[`FLOW_POLICY2_DOMAIN_ID]);
+wire domain_discard = asa_proc_meta_d2.type1&(asa_proc_meta_d2.domain_id!=0)&(asa_proc_meta_d2.domain_id!=fp_rdata_d1[`FLOW_POLICY2_DOMAIN_ID]);
 wire in_discard = asa_proc_meta_d2.discard;
 
 wire fmo_allow_update_ppd = flow_maskon[2-2];

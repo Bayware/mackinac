@@ -160,7 +160,7 @@ wire sel_pp = sel_type1to2|sel_type2|sel_discard;
 
 logic in_fifo_rd_en;
 wire in_fifo_rd_type1 = sel_type1&~in_fifo_empty&in_fifo_rd_en;
-wire in_fifo_rd_type12 = sel_type12&sel_type1&~sel_type1to2&~in_fifo_empty&in_fifo_rd_en;
+wire in_fifo_rd_type12 = sel_type12&sel_type1to2&~in_fifo_empty&in_fifo_rd_en;
 wire in_fifo_rd_type2 = sel_type12&sel_type2&~in_fifo_empty&in_fifo_rd_en;
 wire in_fifo_rd_discard = sel_type12&sel_discard&~in_fifo_empty&in_fifo_rd_en;
 wire in_fifo_rd = in_fifo_rd_type1|in_fifo_rd_type12|in_fifo_rd_type2|in_fifo_rd_discard;
@@ -190,13 +190,13 @@ assign min_fifo_meta_data.port = in_fifo_meta_data.port;
 assign min_fifo_meta_data.rci = in_fifo_meta_data.rci;
 assign min_fifo_meta_data.fid = in_fifo_meta_data.fid;
 assign min_fifo_meta_data.tid = in_fifo_meta_data.tid;
-assign min_fifo_meta_data.type1 = in_fifo_meta_data.type1&~sel_type1to2;
+assign min_fifo_meta_data.type1 = in_fifo_meta_data.type1;
 assign min_fifo_meta_data.type3 = in_fifo_meta_data.type3|sel_discard;
 assign min_fifo_meta_data.discard = in_fifo_meta_data.discard|sel_discard;
 
 logic [9:0] data_cnt;
 
-wire disable_out = (sel_type1to2&data_cnt<6|sel_discard|sel_type2&in_fifo_sop)&~in_fifo_eop;
+wire disable_out = (sel_type1to2&data_cnt<4|sel_discard|sel_type2&in_fifo_sop)&~in_fifo_eop;
 
 logic [127-16:0] data_sv;
 logic in_fifo_sop_d1;
@@ -204,7 +204,7 @@ logic in_fifo_eop_d1;
 
 wire sel_ntype2 = sel_type1|sel_type1to2|sel_discard;
 wire min_fifo_rd = ~disable_out&in_fifo_rd_pp|in_fifo_eop_d1;
-wire min_fifo_sop = sel_type1to2?data_cnt==6:sel_discard?in_fifo_eop:sel_type2?in_fifo_sop_d1:in_fifo_sop&~in_fifo_eop_d1;
+wire min_fifo_sop = sel_type1to2?data_cnt==4:sel_discard?in_fifo_eop:sel_type2?in_fifo_sop_d1:in_fifo_sop&~in_fifo_eop_d1;
 wire min_fifo_eop = sel_ntype2?in_fifo_eop:in_fifo_eop_d1;
 wire [`DATA_PATH_RANGE] min_fifo_data = sel_ntype2?in_fifo_data:{data_sv, in_fifo_data[127:127-15]};
 
