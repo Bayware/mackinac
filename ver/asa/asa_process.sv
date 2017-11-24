@@ -142,8 +142,8 @@ wire discard_packet = ras_east[1:0]==2'b00;
 wire execute_topic = ras_east[0]==1'b1;
 wire execute_flow = ras_east[1]==1'b1;
 
-wire allow_update = ras_nfascf==2'b11;
-wire allow_forward = ras_nfascf[1];
+wire allow_update = ras_nfascf[5:2]==4'b1101|ras_nfascf[5:2]==4'b1111;
+wire allow_forward = ras_nfascf[5:4]==2'b00|ras_nfascf[5:2]==4'b1001|ras_nfascf[5:2]==4'b1101|ras_nfascf[5:2]==4'b1111;
 
 wire update_default_type = ras_ufdast[2];
 

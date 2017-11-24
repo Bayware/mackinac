@@ -95,7 +95,7 @@ wire [`HOP_INFO_TYPE_RANGE] hop_fifo_type = hop_fifo_rdata[`HOP_INFO_TYPE];
 wire [`HOP_INFO_RCI_RANGE] hop_fifo_rci = hop_fifo_rdata[`HOP_INFO_RCI];
 wire [`HOP_INFO_BYTE_POINTER_RANGE] hop_fifo_byte_pointer = hop_fifo_rdata[`HOP_INFO_BYTE_POINTER];
 wire dummy_hop = hop_fifo_rci==0;
-wire dynamic_hop = hop_fifo_rci==1;
+wire dynamic_hop = (hop_fifo_rci>0)&(hop_fifo_rci<256);
 wire initial_hop = hop_fifo_byte_pointer==`INITIAL_HOP;
 
 logic [`HOP_INFO_BYTE_POINTER_RANGE] prev_hop_pointer;
@@ -173,6 +173,15 @@ always @(*) begin
 	    else 
               dec_process_lev = 1'b1;
         endcase
+	if(hop_fifo_reop) begin
+              	n_st = PREV_START;
+              	reset_process_lev = 1'b1;
+              	inc_rptr = 1'b1;
+                pp_pu_fifo_wr = 1'b1;
+                pp_pu_fifo_sop = 1'b1;
+                pp_pu_fifo_eop = 1'b1;
+                pp_pu_fifo_error = 1'b1;
+	end 
       end
     CUR_START: 
       if(~hop_fifo_empty) begin
@@ -249,6 +258,14 @@ always @(*) begin
 	    else 
               dec_process_lev = 1'b1;
         endcase
+	if(hop_fifo_reop) begin
+              	n_st = PREV_START;
+              	reset_process_lev = 1'b1;
+              	inc_rptr = 1'b1;
+                pp_pu_fifo_wr = 1'b1;
+                pp_pu_fifo_eop = 1'b1;
+                pp_pu_fifo_error = 1'b1;
+	end 
       end
     FIND_RCI_MATCH: 
       if(~hop_fifo_empty) begin
@@ -258,11 +275,26 @@ always @(*) begin
   	  	pp_pu_fifo_sop = 1'b1;
           case (hop_fifo_type)
 	    START_END_THREAD: begin
-                reset_process_lev = 1'b1;
-		n_st = FIND_END_PROCESS1;
+  		if (hop_fifo_reop) begin
+                	n_st = PREV_START;
+                	reset_process_lev = 1'b1;
+                	inc_rptr = 1'b1;
+                	pp_pu_fifo_eop = 1'b1;
+                	pp_pu_fifo_error = 1'b1;
+		end else begin
+                	reset_process_lev = 1'b1;
+			n_st = FIND_END_PROCESS1;
+		end
   	    end
 	    default: begin
-          	n_st = NXT_START;
+  		if (hop_fifo_reop) begin
+                	n_st = PREV_START;
+                	reset_process_lev = 1'b1;
+                	inc_rptr = 1'b1;
+                	pp_pu_fifo_eop = 1'b1;
+		end else begin
+          		n_st = NXT_START;
+		end
   	    end
           endcase
   	end else if (hop_fifo_reop) begin
@@ -368,9 +400,6 @@ always @(*) begin
               pp_pu_fifo_wr = 1'b1;
               pp_pu_fifo_eop = 1'b1;
               pp_pu_fifo_error = 1'b1;
-              // synopsys translate_off
-              $display("%t START_THREAD dummy_hop not supported", $time);
-              // synopsys translate_on
             end else if(process_lev=={(`PROC_LEV_NBITS){1'b0}}) begin
               set_thread_lev = 1'b1;
               pp_pu_fifo_wr = 1'b1;
@@ -379,6 +408,26 @@ always @(*) begin
             if(process_lev=={(`PROC_LEV_NBITS){1'b0}}) begin
               pp_pu_fifo_wr = 1'b1;
 	    end
+        endcase
+        case (hop_fifo_type)
+          END_THREAD_PROCESS, END_PROCESS: 
+            	if(process_lev!=0&hop_fifo_reop) begin
+              		n_st = PREV_START;
+              		reset_process_lev = 1'b1;
+              		inc_rptr = 1'b1;
+                	pp_pu_fifo_wr = 1'b1;
+                	pp_pu_fifo_eop = 1'b1;
+                	pp_pu_fifo_error = 1'b1;
+		end 
+	  default:
+		if(hop_fifo_reop) begin
+              		n_st = PREV_START;
+              		reset_process_lev = 1'b1;
+              		inc_rptr = 1'b1;
+                	pp_pu_fifo_wr = 1'b1;
+                	pp_pu_fifo_eop = 1'b1;
+                	pp_pu_fifo_error = 1'b1;
+		end 
         endcase
       end
   endcase

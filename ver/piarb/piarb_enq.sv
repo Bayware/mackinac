@@ -1,4 +1,3 @@
-//===========================================================================
 // $File:$
 // $Revision:$
 // DESCRIPTION : 
@@ -174,6 +173,7 @@ logic [INST_DATA_NBITS-1:0] inst_buf_fifo_data;
 logic inst_buf_fifo_inst_pd;
 logic [4:0] inst_buf_fifo_valid_bytes;
 
+logic pinst_meta_fifo_empty;
 logic [`CHUNK_LEN_NBITS-1:0] pinst_meta_fifo_pd_loc;
 logic [`CHUNK_LEN_NBITS-1:0] pinst_meta_fifo_pd_len;
 
@@ -369,7 +369,7 @@ always @(`CLK_RST)
     end else begin
         inst_free_buf_req <= inst_free_buf_req_p1;
         free_buf_req <= free_buf_req_p1;
-	fid_lookup_req <= either_fid_lookup_req_p1&~en_type3;
+	fid_lookup_req <= ~pinst_meta_fifo_empty&either_fid_lookup_req_p1&~en_type3;
         inst_write_data_valid <= inst_write_data_valid_p1;
         write_data_valid <= write_data_valid_p1;
         enq_req <= enq_req_p1;
@@ -610,7 +610,7 @@ sfifo2f_fo #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_41(
 
         .din({pp_pu_pd_loc_d1}),             
         .rd(type1_fid_fifo_wr),
-        .wr(pp_pu_valid_d1&pp_pu_sop_d1&pp_pu_inst_pd_d1),
+        .wr(pp_pu_valid_d1&pp_pu_sop_d1&~pp_pu_inst_pd_d1),
 
         .ncount(),
         .count(),
@@ -632,7 +632,7 @@ sfifo2f_fo #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_42(
         .ncount(),
         .count(),
         .full(),
-        .empty(),
+        .empty(pinst_meta_fifo_empty),
         .fullm1(),
         .emptyp2(),
         .dout({pinst_meta_fifo_pd_len})       
@@ -659,9 +659,9 @@ sfifo2f_fo #(`CHUNK_LEN_NBITS, BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_0(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
-        .din({pp_pu_pp_loc}),             
+        .din({pp_pu_pp_loc_d1}),             
         .rd(meta_fifo_rd),
-        .wr(pp_pu_hop_valid_d1&pp_pu_hop_sop_d1),
+        .wr(pp_pu_hop_valid_d1&pp_pu_hop_eop_d1),
 
         .ncount(),
         .count(meta_fifo_count),
@@ -678,7 +678,7 @@ sfifo_pp_piarb #(BUF_FIFO_DEPTH_NBITS/2) u_sfifo_pp_piarb_0(
 
         .din(pp_pu_meta_data_d1),             
         .rd(meta_fifo_rd),
-        .wr(pp_pu_hop_valid_d1&pp_pu_hop_sop_d1),
+        .wr(pp_pu_hop_valid_d1&pp_pu_hop_eop_d1),
 
         .ncount(),
         .count(),

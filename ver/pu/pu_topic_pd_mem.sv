@@ -94,7 +94,7 @@ always @(*) begin
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin 
 		same_addr[i] = {io_cmd_d1[i].tid, io_cmd_d1[i].addr[`TOPIC_PD_NBITS-2-1:0]}==ram_raddr;
 		same_addr_d1[i] = {io_cmd_d1[i].tid, io_cmd_d1[i].addr[`TOPIC_PD_NBITS-2-1:0]}==ram_raddr_d1;
-		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_TOPIC_MEM);
+		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_TOPIC_MEM);
         	in_fifo_rd[i] = ~in_fifo_empty[i]&((i==arb_rd_sel)&arb_rd_gnt|(i==arb_wr_sel)&arb_wr_gnt);
 		rd_req[i] = (io_cmd_d1[i].atomic|~io_cmd_d1[i].wr)&~({(1){atomic_rd}}&same_addr|{(1){atomic_rd_d1}}&same_addr_d1);
 		wr_req[i] = ~io_cmd_d1[i].atomic&io_cmd_d1[i].wr&~({(1){atomic_rd}}&same_addr);
@@ -158,8 +158,6 @@ rr_arb20 u_rr_arb_20_1 (
 	.sel(arb_wr_sel),
 	.gnt(arb_wr_gnt)
 );
-
-
 
 ram_1r1w_ultra #(WIDTH_NBITS, DEPTH_NBITS) u_ram_1r1w_ultra(
 		.clk(clk),

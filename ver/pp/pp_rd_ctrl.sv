@@ -143,11 +143,15 @@ always @(*) begin
   dec_value = 2;
 
   case(c_st)
-    IDLE: 
+    IDLE: begin
       if(selected&pp_valid) begin
         n_st = WRITE;
         reset_path_parser_ready = 1'b1;
       end
+  	reset_shift_1byte_more = 1'b1;
+  	reset_shift_2byte_more = 1'b1;
+  	reset_sv_inst_type = 1'b1;
+    end  
     WRITE: 
       if(selected&pp_valid&pp_eop) begin
         n_st = WAIT_4_RAM;

@@ -50,8 +50,8 @@ output logic [`RAS_NBITS-1:0] asa_proc_ras
 
 /***************************** LOCAL VARIABLES *******************************/
 
-localparam TYPE3_FIFO_DEPTH_NBITS = 2;
-localparam FIFO_DEPTH_NBITS = 2;
+localparam TYPE3_FIFO_DEPTH_NBITS = 3;
+localparam FIFO_DEPTH_NBITS = 3;
 localparam FIFO_DEPTH = (1<<FIFO_DEPTH_NBITS);
 localparam RAM_DEPTH_NBITS = `PU_ID_NBITS+FIFO_DEPTH_NBITS;
 localparam RAM_DEPTH = `NUM_OF_PU*FIFO_DEPTH;
@@ -67,14 +67,10 @@ logic [`PU_ID_NBITS-1:0] pu_asa_pu_id_d1;
 
 logic         pu_asa_start_d2;
 
-localparam RAS_FLAG_UP_NBITS = 16 + `RAS_FLAG_NFASCF_NBITS;
-wire [RAS_FLAG_UP_NBITS-1:0] lat_fifo_din1 = {pu_asa_data_d1[31:16], pu_asa_data_d1[`RAS_FLAG_NFASCF_NBITS-1+8*0:8*0]};
-localparam RAS_FLAG_LOW_NBITS = `RAS_FLAG_UPPD_NBITS+`RAS_FLAG_UPPP_NBITS+`RAS_FLAG_UFDAST_NBITS+`RAS_FLAG_EAST_NBITS;
-logic [RAS_FLAG_LOW_NBITS-1:0] lat_fifo_din0_d1;
-wire [RAS_FLAG_LOW_NBITS-1:0] lat_fifo_din0 = { pu_asa_data_d1[`RAS_FLAG_EAST_NBITS-1+8*3:8*3],
-						pu_asa_data_d1[`RAS_FLAG_UFDAST_NBITS-1+8*2:8*2], 
-						pu_asa_data_d1[`RAS_FLAG_UPPP_NBITS-1+8*1:8*1],
-						pu_asa_data_d1[`RAS_FLAG_UPPD_NBITS-1+8*0:8*0]};
+localparam RAS_FLAG_UP_NBITS = 16;
+wire [RAS_FLAG_UP_NBITS-1:0] lat_fifo_din1 = {pu_asa_data_d1[15:0]};
+localparam RAS_FLAG_LOW_NBITS = `RAS_FLAG_UPPD_NBITS+`RAS_FLAG_UPPP_NBITS+`RAS_FLAG_UFDAST_NBITS+`RAS_FLAG_EAST_NBITS+`RAS_FLAG_NFASCF_NBITS;
+wire [RAS_FLAG_LOW_NBITS-1:0] lat_fifo_din0 = pu_asa_data_d1;
 
 logic [1:0] lat_fifo_invalid_rci;
 logic         lat_fifo_pu_asa_eop;
@@ -113,14 +109,10 @@ logic [`NUM_OF_PU-1:0] buf_ptr_empty;
 logic [FIFO_DEPTH_NBITS:0] buf_ptr_wptr[`NUM_OF_PU-1:0];
 logic [FIFO_DEPTH_NBITS:0] buf_ptr_rptr[`NUM_OF_PU-1:0];
 
-wire lat_fifo_rd_1st = rci2sci_table_ack&(ras_wr_cnt==1);
-
-wire lat_fifo_rd = rci2sci_table_ack&(ras_wr_cnt>1);
 
 wire ras_wr_one = rci2sci_table_ack;
 
 wire ras_wr = ras_wr_one&lat_fifo_pu_asa_eop;
-logic [`RAS_FLAG_NBITS-1:0] ras_wdata0;
 logic [(1+`SCI_NBITS)*9-1:0] ras_wdata51;
 logic [(1+`SCI_NBITS)*9-1:0] ras_wdata51_d1;
 wire [FIFO_DEPTH_NBITS-1:0] ras_wptr_sel = ras_wptr[lat_fifo_pu_asa_pu_id];
@@ -182,7 +174,7 @@ piarb_asa_meta_type meta_rdata_struct;
 
 wire asa_proc_valid_p1 = type3_fifo_rd|ras_rd; 
 
-wire [RAS_WIDTH-1:0] ras_wdata = {ras_wdata51, ras_wdata0};
+wire [RAS_WIDTH-1:0] ras_wdata = {ras_wdata51, lat_fifo_ras_flag};
 
 wire [1:0] invalid_rci = {pu_asa_data_d1[31:16]==0, pu_asa_data_d1[15:0]==0};
 
@@ -217,7 +209,7 @@ assign asa_proc_ras = ras_rdata;
 
 /***************************** REGISTERED OUTPUTS ****************************/
 
-assign rci2sci_table_rd = pu_asa_valid_d1;
+assign rci2sci_table_rd = pu_asa_valid_d1&~pu_asa_start_d1;
 
 assign rci2sci_table_raddr = {pu_asa_data_d1[`RCI_NBITS-1+16:16], pu_asa_data_d1[`RCI_NBITS-1:0]};
 
@@ -237,10 +229,10 @@ always @(`CLK_RST)
 wire [(1+`SCI_NBITS)*2-1:0] n_wdata = {lat_fifo_invalid_rci[1], rci2sci_table_rdata[`SCI_NBITS*2-1:`SCI_NBITS], lat_fifo_invalid_rci[0], rci2sci_table_rdata[`SCI_NBITS-1:0]};
 
 always @(*) begin
-	ras_wdata51[(`PU_ASA_TS-3)*(1+`SCI_NBITS)*2+(1+`SCI_NBITS)-1:(`PU_ASA_TS-3)*(1+`SCI_NBITS)*2] = ras_wr_one&(ras_wr_cnt==`PU_ASA_TS-1)?{lat_fifo_invalid_rci, rci2sci_table_rdata[`SCI_NBITS-1:0]}:ras_wdata51_d1[(`PU_ASA_TS-3)*(1+`SCI_NBITS)*2+(1+`SCI_NBITS)-1:(`PU_ASA_TS-3)*(1+`SCI_NBITS)*2];
-	for(i=0; i<`PU_ASA_TS-3; i++)
+	ras_wdata51[(`PU_ASA_TS-2)*(1+`SCI_NBITS)*2+(1+`SCI_NBITS)-1:(`PU_ASA_TS-2)*(1+`SCI_NBITS)*2] = ras_wr_one&(ras_wr_cnt==`PU_ASA_TS-2)?{lat_fifo_invalid_rci[1], rci2sci_table_rdata[`SCI_NBITS*2-1:`SCI_NBITS]}:ras_wdata51_d1[(`PU_ASA_TS-2)*(1+`SCI_NBITS)*2+(1+`SCI_NBITS)-1:(`PU_ASA_TS-2)*(1+`SCI_NBITS)*2];
+	for(i=0; i<`PU_ASA_TS-2; i++)
 		for(j=0; j<(`SCI_NBITS+1)*2; j++)
-			ras_wdata51[i*(1+`SCI_NBITS)*2+j] = ras_wr_one&(ras_wr_cnt==i+2)?n_wdata[j]:ras_wdata51_d1[i*(1+`SCI_NBITS)*2+j];
+			ras_wdata51[i*(1+`SCI_NBITS)*2+j] = ras_wr_one&(ras_wr_cnt==i)?n_wdata[j]:ras_wdata51_d1[i*(1+`SCI_NBITS)*2+j];
 	for(i=0; i<`NUM_OF_PU; i++) begin
 		ras_empty[i] = ras_wptr[i]==ras_rptr[i];
 		meta_empty[i] = meta_wptr[i]==meta_rptr[i];
@@ -263,10 +255,7 @@ always @(posedge clk) begin
 		piarb_asa_type3_d2 <= piarb_asa_type3_d1;
 		piarb_asa_pu_id_d2 <= piarb_asa_pu_id_d1;
 
-		pu_asa_start_d2 <= pu_asa_valid_d1?pu_asa_start_d1:pu_asa_start_d2;
-		lat_fifo_din0_d1 <= pu_asa_start_d1&pu_asa_valid_d1?lat_fifo_din0:lat_fifo_din0_d1;
 		ras_wdata51_d1 <= ras_wdata51;
-		ras_wdata0 <= lat_fifo_rd_1st?lat_fifo_ras_flag:ras_wdata0;
 		event_fifo_rdata_d1 <= event_fifo_rdata;
 
 		type3_fifo_rdata_d1 <= type3_fifo_rdata;
@@ -276,6 +265,7 @@ always @(`CLK_RST)
 	if (`ACTIVE_RESET) begin
 		pu_asa_start_d1 <= 1'b0;
 		pu_asa_valid_d1 <= 1'b0;
+		pu_asa_start_d2 <= 1'b0;
 		em_asa_valid_d1 <= 0;
 		piarb_asa_valid_d1 <= 0;
 		piarb_asa_valid_d2 <= 0;
@@ -293,6 +283,7 @@ always @(`CLK_RST)
 	end else begin
 		pu_asa_start_d1 <= pu_asa_start;
 		pu_asa_valid_d1 <= pu_asa_valid;
+		pu_asa_start_d2 <= pu_asa_valid_d1?pu_asa_start_d1:pu_asa_start_d2;
 		em_asa_valid_d1 <= em_asa_valid;
 		piarb_asa_valid_d1 <= piarb_asa_valid;
 		piarb_asa_valid_d2 <= piarb_asa_valid_d1;
@@ -346,13 +337,13 @@ sfifo_piarb_asa #(TYPE3_FIFO_DEPTH_NBITS) u_sfifo_piarb_asa_1(
         .dout(type3_fifo_rdata)       
     );
 
-sfifo2f_fo #(`RAS_FLAG_NBITS, 1) u_sfifo2f_fo_2(
+sfifo2f_fo #(RAS_FLAG_LOW_NBITS, 2) u_sfifo2f_fo_2(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
-        .din({lat_fifo_din1, lat_fifo_din0_d1}),               
-        .rd(lat_fifo_rd_1st),
-        .wr(pu_asa_valid_d1&~pu_asa_start_d1&pu_asa_start_d2),
+        .din({lat_fifo_din0}),               
+        .rd(ras_wr),
+        .wr(pu_asa_valid_d1&pu_asa_start_d1&~pu_asa_start_d2),
 
         .ncount(),
         .count(),
@@ -360,7 +351,24 @@ sfifo2f_fo #(`RAS_FLAG_NBITS, 1) u_sfifo2f_fo_2(
         .empty(),
         .fullm1(),
         .emptyp2(),
-        .dout({lat_fifo_ras_flag})               
+        .dout({lat_fifo_ras_flag[RAS_FLAG_LOW_NBITS-1:0]})               
+    );
+
+sfifo2f_fo #(16, 2) u_sfifo2f_fo_21(
+        .clk(clk),
+        .`RESET_SIG(`RESET_SIG),
+
+        .din({lat_fifo_din1}),               
+        .rd(ras_wr),
+        .wr(pu_asa_valid_d1&~pu_asa_start_d1&pu_asa_eop_d1),
+
+        .ncount(),
+        .count(),
+        .full(),
+        .empty(),
+        .fullm1(),
+        .emptyp2(),
+        .dout({lat_fifo_ras_flag[`RAS_FLAG_PTR]})               
     );
 
 sfifo2f_fo #(2+1+`PU_ID_NBITS, 2) u_sfifo2f_fo_3(
@@ -368,8 +376,8 @@ sfifo2f_fo #(2+1+`PU_ID_NBITS, 2) u_sfifo2f_fo_3(
         .`RESET_SIG(`RESET_SIG),
 
         .din({invalid_rci, pu_asa_eop_d1, pu_asa_pu_id_d1}),               
-        .rd(lat_fifo_rd),
-        .wr(pu_asa_valid_d1&~pu_asa_start_d1&~pu_asa_start_d2),
+        .rd(rci2sci_table_ack),
+        .wr(pu_asa_valid_d1&~pu_asa_start_d1),
 
         .ncount(),
         .count(),

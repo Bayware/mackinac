@@ -35,6 +35,7 @@ typedef struct {
 	logic take_branch;
 	logic use_rs1;
 	logic use_rs2;
+	logic exception;
 } dec_type; 
 
 typedef struct { 

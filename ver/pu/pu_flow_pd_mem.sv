@@ -41,11 +41,8 @@ logic [NUM_OF_PU-1:0] arb_wr_req;
 logic [`PU_ID_NBITS-1:0] arb_wr_sel;
 logic arb_wr_gnt;
 
-logic [`PU_ID_NBITS-1:0] fifo_arb_sel;
-
 logic [WIDTH_NBITS-1:0] ram_rdata /* synthesis DONT_TOUCH */;
 wire [WIDTH_NBITS-1:0] flow_pd_rdata = ram_rdata;
-wire flow_pd_ack = in_fifo_rd_d1;
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
@@ -53,16 +50,15 @@ always @(`CLK_RST)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) 
 		io_ack_data[i] <= 0;
     end else begin
-	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin 
-        	io_ack[i] <= flow_pd_ack&(fifo_arb_sel==i);
-		io_ack_data[i] <= flow_pd_ack&(fifo_arb_sel==i)?flow_pd_rdata:0;
-	end
+        io_ack <= in_fifo_rd_d1;
+	for (i = 0; i < NUM_OF_PU ; i = i + 1) 
+		io_ack_data[i] <= in_fifo_rd_d1[i]?flow_pd_rdata:0;
     end
 
 
 always @(*)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin 
-		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_FLOW_MEM);
+		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_FLOW_MEM);
         	in_fifo_rd[i] = ~in_fifo_empty[i]&((i==arb_wr_sel)&arb_wr_gnt|(i==arb_rd_sel)&arb_rd_gnt);
 		arb_rd_req[i] = ~in_fifo_empty[i]&~io_cmd_d1[i].wr&~in_fifo_rd[i];
 		arb_wr_req[i] = ~in_fifo_empty[i]&io_cmd_d1[i].wr&~in_fifo_rd[i];
@@ -117,22 +113,6 @@ rr_arb20 u_rr_arb_20_1 (
 	.gnt(arb_wr_gnt)
 );
 
-
-sfifo2f_fo #(`PU_ID_NBITS, 1) u_sfifo2f_fo(
-		.clk(clk),
-		.`RESET_SIG(`RESET_SIG),
-
-		.din(arb_rd_sel),
-		.rd(flow_pd_ack),
-		.wr(arb_rd_gnt),
-		.ncount(),
-		.count(),
-		.full(),
-		.empty(),
-		.fullm1(),
-		.emptyp2(),
-		.dout(fifo_arb_sel)
-);
 
 ram_1r1w_ultra #(WIDTH_NBITS, DEPTH_NBITS) u_ram_1r1w_ultra(
 		.clk(clk),

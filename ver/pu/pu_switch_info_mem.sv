@@ -67,7 +67,7 @@ always @(`CLK_RST)
 
 always @(*)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin
-		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_SWITCH_INFO_MEM);
+		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_SWITCH_INFO_MEM);
         	in_fifo_rd[i] = ~in_fifo_empty[i]&(i==arb_rd_sel)&arb_rd_gnt;
 	end
 

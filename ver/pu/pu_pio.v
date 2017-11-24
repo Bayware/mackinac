@@ -33,10 +33,14 @@ input [`PIO_RANGE] tag_hash_table_mem_rdata,
 input tag_value_mem_ack,
 input [`PIO_RANGE] tag_value_mem_rdata,
 
+input pu_registers_mem_ack,
+input [`PIO_RANGE] pu_registers_mem_rdata,
+
 output reg reg_ms_conn_context,
 output reg reg_ms_switch_info,
 output reg reg_ms_tag_hash_table,
 output reg reg_ms_tag_value,
+output reg reg_ms_pu_registers,
 
 output reg    pio_ack,
 output reg    pio_rvalid,
@@ -88,6 +92,12 @@ always @(*) begin
 		n_pio_ack = tag_value_mem_ack;
 		n_pio_rvalid = reg_bs;
 		pio_rdata = tag_value_mem_rdata;
+		reg_ms_tag_value = reg_bs;
+	    end
+            `PU_REGISTERS: begin
+		n_pio_ack = pu_registers_mem_ack;
+		n_pio_rvalid = reg_bs;
+		pio_rdata = pu_registers_mem_rdata;
 		reg_ms_tag_value = reg_bs;
 	    end
             default: begin

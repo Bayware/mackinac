@@ -40,6 +40,8 @@ integer i;
 logic [NUM_OF_PU-1:0] io_req_d1;
 logic [NUM_OF_PU-1:0] io_req_d2;
 
+logic [NUM_OF_PU-1:0] io_rd_req_d2;
+
 io_type io_cmd_d1[NUM_OF_PU-1:0]; 
 
 logic [NUM_OF_PU-1:0] ram_wr_l;
@@ -61,7 +63,7 @@ always @(`CLK_RST)
     end else begin
         io_ack <= io_req_d2;
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) 
-		io_ack_data[i] <= io_req_d2[i]?{ram_rdata_h[i], ram_rdata_l[i]}:0;
+		io_ack_data[i] <= io_rd_req_d2[i]?{ram_rdata_h[i], ram_rdata_l[i]}:0;
     end
 
 always @(*)
@@ -82,9 +84,11 @@ always @(`CLK_RST)
     if (`ACTIVE_RESET) begin
         io_req_d1 <= 0;
         io_req_d2 <= 0;
+        io_rd_req_d2 <= 0;
     end else begin
         io_req_d1 <= io_req;
-        io_req_d2 <= io_req_d1;
+        io_req_d2 <= io_req_d1&(io_cmd_d1[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_TAG_LOOKUP_RESULT);
+        io_rd_req_d2 <= io_req_d1&~io_cmd_d1[i].wr&(io_cmd_d1[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_TAG_LOOKUP_RESULT);
     end
 
 genvar gi;

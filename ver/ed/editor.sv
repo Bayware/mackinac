@@ -162,7 +162,7 @@ always @(`CLK_RST)
 	end
 /***************************** PROGRAM BODY **********************************/
 
-always @* begin
+always @* 
 	for(i=0; i<NUM_OF_PORTS; i++) begin
 
 		cmd_fifo_ptr_update[i] = cmd_fifo_data[i].ptr_update;
@@ -200,6 +200,7 @@ always @* begin
 	end
 
 
+always @* begin
 	n_ed_dstr_packet_data = bm_ed_packet_data_d1;
 	if (cmd_fifo_ptr_update[bm_ed_port_id_d1]&ptr_loc_hit[bm_ed_port_id_d1])
 		case(cmd_fifo_ptr_loc[bm_ed_port_id_d1][3:1])
@@ -213,22 +214,22 @@ always @* begin
 			default: n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*8-1:`ENQ_ED_CMD_CUR_PTR_NBITS*7] = cmd_fifo_cur_ptr[bm_ed_port_id_d1];
 		endcase
 	if (cmd_fifo_pd_update[bm_ed_port_id_d1]&(start_pd[bm_ed_port_id_d1]|pd_loc_hit_st[bm_ed_port_id_d1])) begin
-		if(0>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&0<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*16-1:8*15] = use_pd_fifo_data[bm_ed_port_id_d1][8*16-1:8*15];
-		if(1>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&1<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*15-1:8*14] = use_pd_fifo_data[bm_ed_port_id_d1][8*15-1:8*14];
-		if(2>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&2<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*14-1:8*13] = use_pd_fifo_data[bm_ed_port_id_d1][8*14-1:8*13];
-		if(3>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&3<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*13-1:8*12] = use_pd_fifo_data[bm_ed_port_id_d1][8*13-1:8*12];
-		if(4>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&4<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*12-1:8*11] = use_pd_fifo_data[bm_ed_port_id_d1][8*12-1:8*11];
-		if(5>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&5<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*11-1:8*10] = use_pd_fifo_data[bm_ed_port_id_d1][8*11-1:8*10];
-		if(6>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&6<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*10-1:8*9] = use_pd_fifo_data[bm_ed_port_id_d1][8*10-1:8*9];
-		if(7>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&7<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*9-1:8*8] = use_pd_fifo_data[bm_ed_port_id_d1][8*9-1:8*8];
-		if(8>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&8<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*8-1:8*7] = use_pd_fifo_data[bm_ed_port_id_d1][8*8-1:8*7];
-		if(9>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&9<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*7-1:8*6] = use_pd_fifo_data[bm_ed_port_id_d1][8*7-1:8*6];
-		if(10>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&10<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*6-1:8*5] = use_pd_fifo_data[bm_ed_port_id_d1][8*6-1:8*5];
-		if(11>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&11<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*5-1:8*4] = use_pd_fifo_data[bm_ed_port_id_d1][8*5-1:8*4];
-		if(12>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&12<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*4-1:8*3] = use_pd_fifo_data[bm_ed_port_id_d1][8*4-1:8*3];
-		if(13>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&13<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*3-1:8*2] = use_pd_fifo_data[bm_ed_port_id_d1][8*3-1:8*2];
-		if(14>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&14<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*2-1:8*1] = use_pd_fifo_data[bm_ed_port_id_d1][8*2-1:8*1];
-		if(15>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]&&15<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:0]) n_ed_dstr_packet_data[8*1-1:8*0] = use_pd_fifo_data[bm_ed_port_id_d1][8*1-1:8*0];
+		if(0>=start_pd_loc[bm_ed_port_id_d1]&&0<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*16-1:8*15] = use_pd_fifo_data[bm_ed_port_id_d1][8*16-1:8*15];
+		if(1>=start_pd_loc[bm_ed_port_id_d1]&&1<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*15-1:8*14] = use_pd_fifo_data[bm_ed_port_id_d1][8*15-1:8*14];
+		if(2>=start_pd_loc[bm_ed_port_id_d1]&&2<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*14-1:8*13] = use_pd_fifo_data[bm_ed_port_id_d1][8*14-1:8*13];
+		if(3>=start_pd_loc[bm_ed_port_id_d1]&&3<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*13-1:8*12] = use_pd_fifo_data[bm_ed_port_id_d1][8*13-1:8*12];
+		if(4>=start_pd_loc[bm_ed_port_id_d1]&&4<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*12-1:8*11] = use_pd_fifo_data[bm_ed_port_id_d1][8*12-1:8*11];
+		if(5>=start_pd_loc[bm_ed_port_id_d1]&&5<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*11-1:8*10] = use_pd_fifo_data[bm_ed_port_id_d1][8*11-1:8*10];
+		if(6>=start_pd_loc[bm_ed_port_id_d1]&&6<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*10-1:8*9] = use_pd_fifo_data[bm_ed_port_id_d1][8*10-1:8*9];
+		if(7>=start_pd_loc[bm_ed_port_id_d1]&&7<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*9-1:8*8] = use_pd_fifo_data[bm_ed_port_id_d1][8*9-1:8*8];
+		if(8>=start_pd_loc[bm_ed_port_id_d1]&&8<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*8-1:8*7] = use_pd_fifo_data[bm_ed_port_id_d1][8*8-1:8*7];
+		if(9>=start_pd_loc[bm_ed_port_id_d1]&&9<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*7-1:8*6] = use_pd_fifo_data[bm_ed_port_id_d1][8*7-1:8*6];
+		if(10>=start_pd_loc[bm_ed_port_id_d1]&&10<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*6-1:8*5] = use_pd_fifo_data[bm_ed_port_id_d1][8*6-1:8*5];
+		if(11>=start_pd_loc[bm_ed_port_id_d1]&&11<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*5-1:8*4] = use_pd_fifo_data[bm_ed_port_id_d1][8*5-1:8*4];
+		if(12>=start_pd_loc[bm_ed_port_id_d1]&&12<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*4-1:8*3] = use_pd_fifo_data[bm_ed_port_id_d1][8*4-1:8*3];
+		if(13>=start_pd_loc[bm_ed_port_id_d1]&&13<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*3-1:8*2] = use_pd_fifo_data[bm_ed_port_id_d1][8*3-1:8*2];
+		if(14>=start_pd_loc[bm_ed_port_id_d1]&&14<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*2-1:8*1] = use_pd_fifo_data[bm_ed_port_id_d1][8*2-1:8*1];
+		if(15>=start_pd_loc[bm_ed_port_id_d1]&&15<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*1-1:8*0] = use_pd_fifo_data[bm_ed_port_id_d1][8*1-1:8*0];
 	end
 
 end
