@@ -107,13 +107,11 @@ always @(*) begin
 				3'b000: begin
 					dec_cmd.exception = 1'b0;
 					dec_cmd.funct3 = 3'b000;
-					dec_cmd.funct5 = 5'b01000;
-					dec_cmd.take_branch = 1'b1;
 				end
 				3'b001: begin
 					dec_cmd.exception = 1'b0;
 					dec_cmd.funct3 = 3'b000;
-					dec_cmd.funct5 = 5'b01000;
+					dec_cmd.take_branch = 1'b1;
 				end
 				3'b100: begin
 					dec_cmd.exception = 1'b0;

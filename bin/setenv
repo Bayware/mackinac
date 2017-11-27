@@ -1,5 +1,5 @@
 export QUESTA_HOME="/opt/mgc/questa/10.6a/questasim"
-export UVM_HOME="/opt/mgc/questa/10.6a/questasim/verilog_srcyy/uvm-1.1d"
+export UVM_HOME="/opt/mgc/questa/10.6a/questasim/verilog_src/uvm-1.1d"
 export BASE_DIR="/home/kchin/projects/mackinac"
 export BASE_DV_DIR="/home/kchin/projects/"
 export DV_TOP="$BASE_DV_DIR/dv"

@@ -1,57 +1,66 @@
 vlog -work work -f $DV_TOP/env/core_env.f -l vlog.log
 vopt core_tb -designfile design.db -debug -o opt
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_first +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_first -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' > regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_second +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_second -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_third +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_third -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_fourth +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_fourth -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_fifth +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_fifth -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_sixth +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_sixth -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp0 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp0 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp1 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp1 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp2 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp2 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp3 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp3 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp4 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp4 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp5 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp5 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp6 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp6 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp7 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp7 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp8 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp8 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp9 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp9 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp10 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp10 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
-vsim -qwavedb=+signal -c opt +UVM_TESTNAME=core_test_pp11 +UVM_VERBOSITY=UVM_HIGH -do "run 5000000ns; quit -f" -l vsim.log 
+vsim -c opt +UVM_TESTNAME=core_test_pp11 -do "run 5000000ns; quit -f" -l vsim.log 
+cat vsim.log | grep 'Running test' >> regression.log
+cat vsim.log | grep 'TEST ' >> regression.log
+vsim -c opt +UVM_TESTNAME=core_test_pp12 -do "run 5000000ns; quit -f" -l vsim.log 
+cat vsim.log | grep 'Running test' >> regression.log
+cat vsim.log | grep 'TEST ' >> regression.log
+vsim -c opt +UVM_TESTNAME=core_test_pp13 -do "run 5000000ns; quit -f" -l vsim.log 
+cat vsim.log | grep 'Running test' >> regression.log
+cat vsim.log | grep 'TEST ' >> regression.log
+vsim -c opt +UVM_TESTNAME=core_test_pu0 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
 cat regression.log

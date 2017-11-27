@@ -175,13 +175,14 @@ always @* begin
 	min_meta_data_d1.type3 = in_meta_data_d1.type3|discard_en1_d1|discard_en2_d1;
 end
 
-wire dec_buf_fifo_count0 = in_valid&in_sop&~(in_type3|in_discard|discard_en1|discard_en2);
+logic dec_buf_fifo_count0_d1;
+wire dec_buf_fifo_count0 = in_valid_1st&~(in_type3|in_discard|discard_en1|discard_en2);
 wire dec_buf_fifo_count1 = ~pp_pu_hop_type3&pp_pu_hop_valid;
 wire inc_buf_fifo_count0 = (pp_pu_hop_error|~pp_pu_hop_type3)&pp_pu_hop_valid&pp_pu_hop_eop;
 wire inc_buf_fifo_count1 = pu_pp_buf_fifo_rd_d1;
 
 always @(*)
-	case ({dec_buf_fifo_count0, dec_buf_fifo_count1, inc_buf_fifo_count0, inc_buf_fifo_count1})
+	case ({dec_buf_fifo_count0_d1, dec_buf_fifo_count1, inc_buf_fifo_count0, inc_buf_fifo_count1})
 		4'b0000: buf_fifo_count_p1 = buf_fifo_count;
 		4'b0001: buf_fifo_count_p1 = buf_fifo_count+1;
 		4'b0010: buf_fifo_count_p1 = buf_fifo_count+len_fifo_data;
@@ -190,14 +191,14 @@ always @(*)
 		4'b0101: buf_fifo_count_p1 = buf_fifo_count;
 		4'b0110: buf_fifo_count_p1 = buf_fifo_count-1+len_fifo_data;
 		4'b0111: buf_fifo_count_p1 = buf_fifo_count+len_fifo_data;
-		4'b1000: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len_p1;
-		4'b1001: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len_p1+1;
-		4'b1010: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len_p1+len_fifo_data;
-		4'b1011: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len_p1+len_fifo_data+1;
-		4'b1100: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len_p1-1;
-		4'b1101: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len_p1-1+1;
-		4'b1110: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len_p1-1+len_fifo_data;
-		4'b1111: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len_p1+len_fifo_data;
+		4'b1000: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len;
+		4'b1001: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len+1;
+		4'b1010: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len+len_fifo_data;
+		4'b1011: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len+len_fifo_data+1;
+		4'b1100: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len-1;
+		4'b1101: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len-1+1;
+		4'b1110: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len-1+len_fifo_data;
+		4'b1111: buf_fifo_count_p1 = buf_fifo_count-pp_chunk_len+len_fifo_data;
 	endcase	
 
 wire pp_valid0_last = pp_valid0&pp_eop0;
@@ -351,6 +352,7 @@ end
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
+	dec_buf_fifo_count0_d1 <= 1'b0;
 	buf_fifo_count <= BUF_FIFO_FULL_COUNT;
 
 	pu_pp_buf_fifo_rd_d1 <= 1'b0;
@@ -390,6 +392,7 @@ always @(`CLK_RST)
 	enable_fifo_error <= 1'b0;
 
     end else begin
+	dec_buf_fifo_count0_d1 <= dec_buf_fifo_count0;
 	buf_fifo_count <= buf_fifo_count_p1;
 
 	pu_pp_buf_fifo_rd_d1 <= pu_pp_buf_fifo_rd;
@@ -465,9 +468,9 @@ sfifo2f_fo #(`HEADER_LENGTH_NBITS, 4) u_sfifo2f_fo1(
         .clk(clk),
         .`RESET_SIG(`RESET_SIG),
 
-        .din({pp_chunk_len_p1}),              
+        .din({pp_chunk_len}),              
         .rd(inc_buf_fifo_count0),
-        .wr(dec_buf_fifo_count0),
+        .wr(dec_buf_fifo_count0_d1),
 
         .ncount(),
         .count(),

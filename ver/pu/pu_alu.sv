@@ -35,7 +35,7 @@ always @(*)
 			alu = in_a << in_b;
 		end
 		3'b010: begin
-			alu = ($signed(in_a) < $signed(in_b))?1:0;
+			alu = $signed(in_a) < $signed(in_b)?1:0;
 		end
 		3'b011: begin
 			alu = in_a < in_b?1:0;
