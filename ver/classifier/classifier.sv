@@ -16,8 +16,11 @@ module classifier
 #(
     parameter KEY_LEN = 276,
     parameter ITEMS = 32768,
-    parameter BUS_WIDTH = 128
+    parameter BUS_WIDTH = 128,
+
+    localparam VT_AWIDTH = $clog2( ITEMS )
 )
+(
     input logic clk,
     input logic rst_n,
 
@@ -26,7 +29,7 @@ module classifier
     input logic [ BUS_WIDTH - 1:0 ] lu_key,
     output logic lu_done,
     output logic lu_hit_miss,
-    output logic lu_vid,
+    output logic [ VT_AWIDTH - 1:0 ] lu_vid,
     output logic lu_err,
 
     // data path insert
@@ -34,7 +37,7 @@ module classifier
     input logic [ BUS_WIDTH - 1:0 ] ins_key,
     output logic ins_done,
     output logic ins_hit_miss,
-    output logic ins_vid,
+    output logic [ VT_AWIDTH - 1:0 ] ins_vid,
     output logic ins_err,
 
     // data path remove
@@ -42,7 +45,7 @@ module classifier
     input logic [ BUS_WIDTH - 1:0 ] rm_key,
     output logic rm_done,
     output logic rm_hit_miss,
-    output logic rm_vid,
+    output logic [ VT_AWIDTH - 1:0 ] rm_vid,
     output logic rm_err
 );
 
@@ -55,7 +58,6 @@ module classifier
 // use 8k buckets (13-bit address)
 localparam HT_AWIDTH = $clog2( ITEMS / 2 / 4 * 2 );
 localparam HT_DWIDTH = 128;
-localparam VT_AWIDTH = $clog2( ITEMS );
 localparam VT_DWIDTH = $ceil( KEY_LEN / 64 );
 
 logic [ BUS_WIDTH - 1:0 ] lu_key_q;
@@ -79,6 +81,7 @@ logic hbkt_cmp_pkt_strobe_a;
 logic hbkt_cmp_pkt_err_a;
 logic hbkt_cmp_hit_miss_a;
 logic [ VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a;
+logic [ VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a_q;
 
 // =======================================================================
 // Combinational Logic
@@ -193,6 +196,18 @@ always_ff @( posedge clk )
 always_ff @( posedge clk )
     value_mem_douta_q <= value_mem_douta;
 
+// Register:  hbkt_cmp_ptr_a_q
+//
+// Flop again immediately before going into memory.  (Extra stage
+// because might need mux between hbkt ptr gen stage and reading
+// if arbitration for this port is necessary.)
+always_ff @( posedge clk )
+    if ( !rst_n )
+        hbkt_cmp_ptr_a_q <= { VT_AWIDTH{ 1'b0 } };
+
+    else
+        hbkt_cmp_ptr_a_q <= hbkt_cmp_ptr_a;
+
 // =======================================================================
 // Module Instantiations
 
@@ -223,11 +238,12 @@ u_class_hash_top
     .h2k_b( h2k_b )
 );
 
-class_hbkt_cmp u_class_hbkt_cmp_a
+class_hbkt_cmp
 #(
-    HASH_WIDTH = 13,
-    PTR_WIDTH = 15
+    .HASH_WIDTH( HT_AWIDTH ),
+    .PTR_WIDTH( VT_AWIDTH )
 )
+u_class_hbkt_cmp_a
 (
     // system
     .clk( clk ),
@@ -248,6 +264,38 @@ class_hbkt_cmp u_class_hbkt_cmp_a
     .pkt_err( hbkt_cmp_pkt_err_a ),
     .ptr_hit_miss( hbkt_cmp_hit_miss_a ),
     .ptr( hbkt_cmp_ptr_a )
+);
+
+class_key_comp u_class_key_comp_a(
+#(
+    .KEY_LEN( KEY_LEN ),
+    .VT_AWIDTH( VT_AWIDTH )
+)
+u_class_key_comp_a
+(
+    .clk( clk ),
+    .rst_n( rst_n ),
+
+    // hbkt & val mem
+    .pkt_strobe( hbkt_cmp_pkt_strobe_a ),
+    .pkt_hbkt_err( hbkt_cmp_pkt_err_a ),
+    .pkt_hbkt_hit_miss( hbkt_cmp_hit_miss_a ),
+    .val_ptr( hbkt_cmp_ptr_a_q ),
+    .key_orig(),
+    .value_mem_dout_q( value_mem_douta_q ),
+
+    // OF TCAM
+    // FIXME:  NOT IMPLEMENTED YET
+    .of_tcam_vld( 1'b0 ),
+    .of_tcam_err( 1'b0 ),
+    .of_tcam_hit_miss( 1'b0 ),
+    .tcam_ptr( { VT_AWIDTH{ 1'b0 } },
+
+    // final
+    .final_vld( lu_done ),
+    .final_err( lu_err ),
+    .final_hit_miss( lu_hit_miss ),
+    .final_ptr( lu_vid )
 );
 
 // =======================================================================
@@ -329,7 +377,7 @@ u_value_mem
     regcea( 1'b1 ),
     mem_ena( 1'b1 ),
     dina( { VT_DWIDTH{ 1'b0 } } ),
-    addra( hbkt_cmp_ptr_a ),
+    addra( hbkt_cmp_ptr_a_q ),
     douta( value_mem_douta ),
 
     // insert, remove, s/w
