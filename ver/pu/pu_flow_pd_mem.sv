@@ -42,7 +42,7 @@ logic [NUM_OF_PU-1:0] arb_wr_req;
 logic [`PU_ID_NBITS-1:0] arb_wr_sel;
 logic arb_wr_gnt;
 
-logic [WIDTH_NBITS-1:0] ram_rdata /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata ;
 wire [WIDTH_NBITS-1:0] flow_pd_rdata = ram_rdata;
 
 always @(`CLK_RST) 

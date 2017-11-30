@@ -36,7 +36,7 @@ input   [3:0] web,
 input   [DEPTH_NBITS-1:0] addrb,
 input   [WIDTH-1:0] dinb,
 
-output [WIDTH-1:0] doutb /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [WIDTH-1:0] doutb ,
 
 output     reg   mem_ack,
 output reg [`PIO_RANGE] mem_rdata

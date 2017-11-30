@@ -68,10 +68,10 @@ output flow_hash_table1_ack,
 output [BUCKET_NBITS-1:0] flow_hash_table1_rdata,
 
 output reg flow_key_ack, 
-output [VALUE_NBITS-1:0] flow_key_rdata /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [VALUE_NBITS-1:0] flow_key_rdata ,
 
 output reg flow_etime_ack, 
-output [`EXP_TIME_NBITS-1:0] flow_etime_rdata /* synthesis DONT_TOUCH */
+(* dont_touch = "true" *) output [`EXP_TIME_NBITS-1:0] flow_etime_rdata 
 
 );
 

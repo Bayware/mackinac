@@ -64,7 +64,7 @@ logic [DEPTH_NBITS-1:0] ram_raddr_d2;
 
 logic [WIDTH_NBITS-1:0] io_cmd_wdata;
 
-logic [WIDTH_NBITS-1:0] ram_rdata /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata ;
 logic [WIDTH_NBITS-1:0] ram_rdata_d1;
 logic [WIDTH_NBITS-1:0] mod_ram_rdata;
 

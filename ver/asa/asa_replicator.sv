@@ -155,7 +155,7 @@ wire [`TID_NBITS - 1 : 0] lat_fifo_asa_rep_enq_tid_in = p_in_fifo_empty?in_fifo_
 logic tset_rd_d1;
 wire tset_rd = out_fifo_wr;
 wire [`TID_NBITS+`SCI_NBITS-1:0] tset_raddr = {lat_fifo_asa_rep_enq_tid, enq_conn};
-logic [`SUB_EXP_TIME_NBITS-1:0] tset_rdata /* synthesis DONT_TOUCH */;	
+(* dont_touch = "true" *) logic [`SUB_EXP_TIME_NBITS-1:0] tset_rdata ;	
 
 logic tset_fifo_empty;
 logic [`SUB_EXP_TIME_NBITS-1:0] tset_fifo_data;	

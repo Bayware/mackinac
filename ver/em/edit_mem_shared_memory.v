@@ -60,7 +60,7 @@ reg [BPTR_LSB_NBITS-1:0] pu_data_buf_ptr_lsb_d1;
 reg [DATA_NBITS-1:0] pu_data_d1;
 
 
-wire [DATA_NBITS-1:0] pb_dout  /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) wire [DATA_NBITS-1:0] pb_dout  ;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

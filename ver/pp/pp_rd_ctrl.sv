@@ -120,6 +120,7 @@ always @(*) begin
   n_hop_fifo_reset = 1'b0;
   n_hop_fifo_wr = 1'b0;
   n_hop_fifo_wdata = hop_fifo_wdata;
+  n_sv_hop_fifo_wdata = {hop_ptr, hop_data[MDATA_PATH_NBITS-1:MDATA_PATH_NBITS-1-7], 8'b0};
   n_ram_rd = 1'b0;
   n_ram_raddr = ram_raddr;
   get_prev = 1'b0;

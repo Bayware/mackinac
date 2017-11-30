@@ -70,7 +70,7 @@ reg [BPTR_LSB_NBITS-1:0] write_buf_ptr_lsb_d1;
 reg [DATA_NBITS-1:0] write_data_d1;
 
 
-wire [DATA_NBITS-1:0] sm_dout  /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) wire [DATA_NBITS-1:0] sm_dout  ;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

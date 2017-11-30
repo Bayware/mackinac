@@ -450,7 +450,7 @@ flop_rst_en #(1) u_flop_rst_en_9(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(mexec_u
 logic [PC_NBITS-1:0] pc_d1;
 flop_rst_en #(PC_NBITS<<1) u_pc(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(update_pc), .din({pc, next_pc}), .dout({pc_d1, pc}));
 
-logic [WIDTH_NBITS-1:0] ram_inst0, ram_inst1, ram_inst2, ram_inst3, ram_inst;/* synthesis DONT_TOUCH */
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_inst0, ram_inst1, ram_inst2, ram_inst3, ram_inst;
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_0(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS-1:0]), .dout(ram_inst0));
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_1(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS*2-1:WIDTH_NBITS*1]), .dout(ram_inst1));
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_2(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS*3-1:WIDTH_NBITS*2]), .dout(ram_inst2));
@@ -776,11 +776,11 @@ wire [3:0] ram_we00 = ram_we&{(4){ram_wr00}};
 wire [HOP_MEM_DEPTH_LSB_NBITS-1:0] ram_waddr00 = exec_fifo_exception?(`RAS_BASE+0)>>2:exec_cmd_d1.mem_addr[HOP_MEM_DEPTH_LSB_NBITS-1+2:0+2];
 wire [HOP_MEM_DEPTH_NBITS-1:0] ram_raddr00 = {(load_registers?0:exec_fifo_buf_sel), ram_waddr00};
 
-logic [WIDTH_NBITS-1:0] ram_rdata00 /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata00 ;
 
 logic ram_rd01;
 logic [HOP_MEM_DEPTH_NBITS-1:0] ram_raddr01;
-logic [WIDTH_NBITS-1:0] ram_rdata01 /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata01 ;
 
 pio_rw_dmem_bram #(WIDTH_NBITS, HOP_MEM_DEPTH_NBITS) u_pio_rw_dmem_bram(.clk(clk), .wea(ram_we00), .addra(~ram_wr00?ram_raddr00:{exec_fifo_buf_sel, ram_waddr00}), .dina(ram_wdata00), .douta(ram_rdata00), .web({(4){ram_wr01}}), .addrb(~ram_wr01?ram_raddr01:ram_waddr01), .dinb(ram_wdata01), .doutb(ram_rdata01), .app_mem_rd(ram_rd01), .clk_div(clk_div), .`RESET_SIG(`RESET_SIG), .reg_addr(reg_addr), .reg_din(reg_din), .reg_rd(reg_rd), .reg_wr(reg_wr), .reg_ms(reg_ms), .mem_ack(mem_ack), .mem_rdata(mem_rdata));
 
@@ -788,13 +788,13 @@ wire sel_16byte_mem = sel_data&(exec_cmd_d1.mem_addr[`PU_MEM_DATA_DEPTH_RANGE]==
 wire [1:0] ram_raddr10_lsb = exec_cmd_d1.mem_addr[3:2];
 wire disable_wr = exec_fifo_exception|exec_fifo_end_program;
 wire ram_wr10_0 = mem_fifo_wr_en&sel_16byte_mem&~disable_wr&exec_cmd_d1.mem_wr&(ram_raddr10_lsb==2'b11);
-logic [WIDTH_NBITS-1:0] ram_rdata10_0 /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_0 ;
 wire ram_wr10_1 = mem_fifo_wr_en&sel_16byte_mem&~disable_wr&exec_cmd_d1.mem_wr&(ram_raddr10_lsb==2'b10);
-logic [WIDTH_NBITS-1:0] ram_rdata10_1 /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_1 ;
 wire ram_wr10_2 = mem_fifo_wr_en&sel_16byte_mem&~disable_wr&exec_cmd_d1.mem_wr&(ram_raddr10_lsb==2'b01);
-logic [WIDTH_NBITS-1:0] ram_rdata10_2 /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_2 ;
 wire ram_wr10_3 = mem_fifo_wr_en&sel_16byte_mem&~disable_wr&exec_cmd_d1.mem_wr&(ram_raddr10_lsb==2'b00);
-logic [WIDTH_NBITS-1:0] ram_rdata10_3 /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_3 ;
 wire [PD_MEM_DEPTH_LSB_NBITS-1:0] ram_waddr10 = exec_cmd_d1.mem_addr[PD_MEM_DEPTH_LSB_NBITS-1+4:0+4];
 wire [PD_MEM_DEPTH_LSB_NBITS-1:0] ram_raddr10 = ram_waddr10;
 wire [3:0] ram_we10_0 = {(4){ram_wr10_0}}&ram_we;
@@ -808,7 +808,7 @@ wire [PD_MEM_DEPTH_LSB_NBITS-1:0] pd_wr_addr_lsb = en_pd_wr?{`PU_MEM_PD, pd_wr_c
 wire [PD_MEM_DEPTH_NBITS-1:0] ram_waddr11 = {wr_pd_buf_sel, pd_wr_addr_lsb};
 wire [`DATA_PATH_NBITS-1:0] ram_wdata11 = en_pd_wr0?ff_piarb_pu_inst_data:0;
 logic [PD_MEM_DEPTH_NBITS-1:0] ram_raddr11;
-logic [`DATA_PATH_NBITS-1:0] ram_rdata11 /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [`DATA_PATH_NBITS-1:0] ram_rdata11 ;
 
 ram_dual_we_bram #(WIDTH_NBITS/4, PD_MEM_DEPTH_NBITS) u_ram_dual_we_bram_4(.clka(clk), .wea(ram_we10_0), .addra(~|ram_we10_0?{exec_fifo_buf_sel, ram_raddr10}:{exec_fifo_buf_sel, ram_waddr10}), .dina(ram_wdata10), .douta(ram_rdata10_0), .clkb(clk), .web({(4){ram_wr11}}), .addrb(~ram_wr11?ram_raddr11:ram_waddr11), .dinb(ram_wdata11[WIDTH_NBITS*1-1:WIDTH_NBITS*0]), .doutb(ram_rdata11[WIDTH_NBITS*1-1:WIDTH_NBITS*0]));
 ram_dual_we_bram #(WIDTH_NBITS/4, PD_MEM_DEPTH_NBITS) u_ram_dual_we_bram_5(.clka(clk), .wea(ram_we10_1), .addra(~|ram_we10_1?{exec_fifo_buf_sel, ram_raddr10}:{exec_fifo_buf_sel, ram_waddr10}), .dina(ram_wdata10), .douta(ram_rdata10_1), .clkb(clk), .web({(4){ram_wr11}}), .addrb(~ram_wr11?ram_raddr11:ram_waddr11), .dinb(ram_wdata11[WIDTH_NBITS*2-1:WIDTH_NBITS*1]), .doutb(ram_rdata11[WIDTH_NBITS*2-1:WIDTH_NBITS*1]));

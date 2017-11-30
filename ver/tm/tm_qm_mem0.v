@@ -29,7 +29,7 @@ output mem_ack,
 output [`PIO_RANGE] mem_rdata,
 
 output queue_association_ack, 
-output [`QUEUE_ASSOCIATION_NBITS-1:0] queue_association_rdata  /* synthesis DONT_TOUCH */
+(* dont_touch = "true" *) output [`QUEUE_ASSOCIATION_NBITS-1:0] queue_association_rdata  
 
 
 );

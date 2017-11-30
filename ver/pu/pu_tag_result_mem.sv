@@ -51,8 +51,8 @@ logic [WIDTH_NBITS/2-1:0] ram_wdata_l[NUM_OF_PU-1:0];
 logic [WIDTH_NBITS/2-1:0] ram_wdata_h[NUM_OF_PU-1:0];
 
 logic [DEPTH_NBITS-1:0] ram_raddr[NUM_OF_PU-1:0];
-logic [WIDTH_NBITS/2-1:0] ram_rdata_l[NUM_OF_PU-1:0] /* synthesis DONT_TOUCH */;
-logic [WIDTH_NBITS/2-1:0] ram_rdata_h[NUM_OF_PU-1:0] /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [WIDTH_NBITS/2-1:0] ram_rdata_l[NUM_OF_PU-1:0] ;
+(* dont_touch = "true" *) logic [WIDTH_NBITS/2-1:0] ram_rdata_h[NUM_OF_PU-1:0] ;
 
 
 always @(`CLK_RST) 

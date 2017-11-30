@@ -68,7 +68,7 @@ output [WIDTH-1:0] pri_sch_ctrl5_rdata,
 output pri_sch_ctrl6_ack, 
 output [WIDTH-1:0] pri_sch_ctrl6_rdata,
 output pri_sch_ctrl7_ack, 
-output [WIDTH-1:0] pri_sch_ctrl7_rdata  /* synthesis DONT_TOUCH */
+(* dont_touch = "true" *) output [WIDTH-1:0] pri_sch_ctrl7_rdata  
 
 );
 

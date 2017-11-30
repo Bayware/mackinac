@@ -94,7 +94,7 @@ always @(posedge clk) begin
 end
 
 wire [`RCI_NBITS-1:0] ram_raddr = io_cmd_d1[arb_rd_sel].addr[`RCI_NBITS-1+`CONNECTION_CONTEXT_DEPTH_NBITS:`CONNECTION_CONTEXT_DEPTH_NBITS];
-logic [`SCI_NBITS-1:0] ram_rdata /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) logic [`SCI_NBITS-1:0] ram_rdata ;
 
 wire conn_context_rd = arb_rd_gnt_d1;
 wire [DEPTH_NBITS-1:0] conn_context_raddr = {ram_rdata, io_cmd_d1[arb_rd_sel_d1].addr[`CONNECTION_CONTEXT_DEPTH_NBITS-1:0]};

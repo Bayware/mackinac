@@ -38,7 +38,7 @@ reg path_parser_ready0_d1;
 reg path_parser_ready1_d1;
 reg [`PATH_CHUNK_DEPTH_NBITS-1:0] ram_waddr;
 
-wire [`DATA_PATH_RANGE] ram_rdata /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) wire [`DATA_PATH_RANGE] ram_rdata ;
 
 wire hop_fifo_full0;
 wire hop_fifo_fullm10;
