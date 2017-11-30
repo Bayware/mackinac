@@ -48,10 +48,12 @@ logic [`SCI_NBITS-1:0] asa_pu_table_wdata_d1;
 io_type io_cmd_d1[NUM_OF_PU-1:0]; 
 
 logic [NUM_OF_PU-1:0] in_fifo_wr;
-logic [NUM_OF_PU-1:0] in_fifo_rd;
 logic [NUM_OF_PU-1:0] in_fifo_empty;
 
-wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd;
+wire [NUM_OF_PU-1:0] ack;
+wire [NUM_OF_PU-1:0] in_fifo_rd = ack;
+
+wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~ack;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel_d1;
 logic arb_rd_gnt;
@@ -77,7 +79,6 @@ always @(`CLK_RST)
 always @(*)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin  
 		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_CONNECTION_CONTEXT_MEM);
-        	in_fifo_rd[i] = ~in_fifo_empty[i]&(i==arb_rd_sel)&arb_rd_gnt;
 	end
 
 always @(posedge clk) begin
@@ -114,6 +115,7 @@ rr_arb20 u_rr_arb_20_0 (
 	.en(1'b1),
 	.req(arb_rd_req),
 
+	.ack(ack),
 	.sel(arb_rd_sel),
 	.gnt(arb_rd_gnt)
 );

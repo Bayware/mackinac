@@ -169,7 +169,8 @@ wire get_q_req = enq_active;
 wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] fifo_enq_qid;
 wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] fifo_freeq_head;
 wire fifo_empty5;
-wire fifo_rd5 = ~deq_active_d4&~fifo_empty5;
+wire deq_wr_head = deq_active_d4&fifo_depth_deq_from_emptyp2_d4;
+wire fifo_rd5 = ~deq_wr_head&~fifo_empty5;
 
 sch_pkt_desc_type p_desc;
 assign p_desc = pkt_desc_rdata.sch_pkt_desc;
@@ -237,9 +238,9 @@ always @(posedge clk) begin
 		tail_wdata <= freeq_head_d1;
 
 		head_raddr <= fifo_deq_qid;	// deq_active
-		head_wr <= (deq_active_d4&fifo_depth_deq_from_emptyp2_d4)|~fifo_empty5;	
-		head_waddr <= deq_active_d4?head_raddr_d3:fifo_enq_qid;	
-		head_wdata <= deq_active_d4?ll_rdata:fifo_freeq_head;	
+		head_wr <= deq_wr_head|~fifo_empty5;	
+		head_waddr <= deq_wr_head?head_raddr_d3:fifo_enq_qid;	
+		head_wdata <= deq_wr_head?ll_rdata:fifo_freeq_head;	
 
 		ll_raddr <= mhead_rdata;
 		ll_wr <= enq_active_d2&~fifo_depth_enq_to_empty_d2;

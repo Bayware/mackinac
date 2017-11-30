@@ -18,6 +18,9 @@ cat vsim.log | grep 'TEST ' >> regression.log
 vsim -c opt +UVM_TESTNAME=core_test_sixth -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log
+vsim -c opt +UVM_TESTNAME=core_test_seventh -do "run 5000000ns; quit -f" -l vsim.log 
+cat vsim.log | grep 'Running test' >> regression.log
+cat vsim.log | grep 'TEST ' >> regression.log
 vsim -c opt +UVM_TESTNAME=core_test_pp0 -do "run 5000000ns; quit -f" -l vsim.log 
 cat vsim.log | grep 'Running test' >> regression.log
 cat vsim.log | grep 'TEST ' >> regression.log

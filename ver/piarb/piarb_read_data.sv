@@ -203,17 +203,15 @@ always @(`CLK_RST)
 /***************************** PROGRAM BODY **********************************/
 
 logic [`NUM_OF_PU-1:0] pb_req_fifo_av;
-rr_arb20 u_rr_arb20_1 (.clk(clk), .`RESET_SIG(`RESET_SIG), .req(pb_req_fifo_av), .en(1'b1), .sel(sel_port_id), .gnt(buf_req_p1));
+rr_arb20 u_rr_arb20_1 (.clk(clk), .`RESET_SIG(`RESET_SIG), .req(pb_req_fifo_av), .en(1'b1), .ack(sel_port), .sel(sel_port_id), .gnt(buf_req_p1));
 
 logic [`NUM_OF_PU-1:0] data_req_fifo_av;
-rr_arb20 u_rr_arb20_2 (.clk(clk), .`RESET_SIG(`RESET_SIG), .req(data_req_fifo_av), .en(1'b1), .sel(data_sel_port_id), .gnt(data_req_p1));
+rr_arb20 u_rr_arb20_2 (.clk(clk), .`RESET_SIG(`RESET_SIG), .req(data_req_fifo_av), .en(1'b1), .ack(data_sel_port), .sel(data_sel_port_id), .gnt(data_req_p1));
 
 always @(*) begin
 	for (i=0; i<`NUM_OF_PU; i++) begin
-		sel_port[i] = sel_port_id==i;
-		data_sel_port[i] = data_sel_port_id==i;
-		pb_req_fifo_av[i] = ~pb_req_fifo_empty[i]&~(sel_port[i]&buf_req_p1);
-		data_req_fifo_av[i] = ~req_fifo_empty[i]&~(data_sel_port[i]&data_req_p1);
+		pb_req_fifo_av[i] = ~pb_req_fifo_empty[i]&~sel_port[i];
+		data_req_fifo_av[i] = ~req_fifo_empty[i]&~data_sel_port[i];
 	end
 end
 
@@ -346,7 +344,7 @@ always @(*) begin
 	endcase
 end
 
-assign pb_req_fifo_rd[gi] = sel_port[gi]&buf_req_p1&~pb_req_fifo_empty[gi];
+assign pb_req_fifo_rd[gi] = sel_port[gi]&~pb_req_fifo_empty[gi];
 
 assign nsop_eop[gi] = length_ctr[gi]<=DATA_SIZE;
 assign data_req_eop_in[gi] = data_req_sop_in[gi]?sop_eop[gi]:nsop_eop[gi];
@@ -359,7 +357,7 @@ assign req_fifo_wr[gi] = ~buf_fifo_empty[gi]&~req_fifo_full[gi]&(first_buf[gi]|~
 assign buf_fifo_rd[gi] = req_fifo_wr[gi]&data_req_eop_in[gi];
 assign ptr_fifo_rd[gi] = req_fifo_wr[gi]&~first_buf[gi]&(&data_req_lsb[gi]|data_req_eop_in[gi]);
 
-assign req_fifo_rd[gi] = data_sel_port[gi]&data_req_p1&~req_fifo_empty[gi];
+assign req_fifo_rd[gi] = data_sel_port[gi]&~req_fifo_empty[gi];
 
 /***************************** FIFO ***************************************/
 

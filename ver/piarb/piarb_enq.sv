@@ -299,6 +299,8 @@ wire fid_fifo_av = either_fid_lookup_req_d1|either_fid_lookup_req?fid_fifo_count
 wire meta_fifo_av = either_fid_lookup_req_d1|either_fid_lookup_req?meta_fifo_count>1:~meta_fifo_empty;
 wire either_fid_lookup_req_p1 = meta_fifo_av&fid_fifo_av&~either_fid_lookup_req;
 
+wire fid_lookup_req_p1 = ~pinst_meta_fifo_empty&either_fid_lookup_req_p1&~en_type3;
+
 piarb_asa_meta_type piarb_asa_meta_data_p1;
 
 assign piarb_asa_meta_data_p1.ptr_loc = meta_fifo_pp_loc;
@@ -369,7 +371,7 @@ always @(`CLK_RST)
     end else begin
         inst_free_buf_req <= inst_free_buf_req_p1;
         free_buf_req <= free_buf_req_p1;
-	fid_lookup_req <= ~pinst_meta_fifo_empty&either_fid_lookup_req_p1&~en_type3;
+	fid_lookup_req <= fid_lookup_req_p1;
         inst_write_data_valid <= inst_write_data_valid_p1;
         write_data_valid <= write_data_valid_p1;
         enq_req <= enq_req_p1;
@@ -609,8 +611,8 @@ sfifo2f_fo #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_41(
         .`RESET_SIG(`RESET_SIG),
 
         .din({pp_pu_pd_loc_d1}),             
-        .rd(type1_fid_fifo_wr),
-        .wr(pp_pu_valid_d1&pp_pu_sop_d1&~pp_pu_inst_pd_d1),
+        .rd(fid_lookup_req_p1),
+        .wr(pp_pu_valid_d1&pp_pu_eop_d1&pp_pu_inst_pd_d1),
 
         .ncount(),
         .count(),
@@ -626,7 +628,7 @@ sfifo2f_fo #(`CHUNK_LEN_NBITS, INST_BUF_FIFO_DEPTH_NBITS/2) u_sfifo2f_fo_42(
         .`RESET_SIG(`RESET_SIG),
 
         .din({pp_pu_pd_len_d1}),             
-        .rd(type1_fid_fifo_wr),
+        .rd(fid_lookup_req_p1),
         .wr(pp_pu_valid_d1&pp_pu_sop_d1&~pp_pu_inst_pd_d1),
 
         .ncount(),
@@ -644,7 +646,7 @@ sfifo2f_fo #(`CHUNK_LEN_NBITS*2, 2) u_sfifo2f_fo_43(
 
         .din({pinst_meta_fifo_pd_len, pinst_meta_fifo_pd_loc}),             
         .rd(inst_meta_fifo_rd),
-        .wr(type1_fid_fifo_wr),
+        .wr(fid_lookup_req_p1),
 
         .ncount(),
         .count(),

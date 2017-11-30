@@ -729,15 +729,16 @@ sfifo1f #(3+BUFFER_NUM_NBITS+`TID_NBITS+`FID_NBITS) u_sfifo1f_4(.clk(clk), .`RES
 wire sel_data = (exec_cmd_d1.mem_addr[`PU_MEM_CYCLE_DEPTH_RANGE]==`PU_MEM_SINGLE_CYCLE)&
 		(exec_cmd_d1.mem_addr[`PU_MEM_SINGLE_DEPTH_RANGE]==`PU_MEM_DATA);
 
+logic io_ack_d1; 
 logic exec_fifo_wr_d1;
-flop_rst #(1) u_flop_rst_141(.clk(clk), .`RESET_SIG(`RESET_SIG), .din({exec_fifo_wr}), .dout({exec_fifo_wr_d1}));
+flop_rst #(1+1) u_flop_rst_141(.clk(clk), .`RESET_SIG(`RESET_SIG), .din({io_ack, exec_fifo_wr}), .dout({io_ack_d1, exec_fifo_wr_d1}));
 wire io_req_en = exec_cmd_d1.mem_en&exec_cmd_d1.mem_addr[`PU_MEM_CYCLE_DEPTH_RANGE]==`PU_MEM_MULTI_CYCLE;
 assign io_req = exec_fifo_wr_d1&io_req_en;
 
 logic mem_fifo_full;
 logic mem_fifo_rd;
-wire mem_fifo_av = ~mem_fifo_full|mem_fifo_rd;
-wire mem_fifo_wr_en = ~stall_pipeline&~exec_fifo_empty&(~io_req_en|io_ack)&mem_fifo_av;
+wire mem_fifo_av = 1'b1;//~mem_fifo_full|mem_fifo_rd;
+wire mem_fifo_wr_en = ~stall_pipeline&~exec_fifo_empty&(~io_req_en|io_ack_d1)&mem_fifo_av;
 
 wire sel_4byte_mem = sel_data&(exec_cmd_d1.mem_addr[`PU_MEM_DATA_DEPTH_RANGE]==`PU_MEM_4B);
 wire load_meta = sel_4byte_mem&(exec_cmd_d1.mem_addr[`PU_MEM_4B_DEPTH_RANGE]==`PU_MEM_META);
@@ -838,9 +839,10 @@ wire io_req_rd = io_req_en&(exec_cmd_d1.atomic|~exec_cmd_d1.mem_wr);
 
 always @(posedge clk) exec_cmd_d2 <= mem_fifo_wr?exec_cmd_d1:exec_cmd_d2;
 
+logic [WIDTH_NBITS-1:0] io_rdata;
 assign mem_wb_en = exec_cmd_d1.wb_en&mem_fifo_wr_en;
 assign mem_wb_addr_p1 = exec_cmd.wb_addr;
-assign mem_wb_data = io_req_rd?io_ack_data:exec_cmd_d1.wb_data;
+assign mem_wb_data = io_req_rd?io_rdata:exec_cmd_d1.wb_data;
 
 logic mem_fifo_io_req_rd;
 logic mem_fifo_end_program;
@@ -849,7 +851,6 @@ sfifo1f #(5) u_sfifo1f_5(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(mem_fifo_wr), .
 
 logic io_rdata_fifo_rd;
 logic io_rdata_fifo_empty;
-logic [WIDTH_NBITS-1:0] io_rdata;
 sfifo1f #(WIDTH_NBITS) u_sfifo1f_6(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(io_ack&io_req_rd), .din(io_ack_data), .dout(io_rdata), .rd(io_rdata_fifo_rd), .full(), .empty(io_rdata_fifo_empty));
 
 /* write back */

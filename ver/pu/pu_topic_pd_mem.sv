@@ -42,6 +42,9 @@ logic [`PU_ID_NBITS-1:0] arb_rd_sel_d2;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel;
 logic arb_rd_gnt;
 
+logic [NUM_OF_PU-1:0] ack_rd;
+logic [NUM_OF_PU-1:0] ack_wr;
+;
 logic [`PU_ID_NBITS-1:0] arb_wr_sel;
 logic arb_wr_gnt;
 
@@ -50,10 +53,10 @@ logic atomic_rd_d1;
 logic atomic_rd_d2;
 
 logic [NUM_OF_PU-1:0] rd_req;
-wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd&rd_req;
+wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~ack_rd&rd_req;
 
 logic [NUM_OF_PU-1:0] wr_req;
-logic [NUM_OF_PU-1:0] arb_wr_req;
+wire [NUM_OF_PU-1:0] arb_wr_req = ~in_fifo_empty&~ack_wr&wr_req;
 
 wire [DEPTH_NBITS-1:0] ram_raddr = {io_cmd_d1[arb_rd_sel].tid, io_cmd_d1[arb_rd_sel].addr[`TOPIC_PD_NBITS-2-1:0]};
 logic [DEPTH_NBITS-1:0] ram_raddr_d1;
@@ -95,10 +98,9 @@ always @(*) begin
 		same_addr[i] = {io_cmd_d1[i].tid, io_cmd_d1[i].addr[`TOPIC_PD_NBITS-2-1:0]}==ram_raddr;
 		same_addr_d1[i] = {io_cmd_d1[i].tid, io_cmd_d1[i].addr[`TOPIC_PD_NBITS-2-1:0]}==ram_raddr_d1;
 		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_TOPIC_MEM);
-        	in_fifo_rd[i] = ~in_fifo_empty[i]&((i==arb_rd_sel)&arb_rd_gnt|(i==arb_wr_sel)&arb_wr_gnt);
+        	in_fifo_rd[i] = ack_rd[i]|ack_wr[i];
 		rd_req[i] = (io_cmd_d1[i].atomic|~io_cmd_d1[i].wr)&~({(1){atomic_rd}}&same_addr|{(1){atomic_rd_d1}}&same_addr_d1);
 		wr_req[i] = ~io_cmd_d1[i].atomic&io_cmd_d1[i].wr&~({(1){atomic_rd}}&same_addr);
-		arb_wr_req[i] = ~in_fifo_empty[i]&~in_fifo_rd[i]&~io_cmd_d1[i].atomic&io_cmd_d1[i].wr;
 	end
 end
 
@@ -124,7 +126,7 @@ always @(`CLK_RST)
         in_fifo_rd_d1 <= in_fifo_rd;
     end
 
-wire ram_wr = io_cmd_d1[arb_wr_sel].wr&arb_wr_gnt|atomic_rd_d2;
+wire ram_wr = arb_wr_gnt|atomic_rd_d2;
 wire [WIDTH_NBITS-1:0] ram_wdata = atomic_rd_d2?mod_ram_rdata:io_cmd_d1[arb_wr_sel].wdata;
 wire [DEPTH_NBITS-1:0] ram_waddr = atomic_rd_d2?ram_raddr_d2:{io_cmd_d1[arb_wr_sel].tid, io_cmd_d1[arb_wr_sel].addr[`TOPIC_PD_NBITS-2-1:0]};
 
@@ -144,6 +146,7 @@ rr_arb20 u_rr_arb_20_0 (
 	.en(1'b1),
 	.req(arb_rd_req),
 
+	.ack(ack_rd),
 	.sel(arb_rd_sel),
 	.gnt(arb_rd_gnt)
 );
@@ -155,6 +158,7 @@ rr_arb20 u_rr_arb_20_1 (
 	.en(~dis_wr_en),
 	.req(arb_wr_req),
 
+	.ack(ack_wr),
 	.sel(arb_wr_sel),
 	.gnt(arb_wr_gnt)
 );

@@ -41,7 +41,7 @@ logic even;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
-assign tx_axis_tready = even|~out_fifo_full;
+assign tx_axis_tready = ~out_fifo_full;
 
 assign s_axis_c2h_tvalid_x = ~out_fifo_empty;
 

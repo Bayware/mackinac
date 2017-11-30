@@ -40,8 +40,10 @@ integer i;
 io_type io_cmd_d1[NUM_OF_PU-1:0]; 
 
 logic [NUM_OF_PU-1:0] in_fifo_wr;
-logic [NUM_OF_PU-1:0] in_fifo_rd;
 logic [NUM_OF_PU-1:0] in_fifo_empty;
+
+logic [NUM_OF_PU-1:0] ack;
+wire [NUM_OF_PU-1:0] in_fifo_rd = ack;
 
 wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~in_fifo_rd;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel;
@@ -68,7 +70,6 @@ always @(`CLK_RST)
 always @(*)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin
 		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_SWITCH_INFO_MEM);
-        	in_fifo_rd[i] = ~in_fifo_empty[i]&(i==arb_rd_sel)&arb_rd_gnt;
 	end
 
 always @(posedge clk) 
@@ -94,9 +95,16 @@ rr_arb20 u_rr_arb_20_0 (
 	.en(1'b1),
 	.req(arb_rd_req),
 
+	.ack(ack),
 	.sel(arb_rd_sel),
 	.gnt(arb_rd_gnt)
 );
+
+logic [`PU_ID_NBITS-1:0] arb_fifo_dout;
+logic arb_fifo_empty;
+logic arb_fifo_full;
+//logic arb_fifo_rd = ~arb_fifo_empty&~arb_fifo_full;;
+//sfifo1f #(`PU_ID_NBITS) u_sfifo1f(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(arb_rd_gnt), .din(arb_rd_sel), .dout(arb_fifo_dout), .rd(arb_fifo_rd), .full(), .empty(arb_fifo_empty));
 
 sfifo2f_fo #(`PU_ID_NBITS, 2) u_sfifo2f_fo(
 		.clk(clk),
@@ -107,7 +115,7 @@ sfifo2f_fo #(`PU_ID_NBITS, 2) u_sfifo2f_fo(
 		.wr(arb_rd_gnt),
 		.ncount(),
 		.count(),
-		.full(),
+		.full(arb_fifo_full),
 		.empty(),
 		.fullm1(),
 		.emptyp2(),

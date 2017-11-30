@@ -52,8 +52,11 @@ integer i;
 io_type io_cmd_d1[NUM_OF_PU-1:0]; 
 
 logic [NUM_OF_PU-1:0] in_fifo_wr;
-logic [NUM_OF_PU-1:0] in_fifo_rd;
 logic [NUM_OF_PU-1:0] in_fifo_empty;
+
+logic [NUM_OF_PU-1:0] ack;
+
+wire [NUM_OF_PU-1:0] in_fifo_rd = ack;
 
 wire [NUM_OF_PU-1:0] arb_wr_req = ~in_fifo_empty&~in_fifo_rd;
 logic [`PU_ID_NBITS-1:0] arb_wr_sel;
@@ -81,7 +84,6 @@ always @(`CLK_RST)
 always @(*)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin
 		in_fifo_wr[i] = io_req[i]&io_cmd[i].wr&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_TAG_LOOKUP_REQ);
-        	in_fifo_rd[i] = ~in_fifo_empty[i]&(i==arb_wr_sel)&arb_wr_gnt;
 	end
 
 always @(posedge clk) begin
@@ -112,6 +114,7 @@ rr_arb20 u_rr_arb_20_0 (
 	.en(en),
 	.req(arb_wr_req),
 
+	.ack(ack),
 	.sel(arb_wr_sel),
 	.gnt(arb_wr_gnt)
 );
