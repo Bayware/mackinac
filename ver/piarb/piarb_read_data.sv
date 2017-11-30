@@ -210,8 +210,8 @@ rr_arb20 u_rr_arb20_2 (.clk(clk), .`RESET_SIG(`RESET_SIG), .req(data_req_fifo_av
 
 always @(*) begin
 	for (i=0; i<`NUM_OF_PU; i++) begin
-		pb_req_fifo_av[i] = ~pb_req_fifo_empty[i]&~sel_port[i];
-		data_req_fifo_av[i] = ~req_fifo_empty[i]&~data_sel_port[i];
+		pb_req_fifo_av[i] = ~pb_req_fifo_empty[i];
+		data_req_fifo_av[i] = ~req_fifo_empty[i];
 	end
 end
 

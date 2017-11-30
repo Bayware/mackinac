@@ -53,10 +53,10 @@ logic atomic_rd_d1;
 logic atomic_rd_d2;
 
 logic [NUM_OF_PU-1:0] rd_req;
-wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~ack_rd&rd_req;
+wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&rd_req;
 
 logic [NUM_OF_PU-1:0] wr_req;
-wire [NUM_OF_PU-1:0] arb_wr_req = ~in_fifo_empty&~ack_wr&wr_req;
+wire [NUM_OF_PU-1:0] arb_wr_req = ~in_fifo_empty&wr_req;
 
 wire [DEPTH_NBITS-1:0] ram_raddr = {io_cmd_d1[arb_rd_sel].tid, io_cmd_d1[arb_rd_sel].addr[`TOPIC_PD_NBITS-2-1:0]};
 logic [DEPTH_NBITS-1:0] ram_raddr_d1;

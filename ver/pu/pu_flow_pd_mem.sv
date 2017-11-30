@@ -61,8 +61,8 @@ always @(*)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin 
 		in_fifo_wr[i] = io_req[i]&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_FLOW_MEM);
         	in_fifo_rd[i] = ~in_fifo_empty[i]&(ack_rd[i]|ack_wr[i]);
-		arb_rd_req[i] = ~in_fifo_empty[i]&~io_cmd_d1[i].wr&~ack_rd[i];
-		arb_wr_req[i] = ~in_fifo_empty[i]&io_cmd_d1[i].wr&~ack_wr[i];
+		arb_rd_req[i] = ~in_fifo_empty[i]&~io_cmd_d1[i].wr;
+		arb_wr_req[i] = ~in_fifo_empty[i]&io_cmd_d1[i].wr;
 	end
 
 always @(posedge clk) 

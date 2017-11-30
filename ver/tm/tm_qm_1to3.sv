@@ -246,8 +246,9 @@ wire [SIZE_NBITS-1:0] fifo_freeq_head;
 wire fifo_empty5;
 wire fifo_rd5 = ~deq_active_d4&~fifo_empty5;
 
-wire head_wr_p1 = (deq_active_d4&deq_from_emptyp2_p1)|fifo_rd5;	
-wire [SIZE_NBITS-1:0] head_waddr_p1 = deq_active_d4?depth_waddr:fifo_tail_raddr;
+wire deq_wr_head = deq_active_d4&deq_from_emptyp2_p1;
+wire head_wr_p1 = deq_wr_head|fifo_rd5;	
+wire [SIZE_NBITS-1:0] head_waddr_p1 = deq_wr_head?depth_waddr:fifo_tail_raddr;
 	
 wire enq_depth_wr_p1 = (enq_active_d3/*&~disable_enq_wr*/);
 wire deq_depth_wr_p1 = (deq_active_d3/*&~disable_deq_wr*/);
@@ -311,7 +312,7 @@ always @(posedge clk) begin
 		head_raddr <= deq_qid_d1;
 		head_wr <= head_wr_p1;	
 		head_waddr <= head_waddr_p1;	
-		head_wdata <= deq_active_d4?ll_rdata:fifo_freeq_head;	
+		head_wdata <= deq_wr_head?ll_rdata:fifo_freeq_head;	
 
 		tail_raddr <= lat_fifo_enq_qid;	
 		tail_wr <= enq_active_d1;

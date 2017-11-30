@@ -53,7 +53,7 @@ logic [NUM_OF_PU-1:0] in_fifo_empty;
 wire [NUM_OF_PU-1:0] ack;
 wire [NUM_OF_PU-1:0] in_fifo_rd = ack;
 
-wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty&~ack;
+wire [NUM_OF_PU-1:0] arb_rd_req = ~in_fifo_empty;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel;
 logic [`PU_ID_NBITS-1:0] arb_rd_sel_d1;
 logic arb_rd_gnt;
