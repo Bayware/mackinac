@@ -16,6 +16,7 @@ parameter LEN_NBITS = `PD_CHUNK_DEPTH_NBITS
 input clk, `RESET_SIG,
 
 input discard_req,		
+input discard_pd_update,
 input [`PACKET_LENGTH_NBITS-1:0] discard_packet_length,
 input [`PORT_ID_NBITS-1:0] discard_src_port,
 input [`BUF_PTR_NBITS-1:0] discard_buf_ptr,
@@ -98,6 +99,7 @@ logic [`PORT_ID_NBITS-1:0] discard_src_port_d1;
 logic [`BUF_PTR_NBITS-1:0] discard_buf_ptr_d1;
 logic [`EM_BUF_PTR_NBITS-1:0] discard_em_buf_ptr_d1;
 logic [LEN_NBITS-1:0] discard_em_len_d1;
+logic discard_pd_update_d1;
 
 logic rep_enq_req1_d1;				
 logic rep_enq_req_d1;				
@@ -216,6 +218,7 @@ logic [`EM_BUF_PTR_NBITS-1:0] lat_fifo_em_buf_ptr;
 logic [LEN_NBITS-1:0] lat_fifo_em_len;
 logic [`PACKET_ID_NBITS-1:0] lat_fifo_packet_id;				
 logic lat_fifo_ucast;
+logic lat_fifo_pd_update;
 logic lat_fifo_empty3;
 
 wire lat_fifo_rd3 = ~discard_req_d1&~lat_fifo_empty3;
@@ -269,7 +272,7 @@ always @(`CLK_RST)
 		asa_tm_enq_req <= 0;
 		int_rep_bp <= 0;
 	end else begin
-		asa_em_read_count_valid <= discard_req_d1|~lat_fifo_empty3;
+		asa_em_read_count_valid <= discard_req_d1&discard_pd_update_d1|~lat_fifo_empty3&lat_fifo_pd_update;
 		asa_bm_read_count_valid <= discard_req_d1|~lat_fifo_empty3;
 		asa_tm_poll_req <= intf_fifo_rd;
 		asa_tm_enq_req <= buf_fifo_rd0_d1|buf_fifo_rd1_d1;
@@ -282,7 +285,7 @@ wire final_copy = lat_fifo_rep_enq_ucast|lat_fifo_rep_enq_last;
 
 wire tm_drop0 = tm_asa_poll_drop_d1|lat_fifo_rep_enq_drop;
 
-wire [`READ_COUNT_NBITS-1:0] rc_ctr_rdata /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) wire [`READ_COUNT_NBITS-1:0] rc_ctr_rdata ;
 
 wire [`PACKET_ID_NBITS-1:0] rc_ctr_raddr = lat_fifo_rep_enq_packet_id;
 wire [`PACKET_ID_NBITS-1:0] rc_ctr_waddr_p1 = lat_fifo_rep_enq_packet_id_d1;
@@ -337,7 +340,8 @@ always @(posedge clk) begin
 		discard_buf_ptr_d1 <= discard_buf_ptr;
 		discard_src_port_d1 <= discard_src_port;
 		discard_em_len_d1 <= discard_em_len;
-        discard_em_buf_ptr_d1 <= discard_em_buf_ptr;
+        	discard_em_buf_ptr_d1 <= discard_em_buf_ptr;
+        	discard_pd_update_d1 <= discard_pd_update;
         
 		rep_enq_drop_d1 <= rep_enq_drop;
 		rep_enq_ucast_d1 <= rep_enq_ucast;
@@ -548,6 +552,7 @@ assign mlat_fifo_rep_enq_desc_d2.src_port = lat_fifo_rep_enq_desc_d2.src_port;
 assign mlat_fifo_rep_enq_desc_d2.dst_port = tm_asa_poll_port_id_d3;
 assign mlat_fifo_rep_enq_desc_d2.ed_cmd = lat_fifo_rep_enq_desc_d2.ed_cmd;
 assign mlat_fifo_rep_enq_desc_d2.buf_ptr = lat_fifo_rep_enq_desc_d2.buf_ptr;
+wire lat_fifo_rep_enq_pd_update_d2 = lat_fifo_rep_enq_desc_d2.ed_cmd.pd_update;
 
 sfifo2f_fo #(`PACKET_ID_NBITS, 5) u_sfifo2f_fo_100(
 		.clk(clk),
@@ -685,18 +690,18 @@ sfifo2f_fo #(`READ_COUNT_NBITS+`PACKET_ID_NBITS, 5) u_sfifo2f_fo_21(
 		.dout({save_fifo_final_read_count1, save_fifo_packet_id1}));
 
 
-sfifo2f_bram_pf #(1+`PACKET_ID_NBITS+`PORT_ID_NBITS+`READ_COUNT_NBITS+`BUF_PTR_NBITS+`PACKET_LENGTH_NBITS+`EM_BUF_PTR_NBITS+LEN_NBITS, LAT_FIFO_DEPTH_BITS) u_sfifo2f_bram_pf_3(
+sfifo2f_bram_pf #(1+1+`PACKET_ID_NBITS+`PORT_ID_NBITS+`READ_COUNT_NBITS+`BUF_PTR_NBITS+`PACKET_LENGTH_NBITS+`EM_BUF_PTR_NBITS+LEN_NBITS, LAT_FIFO_DEPTH_BITS) u_sfifo2f_bram_pf_3(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({lat_fifo_rep_enq_ucast_d2, lat_fifo_rep_enq_packet_id_d2, src_port_id_d2, final_read_count, buf_ptr_d2, packet_length_d2, em_buf_ptr_d2, em_len_d2}),				
+		.din({lat_fifo_rep_enq_pd_update_d2, lat_fifo_rep_enq_ucast_d2, lat_fifo_rep_enq_packet_id_d2, src_port_id_d2, final_read_count, buf_ptr_d2, packet_length_d2, em_buf_ptr_d2, em_len_d2}),				
 		.rd(lat_fifo_rd3),
 		.wr(lat_fifo_wr3),
 
 		.count(lat_fifo_count),
 		.full(),
 		.empty(lat_fifo_empty3),
-		.dout({lat_fifo_ucast, lat_fifo_packet_id, lat_fifo_src_port_id, lat_fifo_final_read_count, lat_fifo_buf_ptr, lat_fifo_packet_length, lat_fifo_em_buf_ptr, lat_fifo_em_len}));
+		.dout({lat_fifo_pd_update, lat_fifo_ucast, lat_fifo_packet_id, lat_fifo_src_port_id, lat_fifo_final_read_count, lat_fifo_buf_ptr, lat_fifo_packet_length, lat_fifo_em_buf_ptr, lat_fifo_em_len}));
 
 /***************************** MEMORY ***************************************/
 

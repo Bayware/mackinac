@@ -50,14 +50,15 @@ integer i;
 logic buf_ack_valid_d1;
 logic [BPTR_NBITS-1:0] buf_ack_ptr_d1;
 
-wire [BPTR_NBITS-1:0] edit_mem_buf_ptr = edit_mem_raddr[ADDR_NBITS-1:BPTR_LSB_NBITS+LSB_NBITS];
-wire [BPTR_LSB_NBITS-1:0] edit_mem_buf_ptr_lsb = edit_mem_raddr[BPTR_LSB_NBITS+LSB_NBITS-1:LSB_NBITS];
-wire [LSB_NBITS-1:0] edit_mem_lsb = edit_mem_raddr[LSB_NBITS-1:0];
+wire [BPTR_NBITS-1:0] edit_mem_buf_ptr = edit_mem_raddr[ADDR_NBITS-1:ADDR_NBITS-BPTR_NBITS];
+wire edit_mem_buf_ptr_more = edit_mem_raddr[BPTR_LSB_NBITS];
+wire [BPTR_LSB_NBITS-1:0] edit_mem_buf_ptr_lsb = edit_mem_raddr[BPTR_LSB_NBITS-1:0];
 
 logic edit_fifo_empty;
 logic [ID_NBITS-1:0] edit_fifo_port_id;
 logic edit_fifo_eop;
 logic [BPTR_NBITS-1:0] edit_fifo_buf_ptr;
+logic edit_fifo_buf_ptr_more;
 logic [BPTR_LSB_NBITS-1:0] edit_fifo_buf_ptr_lsb;
 logic edit_fifo_sop;
 
@@ -68,10 +69,12 @@ logic [BPTR_NBITS-1:0] pb_fifo_data[NUM_OF_PORTS-1:0];
 
 logic [ID_NBITS-1:0] port_fifo_port_id;
 
-wire n_buf_req = ~edit_fifo_empty&~edit_fifo_eop&(edit_fifo_buf_ptr_lsb==0);
+wire n_data_req = ~edit_fifo_empty&(edit_fifo_buf_ptr_more==0:1'b1:~pb_fifo_empty[edit_fifo_port_id]);
+wire n_buf_req = ~edit_fifo_empty&~edit_fifo_eop&(&edit_fifo_buf_ptr_lsb);
+
 wire port_fifo_wr = n_buf_req;
 
-wire edit_fifo_rd = ~edit_fifo_empty&(edit_fifo_sop|~pb_fifo_empty[edit_fifo_port_id]);
+wire edit_fifo_rd = n_data_req;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
@@ -81,10 +84,11 @@ always @(posedge clk) begin
 		data_req_dst_port_id <= edit_fifo_port_id;
 		data_req_sop <= edit_fifo_sop;
 		data_req_eop <= edit_fifo_eop;
-		data_req_buf_ptr <= edit_fifo_sop?edit_fifo_buf_ptr:pb_fifo_data[edit_fifo_port_id];
+		data_req_buf_ptr <= edit_fifo_buf_ptr_more==0?edit_fifo_buf_ptr:pb_fifo_data[edit_fifo_port_id];
 		data_req_buf_ptr_lsb <= edit_fifo_buf_ptr_lsb;
-		buf_req_ptr <= edit_fifo_sop?edit_fifo_buf_ptr:pb_fifo_data[edit_fifo_port_id];
 end
+
+assign buf_req_ptr = data_req_buf_ptr;
 
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
@@ -92,7 +96,7 @@ always @(`CLK_RST)
 		data_req <= 0;
 	end else begin
 		buf_req <= n_buf_req;
-		data_req <= edit_fifo_rd;
+		data_req <= n_data_req;;
 	end
 
 /***************************** PROGRAM BODY **********************************/
@@ -100,7 +104,7 @@ always @(`CLK_RST)
 always @* begin
 	for(i=0; i<NUM_OF_PORTS; i++) begin
 		pb_fifo_wr[i] = buf_ack_valid_d1&(port_fifo_port_id==i);
-		pb_fifo_rd[i] =  ~edit_fifo_empty&~edit_fifo_sop&~pb_fifo_empty[i]&(&edit_fifo_buf_ptr_lsb|edit_fifo_eop);
+		pb_fifo_rd[i] =  ~edit_fifo_empty&edit_fifo_buf_ptr_more!=0&~pb_fifo_empty[i]&(&edit_fifo_buf_ptr_lsb|edit_fifo_eop);
 	end
 end
 
@@ -121,11 +125,11 @@ always @(`CLK_RST)
 	end
 
 /***************************** FIFO ***************************************/
-sfifo2f_fo #(BPTR_NBITS+BPTR_LSB_NBITS+1+ID_NBITS+1, EDIT_REQ_FIFO_DEPTH_NBITS) u_sfifo2f_fo_0(
+sfifo2f_fo #(BPTR_NBITS+1+BPTR_LSB_NBITS+1+ID_NBITS+1, EDIT_REQ_FIFO_DEPTH_NBITS) u_sfifo2f_fo_0(
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
-		.din({edit_mem_buf_ptr, edit_mem_buf_ptr_lsb, edit_mem_sop, edit_mem_port_id, edit_mem_eop}),				
+		.din({edit_mem_buf_ptr, edit_mem_buf_ptr_more, edit_mem_buf_ptr_lsb, edit_mem_sop, edit_mem_port_id, edit_mem_eop}),				
 		.rd(edit_fifo_rd),
 		.wr(edit_mem_req),
 
@@ -135,7 +139,7 @@ sfifo2f_fo #(BPTR_NBITS+BPTR_LSB_NBITS+1+ID_NBITS+1, EDIT_REQ_FIFO_DEPTH_NBITS) 
 		.empty(edit_fifo_empty),
 		.fullm1(),
 		.emptyp2(),
-		.dout({edit_fifo_buf_ptr, edit_fifo_buf_ptr_lsb, edit_fifo_sop, edit_fifo_port_id, edit_fifo_eop})       
+		.dout({edit_fifo_buf_ptr, edit_fifo_buf_ptr_more, edit_fifo_buf_ptr_lsb, edit_fifo_sop, edit_fifo_port_id, edit_fifo_eop})       
 	);
 
 genvar gi;

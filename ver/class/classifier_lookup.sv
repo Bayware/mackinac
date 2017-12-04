@@ -245,6 +245,16 @@ wire [`TID_NBITS-1:0] tid1 = topic_hash_table0_rdata_sv[TOPIC_ENTRY_NBITS*2-1:TO
 wire [`TID_NBITS-1:0] tid2 = topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS*1-1:TOPIC_ENTRY_NBITS*0+TOPIC_HASH_NBITS];
 wire [`TID_NBITS-1:0] tid3 = topic_hash_table1_rdata_sv[TOPIC_ENTRY_NBITS*2-1:TOPIC_ENTRY_NBITS*1+TOPIC_HASH_NBITS];
 
+wire [3:0] pflow_entry_valid = {flow_hash_table1_rdata_d1[FLOW_BUCKET_NBITS-1], 
+					flow_hash_table1_rdata_d1[FLOW_ENTRY_NBITS-1], 
+					flow_hash_table0_rdata_d1[FLOW_BUCKET_NBITS-1], 
+					flow_hash_table0_rdata_d1[FLOW_ENTRY_NBITS-1]};
+
+wire [3:0] ptopic_entry_valid = {topic_hash_table1_rdata_d1[TOPIC_BUCKET_NBITS-1], 
+					topic_hash_table1_rdata_d1[TOPIC_ENTRY_NBITS-1], 
+					topic_hash_table0_rdata_d1[TOPIC_BUCKET_NBITS-1], 
+					topic_hash_table0_rdata_d1[TOPIC_ENTRY_NBITS-1]};
+
 wire [3:0] flow_entry_valid = {flow_hash_table1_rdata_sv[FLOW_BUCKET_NBITS-1], 
 					flow_hash_table1_rdata_sv[FLOW_ENTRY_NBITS-1], 
 					flow_hash_table0_rdata_sv[FLOW_BUCKET_NBITS-1], 
@@ -344,10 +354,10 @@ wire [`TID_NBITS-1:0] tid = en_topic_key_wr?lf2_topic_free_entry:lf2_topic_compa
 logic [FLOW_VALUE_DEPTH_NBITS-1:0] aging_lat_fifo_fid;
 logic aging_lat_fifo_sel;
 
-wire flow_rel_buf_valid = flow_etime_ack_d1&(flow_entry_valid[flow_key_ack_cnt]&~flow_hash_valid)&aging_lat_fifo_sel;
+wire flow_rel_buf_valid = flow_etime_ack_d1&(pflow_entry_valid[flow_key_ack_cnt]&~flow_hash_valid)&aging_lat_fifo_sel;
 wire [FLOW_VALUE_DEPTH_NBITS-1:0] flow_rel_buf_ptr = aging_lat_fifo_fid;
 
-wire topic_rel_buf_valid = flow_etime_ack_d1&(topic_entry_valid[flow_key_ack_cnt]&~topic_hash_valid)&aging_lat_fifo_sel;
+wire topic_rel_buf_valid = flow_etime_ack_d1&(ptopic_entry_valid[flow_key_ack_cnt]&~topic_hash_valid)&aging_lat_fifo_sel;
 wire [TOPIC_VALUE_DEPTH_NBITS-1:0] topic_rel_buf_ptr = aging_lat_fifo_fid[TOPIC_VALUE_DEPTH_NBITS-1:0];
 
 wire flow_key_wr_p1 = in_fifo_rd_1st&en_flow_key_wr;
@@ -498,8 +508,8 @@ always @(posedge clk) begin
 		topic_key_rdata_d1 <= topic_key_rdata;
 		topic_etime_rdata_d1 <= topic_etime_rdata;
 
-		flow_compare_valid <= flow_key_ack_d1?{(flow_entry_valid[flow_key_ack_cnt]&flow_hash_valid&flow_hash_compare), flow_compare_valid[3:1]}:flow_compare_valid;
-		topic_compare_valid <= flow_key_ack_d1?{(topic_entry_valid[flow_key_ack_cnt]&topic_hash_valid&topic_hash_compare), topic_compare_valid[3:1]}:topic_compare_valid;
+		flow_compare_valid <= flow_key_ack_d1?{(pflow_entry_valid[flow_key_ack_cnt]&flow_hash_valid&flow_hash_compare), flow_compare_valid[3:1]}:flow_compare_valid;
+		topic_compare_valid <= flow_key_ack_d1?{(ptopic_entry_valid[flow_key_ack_cnt]&topic_hash_valid&topic_hash_compare), topic_compare_valid[3:1]}:topic_compare_valid;
 end
 
 always @(`CLK_RST) 

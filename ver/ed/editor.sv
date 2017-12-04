@@ -162,7 +162,7 @@ always @(`CLK_RST)
 	end
 /***************************** PROGRAM BODY **********************************/
 
-always @* begin
+always @* 
 	for(i=0; i<NUM_OF_PORTS; i++) begin
 
 		cmd_fifo_ptr_update[i] = cmd_fifo_data[i].ptr_update;
@@ -190,8 +190,8 @@ always @* begin
 		next_first_pd_len[i] = pd_len[i]>first_pd_len[i]?pd_len[i]-first_pd_len[i]:0;
 		next_pd_len[i] = pd_len[i]>DATA_PATH_NBYTES?pd_len[i]-DATA_PATH_NBYTES:0;
 
-		mpd_fifo_data[i] = rot(pd_fifo_data[i], cmd_fifo_pd_loc[i][VB_NBITS-1:1]);
-		mpd_fifo_data_mask[i] = shift(cmd_fifo_pd_loc[i][VB_NBITS-1:1]);
+		mpd_fifo_data[i] = rot(pd_fifo_data[i], cmd_fifo_pd_loc[i][VB_NBITS-1:0]);
+		mpd_fifo_data_mask[i] = shift(cmd_fifo_pd_loc[i][VB_NBITS-1:0]);
 		for(j=0; j<DATA_NBITS; j++) 
 			use_pd_fifo_data[i][j] = mpd_fifo_data_mask[i][j]?mpd_fifo_data[i][j]:pd_fifo_data_save[i][j];
 
@@ -200,6 +200,7 @@ always @* begin
 	end
 
 
+always @* begin
 	n_ed_dstr_packet_data = bm_ed_packet_data_d1;
 	if (cmd_fifo_ptr_update[bm_ed_port_id_d1]&ptr_loc_hit[bm_ed_port_id_d1])
 		case(cmd_fifo_ptr_loc[bm_ed_port_id_d1][3:1])
@@ -213,14 +214,22 @@ always @* begin
 			default: n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*8-1:`ENQ_ED_CMD_CUR_PTR_NBITS*7] = cmd_fifo_cur_ptr[bm_ed_port_id_d1];
 		endcase
 	if (cmd_fifo_pd_update[bm_ed_port_id_d1]&(start_pd[bm_ed_port_id_d1]|pd_loc_hit_st[bm_ed_port_id_d1])) begin
-		if(0>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]&&0<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]) n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*8-1:`ENQ_ED_CMD_CUR_PTR_NBITS*7] = use_pd_fifo_data[bm_ed_port_id_d1][`ENQ_ED_CMD_CUR_PTR_NBITS*8-1:`ENQ_ED_CMD_CUR_PTR_NBITS*7];
-		if(1>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]&&1<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]) n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*7-1:`ENQ_ED_CMD_CUR_PTR_NBITS*6] = use_pd_fifo_data[bm_ed_port_id_d1][`ENQ_ED_CMD_CUR_PTR_NBITS*7-1:`ENQ_ED_CMD_CUR_PTR_NBITS*6];
-		if(2>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]&&2<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]) n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*6-1:`ENQ_ED_CMD_CUR_PTR_NBITS*5] = use_pd_fifo_data[bm_ed_port_id_d1][`ENQ_ED_CMD_CUR_PTR_NBITS*6-1:`ENQ_ED_CMD_CUR_PTR_NBITS*5];
-		if(3>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]&&3<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]) n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*5-1:`ENQ_ED_CMD_CUR_PTR_NBITS*4] = use_pd_fifo_data[bm_ed_port_id_d1][`ENQ_ED_CMD_CUR_PTR_NBITS*5-1:`ENQ_ED_CMD_CUR_PTR_NBITS*4];
-		if(4>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]&&4<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]) n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*4-1:`ENQ_ED_CMD_CUR_PTR_NBITS*3] = use_pd_fifo_data[bm_ed_port_id_d1][`ENQ_ED_CMD_CUR_PTR_NBITS*4-1:`ENQ_ED_CMD_CUR_PTR_NBITS*3];
-		if(5>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]&&5<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]) n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*3-1:`ENQ_ED_CMD_CUR_PTR_NBITS*2] = use_pd_fifo_data[bm_ed_port_id_d1][`ENQ_ED_CMD_CUR_PTR_NBITS*3-1:`ENQ_ED_CMD_CUR_PTR_NBITS*2];
-		if(6>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]&&6<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]) n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*2-1:`ENQ_ED_CMD_CUR_PTR_NBITS*1] = use_pd_fifo_data[bm_ed_port_id_d1][`ENQ_ED_CMD_CUR_PTR_NBITS*2-1:`ENQ_ED_CMD_CUR_PTR_NBITS*1];
-		if(7>=start_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]&&7<end_pd_loc[bm_ed_port_id_d1][VB_NBITS-1:1]) n_ed_dstr_packet_data[`ENQ_ED_CMD_CUR_PTR_NBITS*1-1:`ENQ_ED_CMD_CUR_PTR_NBITS*0] = use_pd_fifo_data[bm_ed_port_id_d1][`ENQ_ED_CMD_CUR_PTR_NBITS*1-1:`ENQ_ED_CMD_CUR_PTR_NBITS*0];
+		if(0>=start_pd_loc[bm_ed_port_id_d1]&&0<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*16-1:8*15] = use_pd_fifo_data[bm_ed_port_id_d1][8*16-1:8*15];
+		if(1>=start_pd_loc[bm_ed_port_id_d1]&&1<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*15-1:8*14] = use_pd_fifo_data[bm_ed_port_id_d1][8*15-1:8*14];
+		if(2>=start_pd_loc[bm_ed_port_id_d1]&&2<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*14-1:8*13] = use_pd_fifo_data[bm_ed_port_id_d1][8*14-1:8*13];
+		if(3>=start_pd_loc[bm_ed_port_id_d1]&&3<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*13-1:8*12] = use_pd_fifo_data[bm_ed_port_id_d1][8*13-1:8*12];
+		if(4>=start_pd_loc[bm_ed_port_id_d1]&&4<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*12-1:8*11] = use_pd_fifo_data[bm_ed_port_id_d1][8*12-1:8*11];
+		if(5>=start_pd_loc[bm_ed_port_id_d1]&&5<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*11-1:8*10] = use_pd_fifo_data[bm_ed_port_id_d1][8*11-1:8*10];
+		if(6>=start_pd_loc[bm_ed_port_id_d1]&&6<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*10-1:8*9] = use_pd_fifo_data[bm_ed_port_id_d1][8*10-1:8*9];
+		if(7>=start_pd_loc[bm_ed_port_id_d1]&&7<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*9-1:8*8] = use_pd_fifo_data[bm_ed_port_id_d1][8*9-1:8*8];
+		if(8>=start_pd_loc[bm_ed_port_id_d1]&&8<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*8-1:8*7] = use_pd_fifo_data[bm_ed_port_id_d1][8*8-1:8*7];
+		if(9>=start_pd_loc[bm_ed_port_id_d1]&&9<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*7-1:8*6] = use_pd_fifo_data[bm_ed_port_id_d1][8*7-1:8*6];
+		if(10>=start_pd_loc[bm_ed_port_id_d1]&&10<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*6-1:8*5] = use_pd_fifo_data[bm_ed_port_id_d1][8*6-1:8*5];
+		if(11>=start_pd_loc[bm_ed_port_id_d1]&&11<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*5-1:8*4] = use_pd_fifo_data[bm_ed_port_id_d1][8*5-1:8*4];
+		if(12>=start_pd_loc[bm_ed_port_id_d1]&&12<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*4-1:8*3] = use_pd_fifo_data[bm_ed_port_id_d1][8*4-1:8*3];
+		if(13>=start_pd_loc[bm_ed_port_id_d1]&&13<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*3-1:8*2] = use_pd_fifo_data[bm_ed_port_id_d1][8*3-1:8*2];
+		if(14>=start_pd_loc[bm_ed_port_id_d1]&&14<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*2-1:8*1] = use_pd_fifo_data[bm_ed_port_id_d1][8*2-1:8*1];
+		if(15>=start_pd_loc[bm_ed_port_id_d1]&&15<end_pd_loc[bm_ed_port_id_d1]) n_ed_dstr_packet_data[8*1-1:8*0] = use_pd_fifo_data[bm_ed_port_id_d1][8*1-1:8*0];
 	end
 
 end
@@ -349,28 +358,32 @@ sfifo2f_fo #(ID_NBITS, PD_FIFO_DEPTH_NBITS+1+ID_NBITS) u_sfifo2f_fo1(
 
 function [DATA_NBITS-1:0] rot;
 input[DATA_NBITS-1:0] din;
-input[2:0] rot_cnt;
+input[3:0] rot_cnt;
 
 reg[DATA_NBITS-1:0] din0;
 reg[DATA_NBITS-1:0] din1;
+reg[DATA_NBITS-1:0] din2;
 
 begin
-    din1 = rot_cnt[2]?{din[63:0], din[127:64]}:din;
-    din0 = rot_cnt[1]?{din1[31:0], din1[127:32]}:din1;
-    rot = rot_cnt[0]?{din0[15:0], din0[127:16]}:din0;
+    din0 = rot_cnt[3]?{din[63:0], din[127:64]}:din;
+    din1 = rot_cnt[2]?{din0[31:0], din0[127:32]}:din0;
+    din2 = rot_cnt[1]?{din1[15:0], din1[127:16]}:din1;
+    rot = rot_cnt[0]?{din2[7:0], din2[127:8]}:din2;
 end
 endfunction
 
 function [DATA_NBITS-1:0] shift;
-input[2:0] shift_cnt;
+input[3:0] shift_cnt;
 
 reg[DATA_NBITS-1:0] din0;
 reg[DATA_NBITS-1:0] din1;
+reg[DATA_NBITS-1:0] din2;
 
 begin
-    din1 = shift_cnt[2]?{{(64){1'b0}}, {(64){1'b1}}}:{(128){1'b1}};
-    din0 = shift_cnt[1]?{{(32){1'b0}}, din1[127:32]}:din1;
-    shift = shift_cnt[0]?{{(16){1'b0}}, din0[127:16]}:din0;
+    din0 = shift_cnt[3]?{{(64){1'b0}}, {(64){1'b1}}}:{(128){1'b1}};
+    din1 = shift_cnt[2]?{{(32){1'b0}}, din0[127:32]}:din0;
+    din2 = shift_cnt[1]?{{(16){1'b0}}, din1[127:16]}:din1;
+    shift = shift_cnt[0]?{{(8){1'b0}}, din2[127:8]}:din2;
 end
 endfunction
 

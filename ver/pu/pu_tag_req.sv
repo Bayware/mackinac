@@ -52,10 +52,13 @@ integer i;
 io_type io_cmd_d1[NUM_OF_PU-1:0]; 
 
 logic [NUM_OF_PU-1:0] in_fifo_wr;
-logic [NUM_OF_PU-1:0] in_fifo_rd;
 logic [NUM_OF_PU-1:0] in_fifo_empty;
 
-wire [NUM_OF_PU-1:0] arb_wr_req = ~in_fifo_empty&~in_fifo_rd;
+logic [NUM_OF_PU-1:0] ack;
+
+wire [NUM_OF_PU-1:0] in_fifo_rd = ack;
+
+wire [NUM_OF_PU-1:0] arb_wr_req = ~in_fifo_empty;
 logic [`PU_ID_NBITS-1:0] arb_wr_sel;
 logic arb_wr_gnt;
 
@@ -67,21 +70,20 @@ wire [`PU_ID_NBITS-1:0] tag_pid = arb_wr_sel;
 
 wire en = ~tag_key_valid&(cnt==0);
 
-always @(*)
-	for (i = 0; i < NUM_OF_PU ; i = i + 1)
-		io_ack_data[i] = 0;
-
 always @(`CLK_RST) 
     if (`ACTIVE_RESET) begin
         io_ack <= 0;
+	for (i = 0; i < NUM_OF_PU ; i = i + 1)
+		io_ack_data[i] = 0;
     end else begin
         io_ack <= in_fifo_rd;
+	for (i = 0; i < NUM_OF_PU ; i = i + 1)
+		io_ack_data[i] = 0;
     end
 
 always @(*)
 	for (i = 0; i < NUM_OF_PU ; i = i + 1) begin
-		in_fifo_wr[i] = io_req[i]&io_cmd[i].wr&(io_cmd[i].addr[`PU_MEM_DEPTH_MSB_RANGE]==`PU_TAG_LOOKUP_REQ);
-        	in_fifo_rd[i] = ~in_fifo_empty[i]&(i==arb_wr_sel)&arb_wr_gnt;
+		in_fifo_wr[i] = io_req[i]&io_cmd[i].wr&(io_cmd[i].addr[`PU_MEM_MULTI_DEPTH_RANGE]==`PU_TAG_LOOKUP_REQ);
 	end
 
 always @(posedge clk) begin
@@ -100,7 +102,7 @@ genvar gi;
 
 generate
 for (gi = 0; gi < NUM_OF_PU ; gi = gi + 1) begin 
-	sfifo1f #(1) u_sfifo1f(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(in_fifo_wr[i]), .din(1'b1), .dout(), .rd(in_fifo_rd[gi]), .full(), .empty(in_fifo_empty[gi]));
+	sfifo1f #(1) u_sfifo1f(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(in_fifo_wr[gi]), .din(1'b1), .dout(), .rd(in_fifo_rd[gi]), .full(), .empty(in_fifo_empty[gi]));
 
 end
 endgenerate
@@ -112,6 +114,7 @@ rr_arb20 u_rr_arb_20_0 (
 	.en(en),
 	.req(arb_wr_req),
 
+	.ack(ack),
 	.sel(arb_wr_sel),
 	.gnt(arb_wr_gnt)
 );

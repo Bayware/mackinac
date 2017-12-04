@@ -22,43 +22,43 @@ input head_wr,
 input [QUEUE_ID_NBITS-1:0] head_raddr,
 input [QUEUE_ID_NBITS-1:0] head_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] head_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] head_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] head_rdata  ,
 
 input tail_wr,
 input [QUEUE_ID_NBITS-1:0] tail_raddr,
 input [QUEUE_ID_NBITS-1:0] tail_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] tail_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] tail_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] tail_rdata  ,
 
 input depth_wr,
 input [QUEUE_ID_NBITS-1:0] depth_raddr,
 input [QUEUE_ID_NBITS-1:0] depth_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] depth_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] depth_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] depth_rdata  ,
 
 input depth_fid0_wr,
 input [QUEUE_ID_NBITS-1:0] depth_fid0_raddr,
 input [QUEUE_ID_NBITS-1:0] depth_fid0_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] depth_fid0_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] depth_fid0_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] depth_fid0_rdata  ,
 
 input depth_fid1_wr,
 input [QUEUE_ID_NBITS-1:0] depth_fid1_raddr,
 input [QUEUE_ID_NBITS-1:0] depth_fid1_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] depth_fid1_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] depth_fid1_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] depth_fid1_rdata  ,
 
 input ll_wr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_raddr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_wdata,
-output [QUEUE_ENTRIES_NBITS-1:0] ll_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] ll_rdata  ,
 
 input desc_wr,
 input [QUEUE_ENTRIES_NBITS-1:0] desc_raddr,
 input [QUEUE_ENTRIES_NBITS-1:0] desc_waddr,
 input pu_queue_payload_type desc_wdata,
-output pu_queue_payload_type desc_rdata  /* synthesis DONT_TOUCH */
+(* dont_touch = "true" *) output pu_queue_payload_type desc_rdata  
 );
 
 /***************************** MEMORY ***************************************/

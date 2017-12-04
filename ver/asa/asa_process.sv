@@ -75,17 +75,17 @@ wire [`FID_NBITS-1:0] fid_d2 = asa_proc_meta_d2.fid;
 
 wire fp_rd = asa_proc_valid;
 wire [`FID_NBITS-1:0] fp_raddr = fid;				
-logic [`FLOW_POLICY2_NBITS-1:0] fp_rdata /* synthesis DONT_TOUCH */;				
+(* dont_touch = "true" *) logic [`FLOW_POLICY2_NBITS-1:0] fp_rdata ;				
 logic [`FLOW_POLICY2_NBITS-1:0] fp_rdata_d1;				
 
 wire fa_rd = fp_rd;
 wire [`FID_NBITS-1:0] fa_raddr = fp_raddr;				
-logic [`FLOW_ACTION_NBITS-1:0] fa_rdata /* synthesis DONT_TOUCH */;				
+(* dont_touch = "true" *) logic [`FLOW_ACTION_NBITS-1:0] fa_rdata ;				
 logic [`FLOW_ACTION_NBITS-1:0] fa_rdata_d1;				
 
 wire ta_rd = fp_rd;
 wire [`TID_NBITS-1:0] ta_raddr = tid;				
-logic [`SCI_VEC_NBITS-1:0] ta_rdata /* synthesis DONT_TOUCH */;				
+(* dont_touch = "true" *) logic [`SCI_VEC_NBITS-1:0] ta_rdata ;				
 logic [`SCI_VEC_NBITS-1:0] ta_rdata_d1;				
 
 wire [`SCI_VEC_NBITS-1:0] in_rci_bit_vec_p1 = bit_vec_gen({1'b0, asa_proc_meta_d1.rci[`SCI_NBITS-1:0]});
@@ -142,14 +142,14 @@ wire discard_packet = ras_east[1:0]==2'b00;
 wire execute_topic = ras_east[0]==1'b1;
 wire execute_flow = ras_east[1]==1'b1;
 
-wire allow_update = ras_nfascf==2'b11;
-wire allow_forward = ras_nfascf[1];
+wire allow_update = ras_nfascf[5:2]==4'b1101|ras_nfascf[5:2]==4'b1111;
+wire allow_forward = ras_nfascf[5:4]==2'b00|ras_nfascf[5:2]==4'b1001|ras_nfascf[5:2]==4'b1101|ras_nfascf[5:2]==4'b1111;
 
 wire update_default_type = ras_ufdast[2];
 
 wire [`FLOW_POLICY2_MASKON_RANGE] flow_maskon = fp_rdata_d1[`FLOW_POLICY2_MASKON];
 
-wire domain_discard = asa_proc_meta_d2.type1&(asa_proc_meta_d2.domain_id!=fp_rdata_d1[`FLOW_POLICY2_DOMAIN_ID]);
+wire domain_discard = asa_proc_meta_d2.type1&(asa_proc_meta_d2.domain_id!=0)&(asa_proc_meta_d2.domain_id!=fp_rdata_d1[`FLOW_POLICY2_DOMAIN_ID]);
 wire in_discard = asa_proc_meta_d2.discard;
 
 wire fmo_allow_update_ppd = flow_maskon[2-2];

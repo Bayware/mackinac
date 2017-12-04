@@ -210,10 +210,11 @@ typedef struct {
 
 typedef struct { 
 
-	logic [`RCI_NBITS-1:0] rci;
-	logic [3-1:0] rci_type;
-	logic [8-1:0] pc;
 	logic [8-1:0] flags;
+	logic [8-1:0] pc;
+	logic [`RCI_NBITS-1:0] rci;
+	logic [1-1:0] ins;
+	logic [3-1:0] rci_type;
 	logic [16-1:0] byte_ptr;
 
 } hop_info_type; 

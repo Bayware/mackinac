@@ -75,7 +75,7 @@ reg rc_deq_valid_d1;
 reg rc_deq_valid_d2;
 
 
-wire [`BUF_PTR_NBITS-1:0] deq_buf_ptr_nxt  /* synthesis DONT_TOUCH */;
+(* dont_touch = "true" *) wire [`BUF_PTR_NBITS-1:0] deq_buf_ptr_nxt  ;
 
 wire [`BUF_PTR_NBITS-1:0] fifo_buf_ptr;
 wire [`PORT_ID_NBITS-1:0] fifo_port_id;

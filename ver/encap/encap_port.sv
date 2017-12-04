@@ -84,8 +84,8 @@ logic dstr_enc_sop_d1;
 logic dstr_enc_eop_d1;
 logic [PBUS_VB_NBITS-1:0] dstr_enc_valid_bytes_d1;    
 
-wire l2_gre = gre_header==GRE_PROTOCOL_TYPE_L2;
-wire in_vlan_tagged = l2_gre&(in_vlan!=0);
+logic l2_gre;
+logic in_vlan_tagged;
 
 logic [RING_NBITS-1:0] encr_ring_in_data_d1;
 logic encr_ring_in_sof_d1;
@@ -300,11 +300,11 @@ always @(*) begin
 				end
 				7: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				9: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
@@ -343,11 +343,11 @@ always @(*) begin
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				9: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				10: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
@@ -393,7 +393,7 @@ always @(*) begin
 				end
 				9: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				10: begin
 					p_tx_fifo_in_data = {ip_da[111:80]};
@@ -406,7 +406,7 @@ always @(*) begin
 				end
 				13: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				14: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
@@ -455,7 +455,7 @@ always @(*) begin
 				end
 				10: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				11: begin
 					p_tx_fifo_in_data = {ip_da[111:80]};
@@ -468,7 +468,7 @@ always @(*) begin
 				end
 				14: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				15: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
@@ -508,11 +508,11 @@ always @(*) begin
 				end
 				7: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				9: begin
 					p_tx_fifo_in_data = {gre_header[15:0], in_mac_da[47:32]};
@@ -563,11 +563,11 @@ always @(*) begin
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				9: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				10: begin
 					p_tx_fifo_in_data = {gre_header[15:0], in_mac_da[47:32]};
@@ -621,7 +621,7 @@ always @(*) begin
 				end
 				9: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				10: begin
 					p_tx_fifo_in_data = {ip_da[111:80]};
@@ -634,7 +634,7 @@ always @(*) begin
 				end
 				13: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				14: begin
 					p_tx_fifo_in_data = {gre_header[15:0], in_mac_da[47:32]};
@@ -691,7 +691,7 @@ always @(*) begin
 				end
 				10: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				11: begin
 					p_tx_fifo_in_data = {ip_da[111:80]};
@@ -704,7 +704,7 @@ always @(*) begin
 				end
 				14: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				15: begin
 					p_tx_fifo_in_data = {gre_header[15:0], in_mac_da[47:32]};
@@ -752,11 +752,11 @@ always @(*) begin
 				end
 				7: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				9: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
@@ -799,11 +799,11 @@ always @(*) begin
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				9: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				10: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
@@ -849,7 +849,7 @@ always @(*) begin
 				end
 				9: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				10: begin
 					p_tx_fifo_in_data = {ip_da[111:80]};
@@ -862,7 +862,7 @@ always @(*) begin
 				end
 				13: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				14: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
@@ -911,7 +911,7 @@ always @(*) begin
 				end
 				10: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				11: begin
 					p_tx_fifo_in_data = {ip_da[111:80]};
@@ -924,7 +924,7 @@ always @(*) begin
 				end
 				14: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				15: begin
 					p_tx_fifo_in_data = {gre_header[15:0], out_fifo_data[31:16]};
@@ -964,11 +964,11 @@ always @(*) begin
 				end
 				7: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				9: begin
 					p_tx_fifo_in_data = {gre_header[15:0], in_mac_da[47:32]};
@@ -1022,11 +1022,11 @@ always @(*) begin
 				end
 				8: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[31:16]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				9: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				10: begin
 					p_tx_fifo_in_data = {gre_header[15:0], in_mac_da[47:32]};
@@ -1083,7 +1083,7 @@ always @(*) begin
 				end
 				9: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				10: begin
 					p_tx_fifo_in_data = {ip_da[111:80]};
@@ -1096,7 +1096,7 @@ always @(*) begin
 				end
 				13: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				14: begin
 					p_tx_fifo_in_data = {gre_header[15:0], in_mac_da[47:32]};
@@ -1156,7 +1156,7 @@ always @(*) begin
 				end
 				10: begin
 					p_tx_fifo_in_data = {ip_sa[15:0], ip_da[127:112]};
-					ip_sa_fifo_rd = 1'b1;
+					ip_sa_fifo_rd = p_tx_fifo_wr;
 				end
 				11: begin
 					p_tx_fifo_in_data = {ip_da[111:80]};
@@ -1169,7 +1169,7 @@ always @(*) begin
 				end
 				14: begin
 					p_tx_fifo_in_data = {ip_da[15:0], gre_header[31:16]};
-					ip_da_fifo_rd = 1'b1;
+					ip_da_fifo_rd = p_tx_fifo_wr;
 				end
 				15: begin
 					p_tx_fifo_in_data = {gre_header[15:0], in_mac_da[47:32]};
@@ -1216,6 +1216,9 @@ always @(posedge clk) begin
 		dstr_enc_sop_d1 <= dstr_enc_sop;
 		dstr_enc_eop_d1 <= dstr_enc_eop;
 
+		l2_gre <= gre_header==GRE_PROTOCOL_TYPE_L2;
+		in_vlan_tagged <= (in_vlan!=0)&(gre_header==GRE_PROTOCOL_TYPE_L2);
+
 		ipv4_cond_d1 <= ipv4_cond;
 		ipv4_d1 <= ipv4;
 
@@ -1253,7 +1256,7 @@ always @(`CLK_RST)
 		segment_cnt <= encr_ring_in_sof_d1?0:encr_ring_in_sos_d1?segment_cnt+1:segment_cnt;
 		word_cnt <= my_segment?word_cnt+1:0;
 		en_pkt_len <= set_en_pkt_len?1'b1:reset_en_pkt_len?1'b0:en_pkt_len;
-		pkt_len <= reset_en_pkt_len?0:en_pkt_len&p_tx_fifo_wr?pkt_len+`PORT_BUS_NBYTES:pkt_len;
+		pkt_len <= reset_en_pkt_len?0:p_tx_fifo_wr?pkt_len+`PORT_BUS_NBYTES:pkt_len;
 
 		result_fifo_count <= ~req_fifo_wr^result_fifo_rd?result_fifo_count:req_fifo_wr?result_fifo_count+1:result_fifo_count-1;
 

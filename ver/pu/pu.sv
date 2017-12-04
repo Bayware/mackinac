@@ -94,10 +94,14 @@ logic [`PIO_RANGE] tag_hash_table_mem_rdata;
 logic tag_value_mem_ack;
 logic [`PIO_RANGE] tag_value_mem_rdata;
 
+logic [`NUM_OF_PU-1:0] pu_registers_mem_ack;
+logic [`PIO_RANGE] pu_registers_mem_rdata[`NUM_OF_PU-1:0];
+
 logic reg_ms_conn_context;
 logic reg_ms_switch_info;
 logic reg_ms_tag_hash_table;
 logic reg_ms_tag_value;
+logic reg_ms_pu_registers;
 
 logic tag_lookup_valid;
 logic [`RCI_NBITS-1:0] tag_lookup_result;
@@ -255,6 +259,17 @@ for(i = 0; i<`NUM_OF_PU; i = i + 1)
 		.clk(clk),
 		.`RESET_SIG(`RESET_SIG),
 
+    		.clk_div(clk_div),
+
+    		.reg_addr(reg_addr),
+    		.reg_din(reg_din),
+    		.reg_rd(reg_rd),
+    		.reg_wr(reg_wr),
+    		.reg_ms(reg_ms_pu_registers),
+
+		.mem_ack(pu_registers_mem_ack[i]),
+		.mem_rdata(pu_registers_mem_rdata[i]),
+
 		.pu_gnt(pu_gnt[i]),
 
 		.piarb_pu_valid_in(piarb_pu_valid_out[i+1]),
@@ -381,10 +396,14 @@ pu_pio u_pu_pio(
     .tag_value_mem_ack(tag_value_mem_ack),
     .tag_value_mem_rdata(tag_value_mem_rdata),
 
+    .pu_registers_mem_ack(pu_registers_mem_ack[0]),
+    .pu_registers_mem_rdata(pu_registers_mem_rdata[0]),
+
     .reg_ms_conn_context(reg_ms_conn_context),
     .reg_ms_switch_info(reg_ms_switch_info),
     .reg_ms_tag_hash_table(reg_ms_tag_hash_table),
     .reg_ms_tag_value(reg_ms_tag_value),
+    .reg_ms_pu_registers(reg_ms_pu_registers),
 
     .pio_ack(pio_ack),
     .pio_rvalid(pio_rvalid),

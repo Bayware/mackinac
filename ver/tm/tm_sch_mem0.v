@@ -72,25 +72,25 @@ output fill_tb_dst_mem_ack,
 output [`PIO_RANGE] fill_tb_dst_mem_rdata,
 
 output wdrr_sch_ctrl_mem_ack,
-output [`PIO_RANGE] wdrr_sch_ctrl_mem_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [`PIO_RANGE] wdrr_sch_ctrl_mem_rdata  ,
 
 output queue_profile_ack, 
-output [QUEUE_PROFILE_NBITS-1:0] queue_profile_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [QUEUE_PROFILE_NBITS-1:0] queue_profile_rdata  ,
 
 output wdrr_quantum_ack, 
-output [`WDRR_QUANTUM_NBITS-1:0] wdrr_quantum_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [`WDRR_QUANTUM_NBITS-1:0] wdrr_quantum_rdata  ,
 
 output shaping_profile_cir_ack, 
-output [`SHAPING_PROFILE_NBITS-1:0] shaping_profile_cir_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [`SHAPING_PROFILE_NBITS-1:0] shaping_profile_cir_rdata  ,
 
 output shaping_profile_eir_ack, 
-output [`SHAPING_PROFILE_NBITS-1:0] shaping_profile_eir_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [`SHAPING_PROFILE_NBITS-1:0] shaping_profile_eir_rdata  ,
 
 output wdrr_sch_ctrl_ack, 
-output [`WDRR_N_NBITS-1:0] wdrr_sch_ctrl_rdata  /* synthesis DONT_TOUCH */,
+(* dont_touch = "true" *) output [`WDRR_N_NBITS-1:0] wdrr_sch_ctrl_rdata  ,
 
 output fill_tb_dst_ack, 
-output [`PORT_ID_NBITS-1:0] fill_tb_dst_rdata  /* synthesis DONT_TOUCH */
+(* dont_touch = "true" *) output [`PORT_ID_NBITS-1:0] fill_tb_dst_rdata  
 
 );
 
