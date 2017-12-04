@@ -52,6 +52,8 @@ output enq_pkt_desc_type rep_enq_desc
 localparam IN_FIFO_DEPTH_NBITS = 9;
 localparam NEAR_FULL = ((1<<IN_FIFO_DEPTH_NBITS)-4);
 
+integer i;
+
 logic asa_rep_enq_req_d1;
 logic asa_rep_enq_discard_d1;
 logic asa_rep_enq_allow_mcast_d1;
@@ -103,9 +105,10 @@ logic [`SCI_NBITS:0] in_fifo_rep_count;
 logic [`SCI_VEC_NBITS-1:0] enq_vector;
 logic [`SCI_NBITS:0] last_rep_count;
 logic [`SCI_NBITS:0] rep_count;
-wire [`SCI_NBITS:0] pre_enq_conn = pri_enc(enq_vector);
-logic [`SCI_NBITS-1:0] shift_count;
-wire [`SCI_NBITS-1:0] enq_conn = pre_enq_conn+shift_count-1;
+(* max_fanout = 40 *) logic first_conn;
+logic [`SCI_NBITS-1:0] enq_conn_d1;
+wire [`SCI_VEC_NBITS-1:0] enq_vector_mask = rmask(enq_conn_d1, first_conn);
+wire [`SCI_NBITS-1:0] enq_conn = pri_enc(enq_vector&enq_vector_mask)-1;
 
 wire out_rep_enq_drop = 1'b0;	// FIXME
 wire out_rep_enq_ucast = last_rep_count==1;						
@@ -223,7 +226,9 @@ always @(posedge clk) begin
 		asa_rep_enq_desc_d1 <= asa_rep_enq_desc;
 		asa_rep_enq_tid_d1 <= asa_rep_enq_tid;
 
-		enq_vector <= lat_fifo_wr?lat_fifo_asa_rep_enq_vec_in:out_fifo_wr?lat_fifo_asa_rep_enq_vec>>pre_enq_conn:enq_vector;
+		enq_vector <= lat_fifo_wr?lat_fifo_asa_rep_enq_vec_in:enq_vector;
+		enq_conn_d1 <= lat_fifo_wr?0:out_fifo_wr?enq_conn:enq_conn_d1;
+		first_conn <= lat_fifo_wr?1'b1:out_fifo_wr?1'b0:first_conn;
 end
 
 always @(`CLK_RST) 
@@ -231,7 +236,6 @@ always @(`CLK_RST)
 		asa_rep_enq_req_d1 <= 0;
 		last_rep_count <= 0;
 		rep_count <= 0;
-		shift_count <= {(`SCI_NBITS){1'b0}};
 		tset_rd_d1 <= 1'b0;
 		out_sop <= 1'b1;
 		out_drop <= 1'b0;
@@ -240,7 +244,6 @@ always @(`CLK_RST)
 		asa_rep_enq_req_d1 <= asa_rep_enq_req;
 		last_rep_count <= p_in_fifo_rd?1:in_fifo_rd?in_fifo_rep_count:last_rep_count;
 		rep_count <= in_fifo_rd?0:out_fifo_wr?rep_count+1:rep_count;
-		shift_count <= lat_fifo_wr?{(`SCI_NBITS){1'b0}}:out_fifo_wr?shift_count+pre_enq_conn:shift_count;
 		tset_rd_d1 <= tset_rd;
 		out_sop <= ~out_fifo_rd?out_sop:out_rep_enq_last;
 		out_drop <= ~out_fifo_rd?out_drop:out_sop?conn_expired:~conn_expired?1'b0:out_drop;
@@ -445,6 +448,16 @@ ram_1r1w_ultra #(`SUB_EXP_TIME_NBITS, `TID_NBITS+`SCI_NBITS) u_ram_1r1w_ultra_3(
 			.dout(tset_rdata));
 
 /***************************** FUNCTION ***************************************/
+
+function [`SCI_VEC_NBITS-1:0] rmask;
+input[`SCI_NBITS-1:0] cnt;
+input first;
+
+begin
+	for(i=0; i<`SCI_VEC_NBITS; i=i+1)
+		rmask[i] = first?1'b1:(i>cnt);
+end
+endfunction
 
 function [`SCI_NBITS:0] pri_enc;
 input[`SCI_VEC_NBITS-1:0] din;

@@ -19,7 +19,7 @@ input [NUM_OF_INPUT-1:0] req,
 input en, 
 
 output logic [NUM_OF_INPUT-1:0] ack, 
-(* keep = "true" *) output logic [INPUT_NBITS-1:0] sel, 
+(* max_fantout = 20 *) output logic [INPUT_NBITS-1:0] sel, 
 output logic gnt
 
 );

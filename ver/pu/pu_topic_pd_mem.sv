@@ -37,15 +37,15 @@ logic [NUM_OF_PU-1:0] in_fifo_empty;
 logic [NUM_OF_PU-1:0] same_addr;
 logic [NUM_OF_PU-1:0] same_addr_d1;
 
-logic [`PU_ID_NBITS-1:0] arb_rd_sel_d1;
-logic [`PU_ID_NBITS-1:0] arb_rd_sel_d2;
-logic [`PU_ID_NBITS-1:0] arb_rd_sel;
+(* max_fanout = 50 *) logic [`PU_ID_NBITS-1:0] arb_rd_sel_d1;
+(* max_fanout = 50 *) logic [`PU_ID_NBITS-1:0] arb_rd_sel_d2;
+(* max_fantout = 20 *) logic [`PU_ID_NBITS-1:0] arb_rd_sel;
 logic arb_rd_gnt;
 
 logic [NUM_OF_PU-1:0] ack_rd;
 logic [NUM_OF_PU-1:0] ack_wr;
 ;
-logic [`PU_ID_NBITS-1:0] arb_wr_sel;
+(* max_fantout = 20 *) logic [`PU_ID_NBITS-1:0] arb_wr_sel;
 logic arb_wr_gnt;
 
 wire atomic_rd = io_cmd_d1[arb_rd_sel].atomic&arb_rd_gnt;

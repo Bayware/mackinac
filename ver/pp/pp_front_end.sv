@@ -85,7 +85,7 @@ logic      lh_pp_eop_d1;
 logic [`DATA_PATH_RANGE] lh_pp_hdr_data_d1;
 lh_pp_meta_type lh_pp_meta_data_d1;
 
-logic sel_lh;
+(* max_fanout = 100 *) logic sel_lh;
 
 logic [9:0] pp_data_cnt;
 logic [9:0] inst_data_cnt;
@@ -272,7 +272,9 @@ logic [`DATA_PATH_RANGE] pd_mask_d2;
 wire [`DATA_PATH_RANGE] pd_pp_pu_data_p1 = rot_inst_data_d1&pd_mask_d1|rot_inst_data&~pd_mask_d1;
 assign pd_chunk_last_byte_loc_p1 = pd_pp_pu_data_p1[15-4:15-4-11];
 
-wire [`CHUNK_LEN_NBITS-1:0] p_pp_pu_pd_loc = 40+in_auth_len_d1+pp_len+2+(inst_valid_1st?pd_chunk_first_byte_loc_p1+2:pd_chunk_first_byte_loc+2);
+logic [`CHUNK_LEN_NBITS-1:0] p_pp_pu_pd_loc1_d1;
+wire [`CHUNK_LEN_NBITS-1:0] p_pp_pu_pd_loc1 = 40+in_auth_len_d1+pp_len+2+2;
+wire [`CHUNK_LEN_NBITS-1:0] p_pp_pu_pd_loc = p_pp_pu_pd_loc1_d1+(inst_valid_1st?pd_chunk_first_byte_loc_p1:pd_chunk_first_byte_loc);
 wire [`CHUNK_LEN_NBITS-1:0] p_pp_pu_pd_len = pd_chunk_last_byte_loc+1;
 
 wire en_inst_pd = pp_pu_hop_valid&pp_pu_hop_sop;
@@ -347,6 +349,8 @@ always @(posedge clk) begin
 
     inst_valid_last_d1 <= inst_valid_last;
     inst_valid_last_d2 <= inst_valid_last_d1;
+
+    p_pp_pu_pd_loc1_d1 <= p_pp_pu_pd_loc1;
 
 end
 

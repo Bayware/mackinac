@@ -122,7 +122,8 @@ logic n_sel_st;
 
 wire sel_type12 = sel_st==SEL_TYPE12;
 
-wire logic_hash_compare = lh_gen_fifo_empty|lh_fifo_empty|(lh_gen_fifo_data==lh_fifo_data);
+logic logic_hash_compare;
+wire logic_hash_compare_p1 = lh_gen_fifo_empty|lh_fifo_empty|(lh_gen_fifo_data==lh_fifo_data);
 
 logic [`DATA_PATH_NBITS-1:0] lat_fifo_data;
 logic lat_fifo_sop;
@@ -333,6 +334,8 @@ always @(`CLK_RST)
 
 		in_fifo_eop_d1 <= 1'b0;
 
+		logic_hash_compare <= 1'b0;
+
     end else begin
 
 		init_wr <= ~init_addr[`FID_NBITS];
@@ -361,6 +364,8 @@ always @(`CLK_RST)
 		sel_st <= n_sel_st;
 
 		in_fifo_eop_d1 <= sel_type2&in_fifo_rd&in_fifo_eop;
+
+		logic_hash_compare <= logic_hash_compare_p1;
     end
 
 

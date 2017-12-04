@@ -46,6 +46,7 @@ IDLE, WRITE, WAIT_4_RAM, GET_PREV_PTR, GO_TO_PREV_HOP, WAIT_4_RAM1, WAIT_4_RAM2,
 state_t c_st, n_st;
 reg n_hop_fifo_wr;
 reg [`HOP_INFO_RANGE] n_hop_fifo_wdata;
+reg set_sv_hop_fifo_wdata;
 reg [`HOP_INFO_NBITS-16-1:0] n_sv_hop_fifo_wdata;
 reg [`HOP_INFO_NBITS-16-1:0] sv_hop_fifo_wdata;
 reg [`PATH_CHUNK_DEPTH_NBITS-1:0] n_ram_raddr;
@@ -121,6 +122,7 @@ always @(*) begin
   n_hop_fifo_wr = 1'b0;
   n_hop_fifo_wdata = hop_fifo_wdata;
   n_sv_hop_fifo_wdata = {hop_ptr, hop_data[MDATA_PATH_NBITS-1:MDATA_PATH_NBITS-1-7], 8'b0};
+  set_sv_hop_fifo_wdata = 1'b0;
   n_ram_rd = 1'b0;
   n_ram_raddr = ram_raddr;
   get_prev = 1'b0;
@@ -246,9 +248,11 @@ always @(*) begin
             n_ram_raddr = ram_raddr+1'b1;
             n_st = WAIT_4_RAM1;
 	    if (hop_ptr[3:0]>14) begin
+		    set_sv_hop_fifo_wdata = 1'b1;
           	    n_sv_hop_fifo_wdata = {hop_ptr, hop_data[MDATA_PATH_NBITS-1:MDATA_PATH_NBITS-1-7], 8'b0};
 		    set_shift_2byte_more = 1'b1;
 	    end else if (hop_ptr[3:0]>13) begin
+		    set_sv_hop_fifo_wdata = 1'b1;
           	    n_sv_hop_fifo_wdata = {hop_ptr, hop_data[MDATA_PATH_NBITS-1:MDATA_PATH_NBITS-1-15]};
 		    set_shift_1byte_more = 1'b1;
 		    set_sv_inst_type = 1'b1;
@@ -273,6 +277,7 @@ always @(*) begin
             n_ram_raddr = ram_raddr+1'b1;
             n_st = WAIT_4_RAM1;
 	    if (hop_ptr[3:0]>14) begin
+		    set_sv_hop_fifo_wdata = 1'b1;
           	    n_sv_hop_fifo_wdata = {hop_ptr, hop_data[MDATA_PATH_NBITS-1:MDATA_PATH_NBITS-1-7], 8'b0};
 		    set_shift_1byte_more = 1'b1;
 	    end else begin
@@ -298,7 +303,7 @@ always @(posedge clk) begin
   {prev_hop_ptr, flags, pc} <= get_prev?ram_rdata[127:127-31]:{prev_hop_ptr, flags, pc};
   hop_ptr <= n_hop_ptr;
   hop_data <= ram_rd_d1?ram_rdata:shift(hop_data, {shift_8byte, shift_4byte, shift_2byte, shift_1byte});
-  sv_hop_fifo_wdata <= n_sv_hop_fifo_wdata;
+  sv_hop_fifo_wdata <= set_sv_hop_fifo_wdata?n_sv_hop_fifo_wdata:sv_hop_fifo_wdata;
 end
 
 always @(`CLK_RST) 

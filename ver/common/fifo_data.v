@@ -34,7 +34,7 @@ input clk;
 
 input [(DEPTH_BITS - 1):0] rptr, wptr;
 input wr;
-input [(WIDTH - 1):0] din;
+(* max_fanout = 50 *) input [(WIDTH - 1):0] din;
 
 output [(WIDTH - 1):0] dout;
 
@@ -45,7 +45,7 @@ reg [(TOTAL_BITS - 1):0] fifod;
 reg [(DEPTH - 1):0] fd;
 reg [(WIDTH - 1):0] dout;
 
-reg [(DEPTH - 1):0] wren;
+(* max_fanout = 50 *) reg [(DEPTH - 1):0] wren;
 
 integer r, j, i, l, k;
 
