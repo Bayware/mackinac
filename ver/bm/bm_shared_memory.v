@@ -69,7 +69,7 @@ reg [`BUF_PTR_LSB_RANGE] aggr_bm_buf_ptr_lsb_d1;
 reg [`DATA_PATH_NBITS-1:0] aggr_bm_packet_data_d1;
 
 
-(* dont_touch = "true" *) wire [`DATA_PATH_NBITS-1:0] pb_dout  ;
+(* keep = "true" *) wire [`DATA_PATH_NBITS-1:0] pb_dout  ;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 

@@ -51,7 +51,7 @@ output [(WIDTH - 1):0] dout;
 
 /*****************************************************************************/
 
-(* max_fanout = 100 *) wire [(DEPTH_BITS - 1):0] rptr;
+/* (* keep = "true", max_fanout = 100 *) */ wire [(DEPTH_BITS - 1):0] rptr;
 wire [(DEPTH_BITS - 1):0] wptr;
 
 wire unused0, unused1;

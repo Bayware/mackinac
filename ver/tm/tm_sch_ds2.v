@@ -16,25 +16,25 @@ input deficit_counter_wr,
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] deficit_counter_waddr,
 input [`DEFICIT_COUNTER_NBITS+`TQNA_NBITS-1:0] deficit_counter_wdata,
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] deficit_counter_raddr,
-(* dont_touch = "true" *) output [`DEFICIT_COUNTER_NBITS+`TQNA_NBITS-1:0] deficit_counter_rdata  ,
+(* keep = "true" *) output [`DEFICIT_COUNTER_NBITS+`TQNA_NBITS-1:0] deficit_counter_rdata  ,
 
 input token_bucket_wr,			
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] token_bucket_waddr,
 input [`CIR_NBITS+2+`EIR_NBITS+2-1:0] token_bucket_wdata,
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] token_bucket_raddr,
-(* dont_touch = "true" *) output [`CIR_NBITS+2+`EIR_NBITS+2-1:0] token_bucket_rdata  ,
+(* keep = "true" *) output [`CIR_NBITS+2+`EIR_NBITS+2-1:0] token_bucket_rdata  ,
 
 input eir_tb_wr,			
 input [`PORT_ID_NBITS-1:0] eir_tb_waddr,
 input [`EIR_NBITS+2-1:0] eir_tb_wdata,
 input [`PORT_ID_NBITS-1:0] eir_tb_raddr,
-(* dont_touch = "true" *) output [`EIR_NBITS+2-1:0] eir_tb_rdata  ,
+(* keep = "true" *) output [`EIR_NBITS+2-1:0] eir_tb_rdata  ,
 
 input event_fifo_wr,			
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] event_fifo_waddr,
 input [`THIRD_LVL_QUEUE_ID_NBITS+2-1:0] event_fifo_wdata,
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] event_fifo_raddr,
-(* dont_touch = "true" *) output [`THIRD_LVL_QUEUE_ID_NBITS+2-1:0] event_fifo_rdata  ,
+(* keep = "true" *) output [`THIRD_LVL_QUEUE_ID_NBITS+2-1:0] event_fifo_rdata  ,
 
 input event_fifo_rd_ptr_wr0,			
 input [`THIRD_LVL_SCH_ID_NBITS-1:0] event_fifo_rd_ptr_waddr0,
@@ -184,25 +184,25 @@ input event_fifo_count_wr,
 input [`THIRD_LVL_SCH_ID_NBITS-1:0] event_fifo_count_waddr,
 input [(`THIRD_LVL_QUEUE_ID_NBITS<<1)-1:0] event_fifo_count_wdata,
 input [`THIRD_LVL_SCH_ID_NBITS-1:0] event_fifo_count_raddr,
-(* dont_touch = "true" *) output [(`THIRD_LVL_QUEUE_ID_NBITS<<1)-1:0] event_fifo_count_rdata  ,
+(* keep = "true" *) output [(`THIRD_LVL_QUEUE_ID_NBITS<<1)-1:0] event_fifo_count_rdata  ,
 
 input event_fifo_f1_count_wr,			
 input [`THIRD_LVL_SCH_ID_NBITS-1:0] event_fifo_f1_count_waddr,
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] event_fifo_f1_count_wdata,
 input [`THIRD_LVL_SCH_ID_NBITS-1:0] event_fifo_f1_count_raddr,
-(* dont_touch = "true" *) output [`THIRD_LVL_QUEUE_ID_NBITS-1:0] event_fifo_f1_count_rdata  ,
+(* keep = "true" *) output [`THIRD_LVL_QUEUE_ID_NBITS-1:0] event_fifo_f1_count_rdata  ,
 
 input wdrr_sch_tqna_wr,			
 input [`THIRD_LVL_SCH_ID_NBITS-1:0] wdrr_sch_tqna_waddr,
 input [`TQNA_NBITS-1:0] wdrr_sch_tqna_wdata,
 input [`THIRD_LVL_SCH_ID_NBITS-1:0] wdrr_sch_tqna_raddr,
-(* dont_touch = "true" *) output [`TQNA_NBITS-1:0] wdrr_sch_tqna_rdata  ,
+(* keep = "true" *) output [`TQNA_NBITS-1:0] wdrr_sch_tqna_rdata  ,
 
 input semaphore_wr,			
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] semaphore_waddr,
 input semaphore_wdata,
 input [`THIRD_LVL_QUEUE_ID_NBITS-1:0] semaphore_raddr,
-(* dont_touch = "true" *) output semaphore_rdata  
+(* keep = "true" *) output semaphore_rdata  
 );
 
 /***************************** MEMORY ***************************************/

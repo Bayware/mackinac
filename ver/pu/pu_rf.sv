@@ -17,7 +17,7 @@ parameter WIDTH = 32,
 output  [WIDTH-1:0] dout0, dout1;
 
 input    clk, `RESET_SIG;  
-(* max_fanout = 100 *) input    wr;  
+/* (* keep = "true", max_fanout = 100 *) */ input    wr;  
 input   [DEPTH_NBITS-1:0] raddr0, raddr1, waddr;
 input   [WIDTH-1:0] din;
 

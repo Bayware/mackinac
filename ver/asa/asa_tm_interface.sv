@@ -285,7 +285,7 @@ wire final_copy = lat_fifo_rep_enq_ucast|lat_fifo_rep_enq_last;
 
 wire tm_drop0 = tm_asa_poll_drop_d1|lat_fifo_rep_enq_drop;
 
-(* dont_touch = "true" *) wire [`READ_COUNT_NBITS-1:0] rc_ctr_rdata ;
+(* keep = "true" *) wire [`READ_COUNT_NBITS-1:0] rc_ctr_rdata ;
 
 wire [`PACKET_ID_NBITS-1:0] rc_ctr_raddr = lat_fifo_rep_enq_packet_id;
 wire [`PACKET_ID_NBITS-1:0] rc_ctr_waddr_p1 = lat_fifo_rep_enq_packet_id_d1;

@@ -37,11 +37,11 @@ input `RESET_SIG;
 
 input [(WIDTH - 1):0] din;
 input rd;
-(* max_fanout = 50 *) input wr;
+/* (* keep = "true", max_fanout = 50 *) */ input wr;
 
 output full, empty;
 
-(* max_fanout = 50 *) output [(WIDTH - 1):0] dout;
+/* (* keep = "true", max_fanout = 50 *) */ output [(WIDTH - 1):0] dout;
 
 
 /***************************** LOCAL VARIABLES *******************************/

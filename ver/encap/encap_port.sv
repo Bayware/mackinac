@@ -109,7 +109,7 @@ logic in_fifo_eop;
 logic in_fifo_sop;
 logic in_fifo_sop_d1;
 
-(* max_fanout = 100 *) logic [LEN_NBITS-1:0] pkt_len;
+/* (* keep = "true", max_fanout = 100 *) */ logic [LEN_NBITS-1:0] pkt_len;
 
 wire vlan_tagged = |encr_ring_in_data_d2[127-48:64];
 wire ipsec = |encr_ring_in_data_d2[63:0];
@@ -148,7 +148,7 @@ wire ip_sa_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(w
 wire ip_da_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(word_cnt==3);
 logic [RING_NBITS-1:0] ip_sa_fifo_data;
 logic [RING_NBITS-1:0] ip_da_fifo_data;
-(* max_fanout = 50 *) logic result_fifo_empty;
+/* (* keep = "true", max_fanout = 50 *) */ logic result_fifo_empty;
 wire result_fifo_wr = encr_ring_in_valid_d2&my_segment&~req_pending_fifo_empty&(word_cnt==4);
 logic result_fifo_ipv4;
 logic result_fifo_ipsec;
@@ -264,8 +264,8 @@ wire [47:0] mac_da = result_fifo_mac_da;
 wire [127:0] ip_sa = ip_sa_fifo_data;
 wire [127:0] ip_da = ip_da_fifo_data;
 
-(* max_fanout = 50 *) wire result_ipv6 = ~(~result_fifo_empty&result_fifo_ipv4); 
-(* max_fanout = 50 *) wire result_vlan_tagged = ~result_fifo_empty&result_fifo_vlan_tagged;
+/* (* keep = "true", max_fanout = 50 *) */ wire result_ipv6 = ~(~result_fifo_empty&result_fifo_ipv4); 
+/* (* keep = "true", max_fanout = 50 *) */ wire result_vlan_tagged = ~result_fifo_empty&result_fifo_vlan_tagged;
 
 always @(*) begin
 	out_fifo_rd = 1'b0;

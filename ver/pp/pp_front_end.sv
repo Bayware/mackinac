@@ -85,7 +85,7 @@ logic      lh_pp_eop_d1;
 logic [`DATA_PATH_RANGE] lh_pp_hdr_data_d1;
 lh_pp_meta_type lh_pp_meta_data_d1;
 
-(* max_fanout = 100 *) logic sel_lh;
+/* (* keep = "true", max_fanout = 100 *) */ logic sel_lh;
 
 logic [9:0] pp_data_cnt;
 logic [9:0] inst_data_cnt;

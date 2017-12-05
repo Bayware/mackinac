@@ -75,17 +75,17 @@ wire [`FID_NBITS-1:0] fid_d2 = asa_proc_meta_d2.fid;
 
 wire fp_rd = asa_proc_valid;
 wire [`FID_NBITS-1:0] fp_raddr = fid;				
-(* dont_touch = "true" *) logic [`FLOW_POLICY2_NBITS-1:0] fp_rdata ;				
+(* keep = "true" *) logic [`FLOW_POLICY2_NBITS-1:0] fp_rdata ;				
 logic [`FLOW_POLICY2_NBITS-1:0] fp_rdata_d1;				
 
 wire fa_rd = fp_rd;
 wire [`FID_NBITS-1:0] fa_raddr = fp_raddr;				
-(* dont_touch = "true" *) logic [`FLOW_ACTION_NBITS-1:0] fa_rdata ;				
+(* keep = "true" *) logic [`FLOW_ACTION_NBITS-1:0] fa_rdata ;				
 logic [`FLOW_ACTION_NBITS-1:0] fa_rdata_d1;				
 
 wire ta_rd = fp_rd;
 wire [`TID_NBITS-1:0] ta_raddr = tid;				
-(* dont_touch = "true" *) logic [`SCI_VEC_NBITS-1:0] ta_rdata ;				
+(* keep = "true" *) logic [`SCI_VEC_NBITS-1:0] ta_rdata ;				
 logic [`SCI_VEC_NBITS-1:0] ta_rdata_d1;				
 
 wire [`SCI_VEC_NBITS-1:0] in_rci_bit_vec_p1 = bit_vec_gen({1'b0, asa_proc_meta_d1.rci[`SCI_NBITS-1:0]});

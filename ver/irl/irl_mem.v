@@ -77,13 +77,13 @@ output limiting_profile_eir_ack,
 output [`LIMITING_PROFILE_NBITS-1:0] limiting_profile_eir_rdata,
 
 output reg fill_tb_src_ack, 
-(* dont_touch = "true" *) output [`FILL_TB_NBITS-1:0] fill_tb_src_rdata ,
+(* keep = "true" *) output [`FILL_TB_NBITS-1:0] fill_tb_src_rdata ,
 
 output reg eir_tb_ack, 
-(* dont_touch = "true" *) output [EIR_TB_NBITS-1:0] eir_tb_rdata ,
+(* keep = "true" *) output [EIR_TB_NBITS-1:0] eir_tb_rdata ,
 
 output reg token_bucket_ack, 
-(* dont_touch = "true" *) output [BUCKET_NBITS-1:0] token_bucket_rdata 
+(* keep = "true" *) output [BUCKET_NBITS-1:0] token_bucket_rdata 
 
 );
 

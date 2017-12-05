@@ -29,7 +29,7 @@ output mem_ack,
 output [`PIO_RANGE] mem_rdata,
 
 output queue_association_ack, 
-(* dont_touch = "true" *) output [`QUEUE_ASSOCIATION_NBITS-1:0] queue_association_rdata  
+(* keep = "true" *) output [`QUEUE_ASSOCIATION_NBITS-1:0] queue_association_rdata  
 
 
 );

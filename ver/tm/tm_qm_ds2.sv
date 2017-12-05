@@ -20,37 +20,37 @@ input head_wr,
 input [QUEUE_ID_NBITS-1:0] head_raddr,
 input [QUEUE_ID_NBITS-1:0] head_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] head_wdata,
-(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] head_rdata  ,
+(* keep = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] head_rdata  ,
 
 input tail_wr,
 input [QUEUE_ID_NBITS-1:0] tail_raddr,
 input [QUEUE_ID_NBITS-1:0] tail_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] tail_wdata,
-(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] tail_rdata  ,
+(* keep = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] tail_rdata  ,
 
 input depth_wr,
 input [QUEUE_ID_NBITS-1:0] depth_raddr,
 input [QUEUE_ID_NBITS-1:0] depth_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] depth_wdata,
-(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] depth_rdata  ,
+(* keep = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] depth_rdata  ,
 
 input depth1_wr,
 input [QUEUE_ID_NBITS-1:0] depth1_raddr,
 input [QUEUE_ID_NBITS-1:0] depth1_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] depth1_wdata,
-(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] depth1_rdata  ,
+(* keep = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] depth1_rdata  ,
 
 input ll_wr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_raddr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_waddr,
 input [QUEUE_ENTRIES_NBITS-1:0] ll_wdata,
-(* dont_touch = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] ll_rdata  ,
+(* keep = "true" *) output [QUEUE_ENTRIES_NBITS-1:0] ll_rdata  ,
 
 input pkt_desc_wr,
 input [QUEUE_ENTRIES_NBITS-1:0] pkt_desc_raddr,
 input [QUEUE_ENTRIES_NBITS-1:0] pkt_desc_waddr,
 input sch_pkt_desc_type pkt_desc_wdata,
-(* dont_touch = "true" *) output sch_pkt_desc_type pkt_desc_rdata  
+(* keep = "true" *) output sch_pkt_desc_type pkt_desc_rdata  
 );
 
 /***************************** MEMORY ***************************************/

@@ -36,7 +36,7 @@ input   [3:0] web,
 input   [DEPTH_NBITS-1:0] addrb,
 input   [WIDTH-1:0] dinb,
 
-(* dont_touch = "true" *) output [WIDTH-1:0] doutb ,
+(* keep = "true" *) output [WIDTH-1:0] doutb ,
 
 output     reg   mem_ack,
 output reg [`PIO_RANGE] mem_rdata

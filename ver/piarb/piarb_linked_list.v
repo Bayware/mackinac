@@ -38,7 +38,7 @@ reg buf_req_d1;
 reg buf_req_d2;
 reg [BUF_NBITS-1:0] buf_req_ptr_d1;
 
-(* dont_touch = "true" *) wire [BUF_NBITS-1:0] deq_buf_ptr_nxt ;
+(* keep = "true" *) wire [BUF_NBITS-1:0] deq_buf_ptr_nxt ;
 
 /***************************** NON REGISTERED OUTPUTS ************************/
 
