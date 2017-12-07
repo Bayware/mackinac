@@ -1,4 +1,4 @@
-/* (c) 2017 Bayware, Inc.
+// (c) 2017 Bayware, Inc.
 //
 //   Project: Mackinac
 //   Module:  class_intf.sv
@@ -6,22 +6,21 @@
 //   Date:    10/27/17
 //
 //   Summary:  Interface for the classifier.
-*/
 
 interface class_intf
+    import class_pkg::*;
 #(
-    parameter KEY_LEN = 276,
-    parameter ITEMS = 32768,
     parameter BUS_WIDTH = 128,
+    parameter ITEMS = 32768,
     localparam VT_AWIDTH = $clog2( ITEMS )
 )
 (
     input logic clk,
-    input logic rst_n
+    output logic rst_n
 );
     // data path lookup
-    logic lu_vld;
-    logic [ BUS_WIDTH - 1:0 ] lu_key;
+    logic lu_vld = 0;
+    logic [ BUS_WIDTH - 1:0 ] lu_key = '0;
     logic lu_done;
     logic lu_hit_miss;
     logic [ VT_AWIDTH - 1:0 ] lu_vid;
@@ -43,17 +42,28 @@ interface class_intf
     logic [ VT_AWIDTH - 1:0 ] rm_vid;
     logic rm_err;
 
+    // pio
+    logic pio_start = 1'b0;
+    logic pio_rw = 1'b0;
+    logic [ PIO_NBITS - 1:0 ] pio_addr_wdata = '0;
+    logic clk_div;
+    logic pio_ack;
+    logic pio_rvalid;
+    logic [ PIO_NBITS - 1:0 ] pio_rdata;
+
     modport class_ing
     (
-        input lu_vld, lu_key,
-        output lu_done, lu_hit_miss, lu_vid, lu_err
+        input lu_vld, lu_key, pio_start, pio_rw, pio_addr_wdata,
+        output lu_done, lu_hit_miss, lu_vid, lu_err, clk_div, pio_rvalid,
+        pio_ack, pio_rdata
     );
 
     clocking cb @( posedge clk );
         default output #1;
 
-        input lu_done, lu_hit_miss, lu_vid, lu_err;
-        output lu_vld, lu_key;
+        input lu_done, lu_hit_miss, lu_vid, lu_err, clk_div, pio_ack,
+        pio_rvalid, pio_rdata;
+        output lu_vld, lu_key, rst_n, pio_start, pio_rw, pio_addr_wdata;
     endclocking
 
     modport TB ( clocking cb );

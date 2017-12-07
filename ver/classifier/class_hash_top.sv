@@ -1,4 +1,4 @@
-/* (c) 2017 Bayware, Inc.
+// (c) 2017 Bayware, Inc.
 //
 //   Project: Mackinac
 //   Module:  class_hash_top.sv
@@ -8,7 +8,6 @@
 //   Summary:  This block receives the key in three contiguous clock cycles.
 //   The key must be padded out with 0s by the calling module to support a 
 //   width of 3*BUS_WIDTH.  The hash is returned three clock cycles later.
-/*                                                                           */
 
 module class_hash_top
 #(

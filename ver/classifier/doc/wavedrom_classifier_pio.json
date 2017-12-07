@@ -1,0 +1,36 @@
+{signal: [
+  {name: 'clk', wave: 'p..........................................'},
+  {name: 'clk_div', wave:'10..10..10..10..10..10..10..10..10..10..'},
+  {},
+  [ 'CHIP PIO',
+  {name: 'pio_start', wave: '010...........10.'},
+   {name: 'pio_rw', wave:'x=xxxxxxxxxxxx=x', data:['WR', 'RD']},
+  {name: 'pio_addr_wdata', wave:'x==xxxxxxxxxxx=x', data:['AD', 'WD', 'AD']},
+   ],
+  {},
+   [ 'LOCAL PIO',
+    {name: 'reg_addr', wave:'xxx=............=..'},
+    {name: 'reg_din', wave:'xx==...', data:['AD','WD']},
+    {name: 'reg_rd', wave:'0...............10'},
+    {name: 'reg_wr', wave:'0..10...'},
+    {name: 'mem_bs', wave:'0..1...............'},
+    {name: 'pio_ack', wave:'0............1...0'},
+    {name: 'pio_rvalid', wave:'0....................1...0..1...0'},
+    {name: 'pio_rdata', wave:'xxxxxxxxxxxxxxxxxxxxx=...x..=...x', data:['REG', 'MEM_DA']}
+   ],
+   {},
+   [ 'MEM ACCESS',
+    {name: 'pio_mem_req', wave:'0...1.....0......1.......0...'},
+    {name: 'pio_mem_rw', wave:'0...1............0..'},
+    {name: 'mem_pio_ack', wave:'0........10.............10.'},
+    {name: 'mem_pio_dout', wave:'xxxxxxxxxxxxxxxxxxxxxxxx=x', data:['DA']},
+    {name: 'mem_pio_ack_stretch', wave:'0.........1..0...........1...0'},
+    {name: 'mem_pio_dout_stretch', wave:'xxxxxxxxxxxxxxxxxxxxxxxxx=...x', data:['DA']},
+    {},
+   ],
+   ],
+ config: { hscale: 1 },
+ head: {text: ['tspan', 'MEMORY PIO', {class:'info h3'}]}
+}
+
+

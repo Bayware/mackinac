@@ -1,4 +1,4 @@
-/* (c) 2017 Bayware, Inc.
+// (c) 2017 Bayware, Inc.
 //
 //   Project: Mackinac
 //   Module:  class_oftcam.sv
@@ -8,9 +8,9 @@
 //   Summary:  This block takes in a key and does simultaneousy compare against
 //   n entries then outputs ID associated with the lowest numbered entry found.
 //   It indicates if multiple entries were found and if no entries were found.
-*/
 
 module class_oftcam
+    import class_pkg::*;
 #(
     // DEPTH of this overflow TCAM itself
     parameter DEPTH = 8,
@@ -30,7 +30,7 @@ module class_oftcam
     input logic [ VID_WIDTH - 1:0 ] base_vid,
 
     output logic rslt_vld,
-    output logic rslt_vid,
+    output logic [ VID_WIDTH - 1:0 ] rslt_vid,
     output logic rslt_hit_miss,
     output logic rslt_err,
 
@@ -47,8 +47,6 @@ module class_oftcam
 // Declarations & Parameters
 
 localparam CNT_WIDTH = $clog2( DEPTH ) + 1;
-parameter HIT = 1;
-parameter MISS = 0;
 
 logic [ DEPTH - 1:0 ] compare;
 logic [ KEY_LEN - 1:0 ] tcam [ DEPTH ];
@@ -125,7 +123,7 @@ always_ff @( posedge clk )
         if ( key_vld_qq )
         begin
             rslt_vld <= 1'b1;
-            rslt_vid <= ffs_low_bit;
+            rslt_vid <= ffs_low_bit + base_vid;
             rslt_hit_miss <= hit_miss;
             rslt_err <= err;
         end

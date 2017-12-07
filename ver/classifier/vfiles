@@ -2,11 +2,13 @@ classifier.sv
 class_intf.sv
 class_pkg.sv
 class_hash_top.sv
+class_hasht_arb.sv
 class_hbkt_cmp.sv
-class_key_comp.sv
+class_key_cmp.sv
 class_oftcam.sv
 crc16_d128_mod.sv
 crc32_d128_mod.sv
 fifo_sync.sv
 ram_sdp_one_clock.sv
 xilinx_ultraram_true_dual_port.sv
+class_pio.sv

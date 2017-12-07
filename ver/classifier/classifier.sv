@@ -1,4 +1,4 @@
-/* (c) 2017 Bayware, Inc.
+// (c) 2017 Bayware, Inc.
 //
 //   Project: Mackinac
 //   Module:  classifier.sv
@@ -10,9 +10,15 @@
 //   consecutive clock cycles; back-to-back LUs must be at least four cycles
 //   apart.
 //       Port B is used for insert, remove, and software lookups.
-/*                                                                           */
 
 module classifier
+    import class_pkg::*;
+#(
+    parameter KEY_LEN = 276,
+    parameter ITEMS = 32768,
+    parameter BUS_WIDTH = 128,
+    localparam VT_AWIDTH = $clog2( ITEMS )
+)
 (
     input logic clk,
     input logic rst_n,
@@ -27,19 +33,22 @@ module classifier
 // what are required in order to avoid collissions i.e., for 32k IDs, we
 // only need 32k / 2 hash tables / 4 slots per table = 4k buckets; instead,
 // use 8k buckets (13-bit address)
-localparam HT_AWIDTH = $clog2( clsmp.ITEMS / 2 / 4 * 2 );
+localparam HT_AWIDTH = $clog2( ITEMS / 2 / 4 * 2 );
 localparam HT_DWIDTH = 128;
-localparam VT_DWIDTH = $ceil( clsmp.KEY_LEN / 64 );
+// localparam VT_DWIDTH = $ceil( KEY_LEN / 64 ) * 64; --Vivado support, but not Mentor?
+localparam VT_DWIDTH = 320;
 localparam KEY_FIFO_DEPTH = 32;
-localparam OFTCAM_DEPTH = 8;
-localparam [ clsmp.VT_AWIDTH - 1:0 ] OFTCAM_BASE = 2**15;
+localparam [ VT_AWIDTH - 1:0 ] OFTCAM_DEPTH = 8;
+// some number of pointers reserved for overflow; (FIXME upper IDs reserved
+// for special purpose, see Wiki)
+localparam [ VT_AWIDTH - 1:0 ] OFTCAM_BASE = 2**15 - OFTCAM_DEPTH;
 
-logic [ clsmp.KEY_LEN - 1:0 ] data_out_key_a;
-logic [ clsmp.KEY_LEN - 1:0 ] lu_key_full_q;
+logic [ KEY_LEN - 1:0 ] data_out_key_a;
+logic [ KEY_LEN - 1:0 ] lu_key_full_q;
 
-logic [ clsmp.BUS_WIDTH - 1:0 ] lu_key_q;
-logic [ clsmp.BUS_WIDTH - 1:0 ] lu_key_hi;
-logic [ clsmp.BUS_WIDTH - 1:0 ] lu_key_mid;
+logic [ BUS_WIDTH - 1:0 ] lu_key_q;
+logic [ BUS_WIDTH - 1:0 ] lu_key_hi;
+logic [ BUS_WIDTH - 1:0 ] lu_key_mid;
 logic lu_vld_q;
 logic lu_vld_qq;
 logic lu_vld_qqq;
@@ -66,8 +75,8 @@ logic [ HT_AWIDTH - 1:0 ] h2k_b;
 logic hbkt_cmp_pkt_strobe_a;
 logic hbkt_cmp_pkt_err_a;
 logic hbkt_cmp_hit_miss_a;
-logic [ clsmp.VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a;
-logic [ clsmp.VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a_q;
+logic [ VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a;
+logic [ VT_AWIDTH - 1:0 ] hbkt_cmp_ptr_a_q;
 
 logic [ HT_DWIDTH - 1:0 ] ht_t1_douta_q;
 logic [ HT_DWIDTH - 1:0 ] ht_t2_douta_q;
@@ -75,7 +84,39 @@ logic [ HT_DWIDTH - 1:0 ] ht_t1_douta;
 logic [ HT_DWIDTH - 1:0 ] ht_t2_douta;
 
 logic [ VT_DWIDTH - 1:0 ] val_mem_douta;
-logic [ VT_DWIDTH - 1:0 ] val_mem_douta_q;
+logic [ KEY_LEN - 1:0 ] val_mem_douta_keyonly_q;
+
+logic oftcam_rslt_vld;
+logic [ VT_AWIDTH - 1:0 ] oftcam_rslt_vid;
+logic oftcam_rslt_hit_miss;
+logic oftcam_rslt_err;
+
+logic [ PIO_NBITS - 1:0 ] reg_addr;
+logic [ PIO_NBITS - 1:0 ] reg_din;
+logic reg_rd;
+logic reg_wr;
+logic mem_bs;
+logic reg_bs;
+
+logic pio_mem_req_hasht1;
+logic mem_pio_ack_hasht1;
+logic [ PIO_NBITS - 1:0 ] mem_dout_hasht1;
+logic pio_mem_req_hasht2;
+logic mem_pio_ack_hasht2;
+logic [ PIO_NBITS - 1:0 ] mem_dout_hasht2;
+logic pio_mem_rd_wr;
+logic [ CLASSIFIER_PIO_MEM_ADDR_WIDTH - 1:0 ] pio_mem_addr;
+logic [ PIO_NBITS - 1:0 ] pio_mem_din;
+
+logic pio_mem_req_value;
+logic mem_pio_ack_value;
+logic [ VAL_MEM_WIDTH - 1:0 ] mem_dout_value;
+logic [ VAL_MEM_WIDTH - 1:0 ] pio_value_din;
+
+logic pio_start;
+logic pio_rw;
+logic [ PIO_NBITS - 1:0 ] pio_addr_wdata;
+logic clk_div;
 
 // =======================================================================
 // Combinational Logic
@@ -148,7 +189,7 @@ always_ff @( posedge clk )
         lu_key_full_q <= '0;
 
     else if ( lu_vld_qqq )
-        lu_key_full_q <= { lu_key_hi, lu_key_mid, lu_key_q[ clsmp.BUS_WIDTH - 1:clsmp.BUS_WIDTH - 20 ] };
+        lu_key_full_q <= { lu_key_hi, lu_key_mid, lu_key_q[ BUS_WIDTH - 1:BUS_WIDTH - 20 ] };
 
 // Register:  ht_t1_addra_q
 // Register:  ht_t2_addra_q
@@ -237,10 +278,10 @@ always_ff @( posedge clk )
         ht_t1_addra_qqqq <= ht_t1_addra_qqq;
     end
 
-// Register:  val_mem_douta_q
+// Register:  val_mem_douta_keyonly_q
 
 always_ff @( posedge clk )
-    val_mem_douta_q <= val_mem_douta;
+    val_mem_douta_keyonly_q <= val_mem_douta[ VT_DWIDTH - 1:VT_DWIDTH - KEY_LEN ];
 
 // Register:  hbkt_cmp_ptr_a_q
 //
@@ -260,7 +301,7 @@ always_ff @( posedge clk )
 // calculates hashes:  2 hashes for port A and 2 hashes for port B
 class_hash_top
 #(
-    .BUS_WIDTH( clsmp.BUS_WIDTH ),
+    .BUS_WIDTH( BUS_WIDTH ),
     .HASH_WIDTH( HT_AWIDTH )
 )
 u_class_hash_top
@@ -277,7 +318,7 @@ u_class_hash_top
     .h2k_a( h2k_a ),
 
     // port B signals
-    .key_b( 'd0 ),
+    .key_b( { BUS_WIDTH{ 1'b0 } } ),
     .key_b_start( 1'b0 ),
     .hash_b_vld( hash_b_vld ),
     .h1k_b( h1k_b ),
@@ -287,7 +328,7 @@ u_class_hash_top
 class_hbkt_cmp
 #(
     .HASH_WIDTH( HT_AWIDTH ),
-    .PTR_WIDTH( clsmp.VT_AWIDTH )
+    .PTR_WIDTH( VT_AWIDTH )
 )
 u_class_hbkt_cmp_a
 (
@@ -312,12 +353,12 @@ u_class_hbkt_cmp_a
     .ptr( hbkt_cmp_ptr_a )
 );
 
-class_key_comp
+class_key_cmp
 #(
-    .KEY_LEN( clsmp.KEY_LEN ),
-    .VT_AWIDTH( clsmp.VT_AWIDTH )
+    .KEY_LEN( KEY_LEN ),
+    .VT_AWIDTH( VT_AWIDTH )
 )
-u_class_key_comp_a
+u_class_key_cmp_a
 (
     .clk( clk ),
     .rst_n( rst_n ),
@@ -327,13 +368,13 @@ u_class_key_comp_a
     .pkt_hbkt_err( hbkt_cmp_pkt_err_a ),
     .pkt_hbkt_hit_miss( hbkt_cmp_hit_miss_a ),
     .val_ptr( hbkt_cmp_ptr_a_q ),
-    .key_orig(  ),
-    .val_mem_dout_q( val_mem_douta_q ),
+    .key_orig( data_out_key_a  ),
+    .val_mem_dout_q( val_mem_douta_keyonly_q ),
 
     // OF TCAM
-    .of_tcam_vld( oftcam_rslt_vld ),
-    .of_tcam_err( oftcam_rslt_err ),
-    .of_tcam_hit_miss( oftcam_rslt_hit_miss ),
+    .oftcam_vld( oftcam_rslt_vld ),
+    .oftcam_err( oftcam_rslt_err ),
+    .oftcam_hit_miss( oftcam_rslt_hit_miss ),
     .tcam_ptr( oftcam_rslt_vid ),
 
     // final
@@ -343,7 +384,7 @@ u_class_key_comp_a
     .final_ptr( clsmp.lu_vid )
 );
 
-// Module:  fifo_sync
+// Module:  u_fifo_sync_key_a
 //
 // The "a" port stores keys in this FIFO during the lookup process.  The FIFO
 // is popped at such a time as the key can be used to lookup in the overflow
@@ -352,7 +393,7 @@ u_class_key_comp_a
 
 fifo_sync
 #(
-    .DWIDTH( clsmp.KEY_LEN ),
+    .DWIDTH( KEY_LEN ),
     .DEPTH( KEY_FIFO_DEPTH ),
     .HEADROOM( 6 )
 )
@@ -380,7 +421,8 @@ u_fifo_sync_key_a
 class_oftcam
 #(
     .DEPTH( OFTCAM_DEPTH ),
-    .KEY_LEN( clsmp.KEY_LEN )
+    .KEY_LEN( KEY_LEN ),
+    .VID_WIDTH( VT_AWIDTH )
 )
 u_class_oftcam
 (
@@ -402,6 +444,127 @@ u_class_oftcam
     .pio_oftcam_wrdata(),
     .oftcam_pio_ack(),
     .oftcam_pio_rddata()
+);
+
+// pio2reg_bus
+// standardized PIO convertor
+pio2reg_bus
+#(
+    .BLOCK_ADDR_LSB( CLASSIFIER_BLOCK_ADDR_LSB ),
+    .BLOCK_ADDR( CLASSIFIER_BLOCK_ADDR ),
+    .REG_BLOCK_ADDR_LSB( CLASSIFIER_REG_BLOCK_ADDR_LSB ),
+    .REG_BLOCK_ADDR( CLASSIFIER_REG_BLOCK_ADDR )
+)
+u_pio2reg_bus
+(
+    .clk( clk ),
+    .rst_n( rst_n ),
+
+    // from central PIO
+    .pio_start,
+    .pio_rw,
+    .pio_addr_wdata,
+
+    // locally generated
+    .clk_div,
+
+    // for local mem/reg access
+    .reg_addr,
+    .reg_din,
+    .reg_rd,
+    .reg_wr,
+    .mem_bs,
+    .reg_bs
+);
+
+// Arbitration for HASHT2
+class_hasht_arb
+#(
+    // actual memory instance depth/width
+    .AW( HT_AWIDTH ),
+    .DW( HT_DWIDTH )
+)
+u_class_hasht_arb_2
+(
+    .clk,
+    .rst_n,
+
+    .req( pio_mem_req_hasht2 ),
+    .rd_or_wr( pio_mem_rd_wr ),
+    .addr( pio_mem_addr ),
+    .wdata( pio_mem_din ),
+
+    .ack( mem_pio_ack_hasht2 ),
+    .rdata( mem_dout_hasht2 ),
+
+    .mem_we( hasht2_mem_we ),
+    .mem_wdata( hasht2_mem_wdata ),
+    .mem_addr( hasht2_mem_addr ),
+    .mem_rdata( hasht2_mem_rdata )
+);
+
+// Arbitration for HASHT1
+class_hasht_arb
+#(
+    // actual memory instance depth/width
+    .AW( HT_AWIDTH ),
+    .DW( HT_DWIDTH )
+)
+u_class_hasht_arb_1
+(
+    .clk,
+    .rst_n,
+
+    .req( pio_mem_req_hasht1 ),
+    .rd_or_wr( pio_mem_rd_wr ),
+    .addr( pio_mem_addr ),
+    .wdata( pio_mem_din ),
+
+    .ack( mem_pio_ack_hasht1 ),
+    .rdata( mem_dout_hasht1 ),
+
+    .mem_we( hasht1_mem_we ),
+    .mem_wdata( hasht1_mem_wdata ),
+    .mem_addr( hasht1_mem_addr ),
+    .mem_rdata( hasht1_mem_rdata )
+);
+
+class_pio u_class_pio
+(
+    clk,
+    rst_n,
+
+    clk_div,
+
+    reg_addr,
+    reg_din,
+    reg_rd,
+    reg_wr,
+    mem_bs,
+    reg_bs,
+
+    pio_ack,
+    pio_rvalid,
+    pio_error(),
+    pio_invld(),
+    pio_rdata,
+
+    pio_mem_req_value,
+    mem_pio_ack_value,
+    mem_dout_value,
+    pio_value_din,
+
+    pio_mem_req_hasht1,
+    mem_pio_ack_hasht1,
+    mem_dout_hasht1,
+
+    pio_mem_req_hasht2,
+    mem_pio_ack_hasht2,
+    mem_dout_hasht2,
+
+    pio_mem_rd_wr,
+    pio_mem_addr,
+    pio_mem_din
 );
 
 // =======================================================================
@@ -427,14 +590,13 @@ u_hashtable_t1
     .douta( ht_t1_douta ),
 
     // insert, remove, s/w
-    // FIXME:  update for port B behavior
     .rstb( ~rst_n ),   
-    .web( 1'b0 ),    
+    .web( hasht1_mem_we ),    
     .regceb( 1'b1 ), 
     .mem_enb( 1'b1 ),
-    .dinb( { HT_DWIDTH{ 1'b0 } } ), 
-    .addrb( { HT_AWIDTH{ 1'b0 } } ),
-    .doutb()
+    .dinb( hasht1_mem_wdata ),
+    .addrb( hasht1_mem_addr ),
+    .doutb( hasht1_mem_rdata )
 );
 
 xilinx_ultraram_true_dual_port
@@ -459,17 +621,17 @@ u_hashtable_t2
     // insert, remove, s/w
     // FIXME:  update for port B behavior
     .rstb( ~rst_n ),
-    .web( 1'b0 ),
+    .web( hasht2_mem_we ),
     .regceb( 1'b1 ),
     .mem_enb( 1'b1 ),
-    .dinb( { HT_DWIDTH{ 1'b0 } } ),
-    .addrb( { HT_AWIDTH{ 1'b0 } } ),
-    .doutb()
+    .dinb( hasht1_mem_wdata ),
+    .addrb( hasht2_mem_addr ),
+    .doutb( hasht2_mem_rdata )
 );
 
 xilinx_ultraram_true_dual_port
 #(
-    .AWIDTH( clsmp.VT_AWIDTH ),
+    .AWIDTH( VT_AWIDTH ),
     .DWIDTH( VT_DWIDTH ),
     .NBPIPE( 3 )
 )
@@ -484,17 +646,17 @@ u_value_mem
     .mem_ena( 1'b1 ),
     .dina( { VT_DWIDTH{ 1'b0 } } ),
     .addra( hbkt_cmp_ptr_a_q ),
-    .douta( value_mem_douta ),
+    .douta( val_mem_douta ),
 
     // insert, remove, s/w
-    // FIXME:  update for port B behavior
+    // FIXME:  needs arbiter logic module
     .rstb( ~rst_n ),
-    .web( 1'b0 ),
+    .web( pio_mem_rd_wr & pio_mem_req_value ),
     .regceb( 1'b1 ),
     .mem_enb( 1'b1 ),
-    .dinb( { VT_DWIDTH{ 1'b0 } } ),
-    .addrb( { clsmp.VT_AWIDTH{ 1'b0 } } ),
-    .doutb()
+    .dinb( pio_value_din ),
+    .addrb( pio_mem_addr[ 20:6 ] ),
+    .doutb( mem_dout_value )
 );
 
 endmodule

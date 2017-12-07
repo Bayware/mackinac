@@ -1,4 +1,4 @@
-/* (c) 2017 Bayware, Inc.
+// (c) 2017 Bayware, Inc.
 //
 //   Project: Mackinac
 //   Module:  class_hbkt_cmp.sv
@@ -6,7 +6,6 @@
 //   Date:    10/04/17
 //
 //   Summary:  
-/*                                                                           */
 
 module class_hbkt_cmp
 #(
@@ -368,6 +367,15 @@ always_ff @( posedge clk )
         hit_miss_3_q <= hit_miss_3_c;
         winner_3_q <= winner_3_c;
     end
+
+// Register:  hit_miss_4_q
+
+always_ff @( posedge clk )
+    if ( !rst_n )
+        hit_miss_4_q <= 1'b0;
+
+    else
+        hit_miss_4_q <= hit_miss_4_c;
 
 // Register:  match_vector_qq
 // Register:  match_vector_qqq

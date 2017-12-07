@@ -1,16 +1,15 @@
-/* (c) 2017 Bayware, Inc.
+// (c) 2017 Bayware, Inc.
 //
 //   Project: Mackinac
-//   Module:  class_key_comp.sv
+//   Module:  class_key_cmp
 //   Owner:   G Walter
 //   Date:    10/18/17
 //
 //   Summary:  Compares keys from value memory to original key.  Gets
 //   result from OF TCAM compare and produces final hit/miss with FID or
 //   TID.  Supports one of the two value mem ports only.
-/*                                                                           */
 
-module class_key_comp
+module class_key_cmp
 #(
     parameter KEY_LEN = 276,
     parameter VT_AWIDTH = 15
@@ -28,9 +27,9 @@ module class_key_comp
     input logic [ KEY_LEN - 1:0 ] val_mem_dout_q,
 
     // OF TCAM
-    input logic of_tcam_vld,
-    input logic of_tcam_err,
-    input logic of_tcam_hit_miss,
+    input logic oftcam_vld,
+    input logic oftcam_err,
+    input logic oftcam_hit_miss,
     input logic [ VT_AWIDTH - 1:0 ] tcam_ptr,
 
     // final
@@ -81,7 +80,7 @@ assign rd_vld_aligned = pkt_hbkt_hit_miss_qqqq;
 assign val_ptr_aligned = val_ptr_aligned_qqqq;
 
 assign final_vld = pkt_strobe_aligned_qqqq;
-assign final_hit_miss = cmp_running_q;
+assign final_hit_miss = cmp_running_q /*FIXME*/ || oftcam_hit_miss & oftcam_vld & !oftcam_err;
 
 // =======================================================================
 // Registered Logic
@@ -222,7 +221,7 @@ always_ff @( posedge clk )
     begin
         cmp_running_q <= 1'b0;
         final_err <= 1'b0;
-        final_ptr <= { VT_AWIDTH{ 1'b0 } };
+        final_ptr <= tcam_ptr /* FIXME was '0 */;
     end
 
 endmodule
