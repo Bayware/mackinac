@@ -60,7 +60,6 @@ FIND_LIST} state_t;
 state_t c_st, n_st;
 logic inc_rptr;
 logic rptr;
-logic hop_fifo_rd;
 logic reset_process_lev;
 logic inc_process_lev;
 logic dec_process_lev;
@@ -76,27 +75,56 @@ logic pp_pu_fifo_eop;
 
 logic pp_pu_fifo_empty;
 
-wire hop_fifo_rd0 = hop_fifo_rd&~rptr;
-logic hop_fifo_empty0;
-logic [FIFO_DEPTH_NBITS:0] hop_fifo_count0;
-logic [`HOP_INFO_RANGE] hop_fifo_rdata0;
-wire hop_fifo_rd1 = hop_fifo_rd&rptr;
-logic hop_fifo_empty1;
-logic [FIFO_DEPTH_NBITS:0] hop_fifo_count1;
-logic [`HOP_INFO_RANGE] hop_fifo_rdata1;
+wire hop_fifo_reset = hop_fifo_reset0|hop_fifo_reset1|inc_rptr|parse_done0|parse_done1;
 
-wire hop_fifo_reop0;
-wire hop_fifo_reop1;
+logic phop_fifo_empty;
+logic hop_fifo_rd;
+logic hop_fifo_full;
+wire hop_fifo_wr = ~phop_fifo_empty&(~hop_fifo_full|hop_fifo_rd);
 
-wire hop_fifo_empty = rptr?hop_fifo_empty1:hop_fifo_empty0;
-wire hop_fifo_reop = rptr?hop_fifo_reop1:hop_fifo_reop0;
-wire [`HOP_INFO_RANGE] hop_fifo_rdata = rptr?hop_fifo_rdata1:hop_fifo_rdata0;
+wire phop_fifo_rd = hop_fifo_wr;
+
+wire phop_fifo_rd0 = phop_fifo_rd&~rptr;
+logic phop_fifo_empty0;
+logic [`HOP_INFO_RANGE] phop_fifo_rdata0;
+
+wire phop_fifo_rd1 = phop_fifo_rd&rptr;
+logic phop_fifo_empty1;
+logic [`HOP_INFO_RANGE] phop_fifo_rdata1;
+
+wire phop_fifo_reop0;
+wire phop_fifo_reop1;
+
+assign phop_fifo_empty = rptr?phop_fifo_empty1:phop_fifo_empty0;
+wire phop_fifo_reop = rptr?phop_fifo_reop1:phop_fifo_reop0;
+wire [`HOP_INFO_RANGE] phop_fifo_rdata = rptr?phop_fifo_rdata1:phop_fifo_rdata0;
+wire [`HOP_INFO_TYPE_RANGE] phop_fifo_type = phop_fifo_rdata[`HOP_INFO_TYPE];
+wire [`HOP_INFO_RCI_RANGE] phop_fifo_rci = phop_fifo_rdata[`HOP_INFO_RCI];
+wire [`HOP_INFO_BYTE_POINTER_RANGE] phop_fifo_byte_pointer = phop_fifo_rdata[`HOP_INFO_BYTE_POINTER];
+wire pdummy_hop = phop_fifo_rci==0;
+wire pinitial_hop = phop_fifo_byte_pointer==`INITIAL_HOP;
+
+logic [`PP_META_RCI_RANGE] pp_meta_fifo_rci;
+
+wire pdynamic_hop = (phop_fifo_rci>0)&(phop_fifo_rci<256);
+
+wire prci_match = (phop_fifo_rci==pp_meta_fifo_rci)|pdynamic_hop;
+
+logic hop_fifo_empty;
+logic [`HOP_INFO_RANGE] hop_fifo_rdata;
+logic hop_fifo_reop;
+logic dummy_hop;
+logic dynamic_hop;
+logic initial_hop;
+logic rci_match;
+
 wire [`HOP_INFO_TYPE_RANGE] hop_fifo_type = hop_fifo_rdata[`HOP_INFO_TYPE];
 wire [`HOP_INFO_RCI_RANGE] hop_fifo_rci = hop_fifo_rdata[`HOP_INFO_RCI];
 wire [`HOP_INFO_BYTE_POINTER_RANGE] hop_fifo_byte_pointer = hop_fifo_rdata[`HOP_INFO_BYTE_POINTER];
-wire dummy_hop = hop_fifo_rci==0;
-wire dynamic_hop = (hop_fifo_rci>0)&(hop_fifo_rci<256);
-wire initial_hop = hop_fifo_byte_pointer==`INITIAL_HOP;
+
+wire pp_meta_fifo_rd = parse_done0|parse_done1;
+
+logic load_prev_hop_pointer;
 
 logic [`HOP_INFO_BYTE_POINTER_RANGE] prev_hop_pointer;
 
@@ -107,13 +135,6 @@ always @* begin
 		mhop_fifo_rdata[`HOP_INFO_BYTE_POINTER] = prev_hop_pointer;
 end
 
-logic [`PP_META_RCI_RANGE] pp_meta_fifo_rci;
-
-wire pp_meta_fifo_rd = parse_done0|parse_done1;
-
-logic load_prev_hop_pointer;
-
-wire rci_match = (hop_fifo_rci==pp_meta_fifo_rci)|dynamic_hop;
 
 /**************************************************************************/
 assign pp_pu_hop_valid = ~pp_pu_fifo_empty;
@@ -456,16 +477,16 @@ sfifo2f_fo #(1+`HOP_INFO_NBITS, FIFO_DEPTH_NBITS) u_sfifo2f_fo0(
         .`RESET_SIG(`COMBINE_RESET(hop_fifo_reset0)),
 
         .din({hop_fifo_eop0, hop_fifo_wdata0}),              
-        .rd(hop_fifo_rd0),
+        .rd(phop_fifo_rd0),
         .wr(hop_fifo_wr0),
 
         .ncount(),
-        .count(hop_fifo_count0),
+        .count(),
         .full(hop_fifo_full0),
-        .empty(hop_fifo_empty0),
+        .empty(phop_fifo_empty0),
         .fullm1(hop_fifo_fullm10),
         .emptyp2(),
-        .dout({hop_fifo_reop0, hop_fifo_rdata0})       
+        .dout({phop_fifo_reop0, phop_fifo_rdata0})       
     );
 
 sfifo2f_fo #(1+`HOP_INFO_NBITS, FIFO_DEPTH_NBITS) u_sfifo2f_fo1(
@@ -473,16 +494,29 @@ sfifo2f_fo #(1+`HOP_INFO_NBITS, FIFO_DEPTH_NBITS) u_sfifo2f_fo1(
         .`RESET_SIG(`COMBINE_RESET(hop_fifo_reset1)),
 
         .din({hop_fifo_eop1, hop_fifo_wdata1}),              
-        .rd(hop_fifo_rd1),
+        .rd(phop_fifo_rd1),
         .wr(hop_fifo_wr1),
 
         .ncount(),
-        .count(hop_fifo_count1),
+        .count(),
         .full(hop_fifo_full1),
-        .empty(hop_fifo_empty1),
+        .empty(phop_fifo_empty1),
         .fullm1(hop_fifo_fullm11),
         .emptyp2(),
-        .dout({hop_fifo_reop1, hop_fifo_rdata1})       
+        .dout({phop_fifo_reop1, phop_fifo_rdata1})       
+    );
+
+sfifo1f #(5+`HOP_INFO_NBITS) u_sfifo1f_0(
+        .clk(clk),
+        .`RESET_SIG(`COMBINE_RESET(hop_fifo_reset)),
+
+        .din({prci_match, pdynamic_hop, pdummy_hop, pinitial_hop, phop_fifo_reop, phop_fifo_rdata}),              
+        .rd(hop_fifo_rd),
+        .wr(hop_fifo_wr),
+
+        .full(hop_fifo_full),
+        .empty(hop_fifo_empty),
+        .dout({rci_match, dynamic_hop, dummy_hop, initial_hop, hop_fifo_reop, hop_fifo_rdata})       
     );
 
 sfifo2f_fo #(`PP_META_RCI_NBITS, FIFO_DEPTH_NBITS) u_sfifo2f_fo2(

@@ -36,11 +36,12 @@ input clk;
 input `RESET_SIG;
 
 input [(WIDTH - 1):0] din;
-input rd, wr;
+input rd;
+/* (* keep = "true", max_fanout = 50 *) */ input wr;
 
 output full, empty;
 
-output [(WIDTH - 1):0] dout;
+/* (* keep = "true", max_fanout = 50 *) */ output [(WIDTH - 1):0] dout;
 
 
 /***************************** LOCAL VARIABLES *******************************/

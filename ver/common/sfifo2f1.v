@@ -52,8 +52,8 @@ output [(WIDTH - 1):0] dout;
 
 reg full, empty, fullm1, emptyp2;
 
-reg [DEPTH_NBITS-1:0] rptr /* synthesis maxfan = 16 preserve */;
-reg [DEPTH_NBITS-1:0] wptr /* synthesis maxfan = 16 preserve */;
+/* (* keep = "true", max_fanout = 50 *) */ reg [DEPTH_NBITS-1:0] rptr /* synthesis maxfan = 16 preserve */;
+/* (* keep = "true", max_fanout = 50 *) */ reg [DEPTH_NBITS-1:0] wptr /* synthesis maxfan = 16 preserve */;
 
 wire [DEPTH_NBITS-1:0] nrptr = rptr + rd;
 wire [DEPTH_NBITS-1:0] nwptr = wptr + wr;

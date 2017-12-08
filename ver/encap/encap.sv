@@ -206,22 +206,22 @@ wire encr_ring_out_sos4;
 wire encr_ring_out_valid4;
 
 wire tunnel_hash_table0_ack; 
-(* dont_touch = "true" *) wire [RCI_BUCKET_NBITS-1:0] tunnel_hash_table0_rdata  ;
+(* keep = "true" *) wire [RCI_BUCKET_NBITS-1:0] tunnel_hash_table0_rdata  ;
 
 wire tunnel_hash_table1_ack; 
-(* dont_touch = "true" *) wire [RCI_BUCKET_NBITS-1:0] tunnel_hash_table1_rdata  ;
+(* keep = "true" *) wire [RCI_BUCKET_NBITS-1:0] tunnel_hash_table1_rdata  ;
 
 wire tunnel_value_ack; 
-(* dont_touch = "true" *) wire [`TUNNEL_VALUE_NBITS-1:0] tunnel_value_rdata  ;
+(* keep = "true" *) wire [`TUNNEL_VALUE_NBITS-1:0] tunnel_value_rdata  ;
 
 wire ekey_hash_table0_ack; 
-(* dont_touch = "true" *) wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata  ;
+(* keep = "true" *) wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table0_rdata  ;
 
 wire ekey_hash_table1_ack; 
-(* dont_touch = "true" *) wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata  ;
+(* keep = "true" *) wire [EKEY_BUCKET_NBITS-1:0] ekey_hash_table1_rdata  ;
 
 wire ekey_value_ack; 
-(* dont_touch = "true" *) wire [EKEY_VALUE_NBITS-1:0] ekey_value_rdata  ;
+(* keep = "true" *) wire [EKEY_VALUE_NBITS-1:0] ekey_value_rdata  ;
 
 wire tunnel_hash_table0_rd; 
 wire [RCI_DEPTH_NBITS-1:0] tunnel_hash_table0_raddr;

@@ -52,7 +52,7 @@ wire ram_wr = reg_ms&reg_wr&reg_addr_dw[0];
 wire ram_rd_lsb = reg_ms&reg_rd&~reg_addr_dw[0];
 wire ram_rd_msb = reg_ms&reg_rd&reg_addr_dw[0];
 
-(* dont_touch = "true" *) wire [WIDTH-1:0] ram_rdata ;
+(* keep = "true" *) wire [WIDTH-1:0] ram_rdata ;
 
 wire ram_rd_mem_ack_lsb = ~app_mem_rd_d1&(ram_rd_lsb|ram_rd_save);
 

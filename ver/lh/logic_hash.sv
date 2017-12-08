@@ -89,9 +89,9 @@ wire serial_num_rd = set_type1;
 logic serial_num_ack;
 logic serial_num_ack_d1;
 wire [`FID_NBITS-1:0] serial_num_raddr = irl_lh_meta_data_d1.fid;
-(* dont_touch = "true" *) logic [`SERIAL_NUM_NBITS-1:0]   serial_num_rdata ;
+(* keep = "true" *) logic [`SERIAL_NUM_NBITS-1:0]   serial_num_rdata ;
 logic [`SERIAL_NUM_NBITS-1:0]   serial_num_rdata_d1;
-(* dont_touch = "true" *) logic [`PPL_NBITS-1:0]   ppl_rdata ;
+(* keep = "true" *) logic [`PPL_NBITS-1:0]   ppl_rdata ;
 logic [`PPL_NBITS-1:0]   ppl_rdata_d1;
 
 wire [`SERIAL_NUM_NBITS-1:0] pkt_serial_num = irl_lh_hdr_data_d1[`SERIAL_NUM_POS:`SERIAL_NUM_POS-`SERIAL_NUM_NBITS+1];
@@ -107,7 +107,7 @@ logic sc_fifo_data;
 wire logic_hash_rd = set_type1|set_type2; 
 logic logic_hash_ack;
 wire [`FID_NBITS-1:0] logic_hash_raddr = irl_lh_meta_data_d1.fid;
-(* dont_touch = "true" *) logic [`LOGIC_HASH_NBITS-1:0]   logic_hash_rdata ;
+(* keep = "true" *) logic [`LOGIC_HASH_NBITS-1:0]   logic_hash_rdata ;
 
 logic [`LOGIC_HASH_NBITS-1:0]   lh_gen_fifo_data;
 logic lh_gen_fifo_empty;
@@ -122,7 +122,8 @@ logic n_sel_st;
 
 wire sel_type12 = sel_st==SEL_TYPE12;
 
-wire logic_hash_compare = lh_gen_fifo_empty|lh_fifo_empty|(lh_gen_fifo_data==lh_fifo_data);
+logic logic_hash_compare;
+wire logic_hash_compare_p1 = lh_gen_fifo_empty|lh_fifo_empty|(lh_gen_fifo_data==lh_fifo_data);
 
 logic [`DATA_PATH_NBITS-1:0] lat_fifo_data;
 logic lat_fifo_sop;
@@ -333,6 +334,8 @@ always @(`CLK_RST)
 
 		in_fifo_eop_d1 <= 1'b0;
 
+		logic_hash_compare <= 1'b0;
+
     end else begin
 
 		init_wr <= ~init_addr[`FID_NBITS];
@@ -361,6 +364,8 @@ always @(`CLK_RST)
 		sel_st <= n_sel_st;
 
 		in_fifo_eop_d1 <= sel_type2&in_fifo_rd&in_fifo_eop;
+
+		logic_hash_compare <= logic_hash_compare_p1;
     end
 
 

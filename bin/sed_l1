@@ -1,0 +1,10 @@
+for file in ~/projects/mackinac/ver/*/*.v ; do
+cat "$file" | sed '/\/\* synthesis DONT_TOUCH \*\//s/^/\(\* dont_touch = \"true\" \*\) /;s/\/\* synthesis DONT_TOUCH \*\///' > temp
+rm -f "$file"
+mv temp "$file"
+done
+for file in ~/projects/mackinac/ver/*/*.sv ; do
+cat "$file" | sed '/\/\* synthesis DONT_TOUCH \*\//s/^/\(\* dont_touch = \"true\" \*\) /;s/\/\* synthesis DONT_TOUCH \*\///' > temp
+rm -f "$file"
+mv temp "$file"
+done

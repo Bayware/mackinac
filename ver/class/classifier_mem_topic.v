@@ -63,10 +63,10 @@ output topic_hash_table1_ack,
 output [BUCKET_NBITS-1:0] topic_hash_table1_rdata,
 
 output reg topic_key_ack, 
-(* dont_touch = "true" *) output [VALUE_NBITS-1:0] topic_key_rdata ,
+(* keep = "true" *) output [VALUE_NBITS-1:0] topic_key_rdata ,
 
 output reg topic_etime_ack, 
-(* dont_touch = "true" *) output [`EXP_TIME_NBITS-1:0] topic_etime_rdata 
+(* keep = "true" *) output [`EXP_TIME_NBITS-1:0] topic_etime_rdata 
 
 
 );

@@ -17,7 +17,7 @@ parameter OUT_WIDTH = `PU_WIDTH_NBITS
 	input [RF_WIDTH-1:0] rs1, rs2, 
 	input [2:0] funct3,
 	input [4:0] funct5,
-	output logic [OUT_WIDTH-1:0] alu
+/* (* keep = "true", max_fanout = 40 *) */ output logic [OUT_WIDTH-1:0] alu
 );
 
 wire [RF_WIDTH-1:0] in_a = rs1;

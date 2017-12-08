@@ -144,10 +144,10 @@ wire deq_active = fifo_rd6;
 wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] freeq_head;
 wire [`FIRST_LVL_QUEUE_ID_NBITS:0] freeq_count;
 
-(* dont_touch = "true" *) wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ll_rdata  ;
-(* dont_touch = "true" *) wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] head_rdata  ;
-(* dont_touch = "true" *) wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] tail_rdata  ;
-(* dont_touch = "true" *) pkt_desc_type pkt_desc_rdata  ;
+(* keep = "true" *) wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] ll_rdata  ;
+(* keep = "true" *) wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] head_rdata  ;
+(* keep = "true" *) wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] tail_rdata  ;
+(* keep = "true" *) pkt_desc_type pkt_desc_rdata  ;
 
 wire lat_fifo_enq_drop;
 wire [`FIRST_LVL_QUEUE_ID_NBITS-1:0] lat_fifo_enq_qid;

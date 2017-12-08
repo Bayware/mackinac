@@ -450,7 +450,7 @@ flop_rst_en #(1) u_flop_rst_en_9(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(mexec_u
 logic [PC_NBITS-1:0] pc_d1;
 flop_rst_en #(PC_NBITS<<1) u_pc(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(update_pc), .din({pc, next_pc}), .dout({pc_d1, pc}));
 
-(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_inst0, ram_inst1, ram_inst2, ram_inst3, ram_inst;
+(* keep = "true" *) logic [WIDTH_NBITS-1:0] ram_inst0, ram_inst1, ram_inst2, ram_inst3, ram_inst;
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_0(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS-1:0]), .dout(ram_inst0));
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_1(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS*2-1:WIDTH_NBITS*1]), .dout(ram_inst1));
 ram_1r1w_bram #(WIDTH_NBITS, INST_DEPTH_NBITS+1) u_ram_1r1w_bram_2(.clk(clk), .wr(en_inst_wr), .raddr({db_fifo_pc_msb, pc[PC_NBITS-1:3]}), .waddr(inst_wr_addr), .din(init_wr?0:piarb_pu_inst_data[WIDTH_NBITS*3-1:WIDTH_NBITS*2]), .dout(ram_inst2));
@@ -534,7 +534,7 @@ logic fetch_fifo_exec_flag;
 wire [WIDTH_NBITS-1:0] fetch_fifo_din1 = mlow_half_av?{inst_low_half, instr[31:16]}:instr;
 wire [WIDTH_NBITS-1:0] fetch_fifo_din = inst_32b?{fetch_fifo_din1[15:0], fetch_fifo_din1[31:16]}:expansion(fetch_fifo_din1[31:16]);
 logic fetch_fifo_empty;
-logic [WIDTH_NBITS-1:0] fetch_fifo_dout;
+/* (* keep = "true", max_fanout = 50 *) */ logic [WIDTH_NBITS-1:0] fetch_fifo_dout;
 sfifo1f #(1+WIDTH_NBITS+2+`TID_NBITS+`FID_NBITS+1+BUFFER_NUM_NBITS+PC_NBITS) u_sfifo1f_2(.clk(clk), .`RESET_SIG(`RESET_SIG), .wr(fetch_fifo_wr), .din({fetch_fifo_pc_p1, inst_32b, fetch_fifo_din, inst_fifo_dec_flag, inst_fifo_exec_flag, inst_fifo_tid, inst_fifo_fid, inst_fifo_fid_sel, inst_fifo_buf_sel}), .dout({fetch_fifo_pc, fetch_fifo_inst_32b, fetch_fifo_dout, fetch_fifo_dec_flag, fetch_fifo_exec_flag, fetch_fifo_tid, fetch_fifo_fid, fetch_fifo_fid_sel, fetch_fifo_buf_sel}), .rd(fetch_fifo_rd), .full(fetch_fifo_full), .empty(fetch_fifo_empty));
 
 /* decode */
@@ -558,7 +558,8 @@ logic exec_fifo_empty;
 logic mem_fifo_empty;
 logic mem_fifo_load00;
 logic mem_fifo_load10;
-exec_type exec_cmd, exec_cmd_d1, exec_cmd_d2;
+exec_type exec_cmd, exec_cmd_d2;
+/* (* keep = "true", max_fanout = 15 *) */ exec_type exec_cmd_d1;
 wire load_use_delay_en = ~dec_fifo_empty&(exec_cmd.load&~dec_cmd.load)&((dec_cmd.use_rs1&(exec_cmd.wb_addr==dec_cmd.rs1))|(dec_cmd.use_rs2&(exec_cmd.wb_addr==dec_cmd.rs2)));
 wire load_use_delay_en0 = ~exec_fifo_empty&(exec_cmd_d1.load&~dec_cmd.load)&((dec_cmd.use_rs1&(exec_cmd_d1.wb_addr==dec_cmd.rs1))|(dec_cmd.use_rs2&(exec_cmd_d1.wb_addr==dec_cmd.rs2)));
 wire load_use_delay_en1 = ~mem_fifo_empty&(exec_cmd_d2.load&~dec_cmd.load&(mem_fifo_load00|mem_fifo_load10))&((dec_cmd.use_rs1&(exec_cmd_d2.wb_addr==dec_cmd.rs1))|(dec_cmd.use_rs2&(exec_cmd_d2.wb_addr==dec_cmd.rs2)));
@@ -568,7 +569,7 @@ wire dec_fifo_av = ~dec_fifo_full|dec_fifo_rd;
 wire dec_fifo_wr_en = ~(load_use_delay_en|load_use_delay_en0|load_use_delay_en1)&~stall_pipeline&~fetch_fifo_empty&dec_fifo_av;
 assign fetch_fifo_rd = dec_fifo_wr_en;
 
-wire dec_fifo_wr = dec_fifo_wr_en;
+/* (* keep = "true", max_fanout = 40 *) */ wire dec_fifo_wr = dec_fifo_wr_en;
 
 flop_rst_en #(1) u_flop_rst_en_131(.clk(clk), .`RESET_SIG(`RESET_SIG), .en(dec_fifo_wr), .din(1'b1), .dout({en_load_delay}));
 logic dec_fifo_wr_d1;
@@ -651,7 +652,7 @@ wire [WIDTH_NBITS-1:0] mrf_data1 = mem_wb_en&mem_wb_addr_cmp2?mem_wb_data:
 wire [2:0] alu_f3 = dec_cmd_d1.load|dec_cmd_d1.store|dec_cmd_d1.atomic?0:dec_cmd_d1.funct3;
 wire [4:0] alu_f5 = dec_cmd_d1.load|dec_cmd_d1.store|dec_cmd_d1.atomic?0:dec_cmd_d1.funct5;
 
-logic [WIDTH_NBITS-1:0] alu_out;
+/* (* keep = "true", max_fanout = 40 *) */ logic [WIDTH_NBITS-1:0] alu_out;
 pu_alu u_pu_alu(.use_imm(dec_cmd_d1.use_imm), .imm(dec_cmd_d1.imm), .rs1(mrf_data0), .rs2(mrf_data1), .funct3(alu_f3), .funct5(alu_f5), .alu(alu_out));
 
 logic do_branch;
@@ -776,11 +777,11 @@ wire [3:0] ram_we00 = ram_we&{(4){ram_wr00}};
 wire [HOP_MEM_DEPTH_LSB_NBITS-1:0] ram_waddr00 = exec_fifo_exception?(`RAS_BASE+0)>>2:exec_cmd_d1.mem_addr[HOP_MEM_DEPTH_LSB_NBITS-1+2:0+2];
 wire [HOP_MEM_DEPTH_NBITS-1:0] ram_raddr00 = {(load_registers?0:exec_fifo_buf_sel), ram_waddr00};
 
-(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata00 ;
+(* keep = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata00 ;
 
 logic ram_rd01;
 logic [HOP_MEM_DEPTH_NBITS-1:0] ram_raddr01;
-(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata01 ;
+(* keep = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata01 ;
 
 pio_rw_dmem_bram #(WIDTH_NBITS, HOP_MEM_DEPTH_NBITS) u_pio_rw_dmem_bram(.clk(clk), .wea(ram_we00), .addra(~ram_wr00?ram_raddr00:{exec_fifo_buf_sel, ram_waddr00}), .dina(ram_wdata00), .douta(ram_rdata00), .web({(4){ram_wr01}}), .addrb(~ram_wr01?ram_raddr01:ram_waddr01), .dinb(ram_wdata01), .doutb(ram_rdata01), .app_mem_rd(ram_rd01), .clk_div(clk_div), .`RESET_SIG(`RESET_SIG), .reg_addr(reg_addr), .reg_din(reg_din), .reg_rd(reg_rd), .reg_wr(reg_wr), .reg_ms(reg_ms), .mem_ack(mem_ack), .mem_rdata(mem_rdata));
 
@@ -788,13 +789,13 @@ wire sel_16byte_mem = sel_data&(exec_cmd_d1.mem_addr[`PU_MEM_DATA_DEPTH_RANGE]==
 wire [1:0] ram_raddr10_lsb = exec_cmd_d1.mem_addr[3:2];
 wire disable_wr = exec_fifo_exception|exec_fifo_end_program;
 wire ram_wr10_0 = mem_fifo_wr_en&sel_16byte_mem&~disable_wr&exec_cmd_d1.mem_wr&(ram_raddr10_lsb==2'b11);
-(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_0 ;
+(* keep = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_0 ;
 wire ram_wr10_1 = mem_fifo_wr_en&sel_16byte_mem&~disable_wr&exec_cmd_d1.mem_wr&(ram_raddr10_lsb==2'b10);
-(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_1 ;
+(* keep = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_1 ;
 wire ram_wr10_2 = mem_fifo_wr_en&sel_16byte_mem&~disable_wr&exec_cmd_d1.mem_wr&(ram_raddr10_lsb==2'b01);
-(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_2 ;
+(* keep = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_2 ;
 wire ram_wr10_3 = mem_fifo_wr_en&sel_16byte_mem&~disable_wr&exec_cmd_d1.mem_wr&(ram_raddr10_lsb==2'b00);
-(* dont_touch = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_3 ;
+(* keep = "true" *) logic [WIDTH_NBITS-1:0] ram_rdata10_3 ;
 wire [PD_MEM_DEPTH_LSB_NBITS-1:0] ram_waddr10 = exec_cmd_d1.mem_addr[PD_MEM_DEPTH_LSB_NBITS-1+4:0+4];
 wire [PD_MEM_DEPTH_LSB_NBITS-1:0] ram_raddr10 = ram_waddr10;
 wire [3:0] ram_we10_0 = {(4){ram_wr10_0}}&ram_we;
@@ -808,7 +809,7 @@ wire [PD_MEM_DEPTH_LSB_NBITS-1:0] pd_wr_addr_lsb = en_pd_wr?{`PU_MEM_PD, pd_wr_c
 wire [PD_MEM_DEPTH_NBITS-1:0] ram_waddr11 = {wr_pd_buf_sel, pd_wr_addr_lsb};
 wire [`DATA_PATH_NBITS-1:0] ram_wdata11 = en_pd_wr0?ff_piarb_pu_inst_data:0;
 logic [PD_MEM_DEPTH_NBITS-1:0] ram_raddr11;
-(* dont_touch = "true" *) logic [`DATA_PATH_NBITS-1:0] ram_rdata11 ;
+(* keep = "true" *) logic [`DATA_PATH_NBITS-1:0] ram_rdata11 ;
 
 ram_dual_we_bram #(WIDTH_NBITS/4, PD_MEM_DEPTH_NBITS) u_ram_dual_we_bram_4(.clka(clk), .wea(ram_we10_0), .addra(~|ram_we10_0?{exec_fifo_buf_sel, ram_raddr10}:{exec_fifo_buf_sel, ram_waddr10}), .dina(ram_wdata10), .douta(ram_rdata10_0), .clkb(clk), .web({(4){ram_wr11}}), .addrb(~ram_wr11?ram_raddr11:ram_waddr11), .dinb(ram_wdata11[WIDTH_NBITS*1-1:WIDTH_NBITS*0]), .doutb(ram_rdata11[WIDTH_NBITS*1-1:WIDTH_NBITS*0]));
 ram_dual_we_bram #(WIDTH_NBITS/4, PD_MEM_DEPTH_NBITS) u_ram_dual_we_bram_5(.clka(clk), .wea(ram_we10_1), .addra(~|ram_we10_1?{exec_fifo_buf_sel, ram_raddr10}:{exec_fifo_buf_sel, ram_waddr10}), .dina(ram_wdata10), .douta(ram_rdata10_1), .clkb(clk), .web({(4){ram_wr11}}), .addrb(~ram_wr11?ram_raddr11:ram_waddr11), .dinb(ram_wdata11[WIDTH_NBITS*2-1:WIDTH_NBITS*1]), .doutb(ram_rdata11[WIDTH_NBITS*2-1:WIDTH_NBITS*1]));
@@ -1008,7 +1009,7 @@ wire reset_ras_rd = mras_rd_st&last_ras_rd_cnt;
 wire set_pd_rd = (pu_rd_st==RD_PD)&(pd_rd_cnt==0);
 logic pd_rd_st;
 wire mpd_rd_st = pd_rd_st&&pd_fifo_av&~ram_wr11;
-logic pd_rd_st_d1;
+/* (* keep = "true", max_fanout = 70 *) */ logic pd_rd_st_d1;
 wire reset_pd_rd = mpd_rd_st&last_pd_rd_cnt;
 logic [BUFFER_NUM_NBITS-1:0] rd_buf_sel;
 logic rd_fid_sel;

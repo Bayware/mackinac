@@ -1,6 +1,5 @@
 
 ../bin/setenv
-../bin/sim.uvm_pkg
 vlog -work work -f ../bin/sim_uvm_pkg.f
 vlog -work work -f ../../mackinac/dv/env/core_env.f
 vopt core_tb -designfile design.db -debug -o opt

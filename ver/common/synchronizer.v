@@ -13,8 +13,8 @@ output  dout;
 input    clk; 
 input   din;
 
-reg din_d1;
-reg dout;
+(* ASYNC_REG = "TRUE" *) reg din_d1;
+(* ASYNC_REG = "TRUE" *) reg dout;
 
 always @(posedge clk) begin
 	din_d1 <= din;

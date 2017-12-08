@@ -70,9 +70,9 @@ reg rd_snoop_hit0;
 reg rd_snoop_hit12;
 reg [RC_NBITS-1:0] mrel_ctr_wdata;
 
-(* dont_touch = "true" *) wire [RC_NBITS-1:0] rd_cnt  ;
+(* keep = "true" *) wire [RC_NBITS-1:0] rd_cnt  ;
 
-(* dont_touch = "true" *) wire [RC_NBITS-1:0] rel_ctr_rdata  ;
+(* keep = "true" *) wire [RC_NBITS-1:0] rel_ctr_rdata  ;
 
 wire [BPTR_NBITS-1:0] fifo_buf_ptr;
 wire [ID_NBITS-1:0] fifo_port_id;
